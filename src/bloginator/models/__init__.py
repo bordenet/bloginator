@@ -7,4 +7,6 @@ This module defines all data models used throughout the application:
 - Configuration models
 """
 
-__all__ = []
+from bloginator.models.document import Chunk, Document, QualityRating
+
+__all__ = ["Document", "Chunk", "QualityRating"]
