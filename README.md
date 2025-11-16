@@ -135,7 +135,8 @@ bloginator/
 ├── scripts/                 # Build and validation scripts
 ├── pyproject.toml           # Project configuration
 ├── .pre-commit-config.yaml  # Pre-commit hooks
-└── validate-bloginator.sh   # Full validation script
+├── validate-monorepo.sh     # Main validation script (recommended)
+└── validate-bloginator.sh   # Legacy validation script (deprecated)
 ```
 
 ---
@@ -171,14 +172,23 @@ This project maintains **strict quality gates** to ensure reliability:
 #### Full Validation
 
 ```bash
-# Run complete validation suite
-./validate-bloginator.sh
+# Run complete validation suite (recommended)
+./validate-monorepo.sh
+
+# Quick validation (skip tests)
+./validate-monorepo.sh --quick
+
+# Full validation with integration tests
+./validate-monorepo.sh --all
 
 # Auto-fix formatting issues
-./validate-bloginator.sh --fix
+./validate-monorepo.sh --fix
 
-# Skip slow tests (for pre-commit)
-./validate-bloginator.sh --skip-slow
+# Verbose output
+./validate-monorepo.sh --verbose
+
+# Legacy script (deprecated but still works)
+./validate-bloginator.sh
 ```
 
 ### Testing
@@ -345,7 +355,7 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) (coming 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes
-4. Run validation: `./validate-bloginator.sh`
+4. Run validation: `./validate-monorepo.sh`
 5. Commit your changes (`git commit -m 'Add amazing feature'`)
 6. Push to the branch (`git push origin feature/amazing-feature`)
 7. Open a Pull Request
