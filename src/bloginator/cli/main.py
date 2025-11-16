@@ -3,6 +3,7 @@
 import click
 
 from bloginator import __version__
+from bloginator.cli.blocklist import blocklist
 from bloginator.cli.extract import extract
 from bloginator.cli.index import index
 from bloginator.cli.search import search
@@ -42,6 +43,7 @@ def cli(ctx: click.Context) -> None:
 
 
 # Register commands
+cli.add_command(blocklist)
 cli.add_command(extract)
 cli.add_command(index)
 cli.add_command(search)
