@@ -1,4 +1,20 @@
 #!/bin/bash
+#
+# DEPRECATED: Use validate-monorepo.sh instead
+#
+# This script is maintained for backwards compatibility.
+# The newer validate-monorepo.sh provides:
+# - Better logging with colors and structure
+# - More comprehensive checks (security, integration tests)
+# - Consistent with RecipeArchive patterns
+# - Options: --quick, --all, --fix, --verbose
+#
+# Usage:
+#   ./validate-monorepo.sh           # Standard validation
+#   ./validate-monorepo.sh --quick   # Skip tests
+#   ./validate-monorepo.sh --all     # Include integration tests
+#   ./validate-monorepo.sh --fix     # Auto-fix issues
+#
 set -e
 
 SKIP_SLOW=false
@@ -31,15 +47,26 @@ echo "╔═══════════════════════�
 echo "║   Bloginator Validation Suite          ║"
 echo "╚════════════════════════════════════════╝"
 echo ""
+echo "⚠️  DEPRECATION NOTICE:"
+echo "   This script is deprecated. Please use validate-monorepo.sh instead."
+echo "   validate-monorepo.sh provides better logging, more checks, and consistent patterns."
+echo ""
+echo "   Continuing with legacy validation..."
+echo ""
 
 # Activate venv if not already active
 if [[ -z "$VIRTUAL_ENV" ]]; then
-    if [[ -f "venv/bin/activate" ]]; then
-        echo "Activating virtual environment..."
+    # Try .venv first (recommended), then venv (legacy)
+    if [[ -f ".venv/bin/activate" ]]; then
+        echo "Activating virtual environment (.venv)..."
+        source .venv/bin/activate
+    elif [[ -f "venv/bin/activate" ]]; then
+        echo "Activating virtual environment (venv)..."
         source venv/bin/activate
     else
         echo "⚠️  Virtual environment not found."
-        echo "   Run: python3 -m venv venv && source venv/bin/activate && pip install -e '.[dev]'"
+        echo "   Run: ./scripts/setup-macos.sh"
+        echo "   Or manually: python3 -m venv .venv && source .venv/bin/activate && pip install -e '.[dev]'"
         exit 1
     fi
 fi
