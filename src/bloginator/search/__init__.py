@@ -7,4 +7,6 @@ This module handles:
 - Combined scoring and ranking
 """
 
-__all__ = []
+from bloginator.search.searcher import CorpusSearcher, SearchResult
+
+__all__ = ["CorpusSearcher", "SearchResult"]
