@@ -5,6 +5,7 @@ import click
 from bloginator import __version__
 from bloginator.cli.extract import extract
 from bloginator.cli.index import index
+from bloginator.cli.search import search
 
 
 @click.group()
@@ -31,6 +32,9 @@ def cli(ctx: click.Context) -> None:
       Index documents:
         bloginator index output/extracted -o output/index
 
+      Search corpus:
+        bloginator search output/index "agile transformation"
+
     For more help on a command:
       bloginator <command> --help
     """
@@ -40,6 +44,7 @@ def cli(ctx: click.Context) -> None:
 # Register commands
 cli.add_command(extract)
 cli.add_command(index)
+cli.add_command(search)
 
 
 @cli.command()
