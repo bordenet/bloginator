@@ -7,4 +7,6 @@ This module handles:
 - Violation reporting
 """
 
-__all__ = []
+from bloginator.safety.blocklist import BlocklistManager
+
+__all__ = ["BlocklistManager"]
