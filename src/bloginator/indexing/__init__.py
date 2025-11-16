@@ -7,4 +7,6 @@ This module handles:
 - Metadata indexing and filtering
 """
 
-__all__ = []
+from bloginator.indexing.indexer import CorpusIndexer
+
+__all__ = ["CorpusIndexer"]
