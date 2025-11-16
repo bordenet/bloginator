@@ -1,10 +1,25 @@
 """Content generation module.
 
 This module handles:
-- Outline generation from keywords and themes
+- LLM integration (Ollama, future cloud providers)
+- Outline generation from keywords and themes with RAG
 - Draft generation with RAG (Retrieval-Augmented Generation)
 - Source attribution and citations
-- Cost tracking for cloud LLM usage
+- Voice similarity scoring
 """
 
-__all__ = []
+from bloginator.generation.llm_client import (
+    LLMClient,
+    LLMProvider,
+    LLMResponse,
+    OllamaClient,
+    create_llm_client,
+)
+
+__all__ = [
+    "LLMClient",
+    "LLMProvider",
+    "LLMResponse",
+    "OllamaClient",
+    "create_llm_client",
+]
