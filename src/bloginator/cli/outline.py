@@ -79,6 +79,12 @@ from bloginator.search import CorpusSearcher
     type=click.Path(path_type=Path),
     help="Path to log file (logs to stdout if not specified)",
 )
+@click.option(
+    "--verbose",
+    "-v",
+    is_flag=True,
+    help="Show LLM request/response interactions",
+)
 def outline(
     index_dir: Path,
     title: str,
@@ -91,6 +97,7 @@ def outline(
     output_format: str,
     min_coverage: int,
     log_file: Path | None,
+    verbose: bool,
 ) -> None:
     """Generate document outline from keywords and thesis.
 
@@ -121,11 +128,8 @@ def outline(
         log_file.parent.mkdir(parents=True, exist_ok=True)
         logging.basicConfig(
             level=logging.INFO,
-            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-            handlers=[
-                logging.FileHandler(log_file),
-                logging.StreamHandler()
-            ]
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            handlers=[logging.FileHandler(log_file), logging.StreamHandler()],
         )
         logger = logging.getLogger(__name__)
         logger.info(f"Logging to {log_file}")
@@ -165,8 +169,10 @@ def outline(
         # Initialize LLM client
         task = progress.add_task("Connecting to LLM...", total=None)
         try:
-            logger.info(f"Connecting to LLM from config (model param '{model}' is ignored, using .env)")
-            llm_client = create_llm_from_config()
+            logger.info(
+                f"Connecting to LLM from config (model param '{model}' is ignored, using .env)"
+            )
+            llm_client = create_llm_from_config(verbose=verbose)
             logger.info("LLM client connected")
         except Exception as e:
             logger.error(f"Failed to connect to LLM: {e}")
@@ -186,7 +192,9 @@ def outline(
         # Generate outline
         task = progress.add_task("Generating outline structure...", total=None)
         try:
-            logger.info(f"Generating outline with {num_sections} sections, temperature={temperature}")
+            logger.info(
+                f"Generating outline with {num_sections} sections, temperature={temperature}"
+            )
             outline_obj = generator.generate(
                 title=title,
                 keywords=keyword_list,

@@ -4,11 +4,23 @@ Supports local LLM via Ollama with optional future cloud provider support.
 """
 
 import json
+import sys
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any
 
 import requests
+
+
+# ANSI color codes for verbose output (only if stdout is a TTY)
+if sys.stdout.isatty():
+    COLOR_PROMPT = "\033[37;40m"  # Light gray on black
+    COLOR_RESPONSE = "\033[33;44m"  # Yellow on dark blue
+    COLOR_RESET = "\033[0m"
+else:
+    COLOR_PROMPT = ""
+    COLOR_RESPONSE = ""
+    COLOR_RESET = ""
 
 
 class LLMProvider(str, Enum):
@@ -111,6 +123,7 @@ class OllamaClient(LLMClient):
         model: str = "llama3",
         base_url: str = "http://localhost:11434",
         timeout: int = 120,
+        verbose: bool = False,
     ):
         """Initialize Ollama client.
 
@@ -118,10 +131,12 @@ class OllamaClient(LLMClient):
             model: Model name (e.g., "llama3", "mistral", "codellama")
             base_url: Ollama server URL
             timeout: Request timeout in seconds
+            verbose: Show LLM request/response interactions
         """
         self.model = model
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
+        self.verbose = verbose
 
     def generate(
         self,
@@ -152,6 +167,14 @@ class OllamaClient(LLMClient):
         if system_prompt:
             full_prompt = f"{system_prompt}\n\n{prompt}"
 
+        # Display request if verbose
+        if self.verbose:
+            print(f"\n{COLOR_PROMPT}{'=' * 80}")
+            print(f"LLM REQUEST (Ollama - {self.model})")
+            print(f"{'=' * 80}")
+            print(full_prompt)
+            print(f"{'=' * 80}{COLOR_RESET}\n")
+
         payload = {
             "model": self.model,
             "prompt": full_prompt,
@@ -175,6 +198,14 @@ class OllamaClient(LLMClient):
             # Rough estimate: ~4 chars per token
             prompt_tokens = len(full_prompt) // 4
             completion_tokens = len(content) // 4
+
+            # Display response if verbose
+            if self.verbose:
+                print(f"\n{COLOR_RESPONSE}{'=' * 80}")
+                print(f"LLM RESPONSE ({len(content)} chars)")
+                print(f"{'=' * 80}")
+                print(content)
+                print(f"{'=' * 80}{COLOR_RESET}\n")
 
             return LLMResponse(
                 content=content,
@@ -259,6 +290,7 @@ class CustomLLMClient(LLMClient):
         api_key: str | None = None,
         headers: dict[str, str] | None = None,
         timeout: int = 120,
+        verbose: bool = False,
     ):
         """Initialize custom LLM client.
 
@@ -268,11 +300,13 @@ class CustomLLMClient(LLMClient):
             api_key: Optional API key (will be added to Authorization header)
             headers: Additional custom headers
             timeout: Request timeout in seconds
+            verbose: Show LLM request/response interactions
         """
         self.model = model
         self.base_url = base_url.rstrip("/")
         self.api_key = api_key
         self.timeout = timeout
+        self.verbose = verbose
 
         # Build headers
         self.headers = {"Content-Type": "application/json"}
@@ -313,6 +347,19 @@ class CustomLLMClient(LLMClient):
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": prompt})
 
+        # Build full prompt for display
+        full_prompt = prompt
+        if system_prompt:
+            full_prompt = f"{system_prompt}\n\n{prompt}"
+
+        # Display request if verbose
+        if self.verbose:
+            print(f"\n{COLOR_PROMPT}{'=' * 80}")
+            print(f"LLM REQUEST (Custom - {self.model})")
+            print(f"{'=' * 80}")
+            print(full_prompt)
+            print(f"{'=' * 80}{COLOR_RESET}\n")
+
         payload = {
             "model": self.model,
             "messages": messages,
@@ -334,6 +381,14 @@ class CustomLLMClient(LLMClient):
             usage = data.get("usage", {})
             prompt_tokens = usage.get("prompt_tokens", 0)
             completion_tokens = usage.get("completion_tokens", 0)
+
+            # Display response if verbose
+            if self.verbose:
+                print(f"\n{COLOR_RESPONSE}{'=' * 80}")
+                print(f"LLM RESPONSE ({len(content)} chars)")
+                print(f"{'=' * 80}")
+                print(content)
+                print(f"{'=' * 80}{COLOR_RESET}\n")
 
             return LLMResponse(
                 content=content,
