@@ -60,9 +60,19 @@ def extract(source: Path, output: Path, quality: str, tags: str | None) -> None:
         files = [source]
     else:
         # Find all supported files in directory
+        # Note: Use os.walk to properly follow symlinks
+        import os
+
         files = []
-        for pattern in ["*.pdf", "*.docx", "*.md", "*.markdown", "*.txt"]:
-            files.extend(source.rglob(pattern))
+        supported_extensions = {".pdf", ".docx", ".md", ".markdown", ".txt"}
+
+        # Walk directory tree, following symlinks
+        for root, dirs, filenames in os.walk(source, followlinks=True):
+            root_path = Path(root)
+            for filename in filenames:
+                file_path = root_path / filename
+                if file_path.suffix.lower() in supported_extensions:
+                    files.append(file_path)
 
     if not files:
         console.print("[yellow]No supported files found.[/yellow]")
