@@ -1,5 +1,6 @@
 """CLI command for generating outlines."""
 
+import logging
 from pathlib import Path
 
 import click
@@ -7,7 +8,8 @@ from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 
-from bloginator.generation import OutlineGenerator, create_llm_client
+from bloginator.generation import OutlineGenerator
+from bloginator.generation.llm_factory import create_llm_from_config
 from bloginator.search import CorpusSearcher
 
 
@@ -72,6 +74,11 @@ from bloginator.search import CorpusSearcher
     default=3,
     help="Minimum sources for good coverage (default: 3)",
 )
+@click.option(
+    "--log-file",
+    type=click.Path(path_type=Path),
+    help="Path to log file (logs to stdout if not specified)",
+)
 def outline(
     index_dir: Path,
     title: str,
@@ -83,6 +90,7 @@ def outline(
     output_file: Path | None,
     output_format: str,
     min_coverage: int,
+    log_file: Path | None,
 ) -> None:
     """Generate document outline from keywords and thesis.
 
@@ -108,10 +116,29 @@ def outline(
           --keywords "testing,quality" \\
           --model llama3.1
     """
+    # Configure logging
+    if log_file:
+        log_file.parent.mkdir(parents=True, exist_ok=True)
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            handlers=[
+                logging.FileHandler(log_file),
+                logging.StreamHandler()
+            ]
+        )
+        logger = logging.getLogger(__name__)
+        logger.info(f"Logging to {log_file}")
+        logger.info(f"Starting outline generation: {title}")
+    else:
+        logging.basicConfig(level=logging.WARNING)
+        logger = logging.getLogger(__name__)
+
     console = Console()
 
     # Parse keywords
     keyword_list = [k.strip() for k in keywords.split(",") if k.strip()]
+    logger.info(f"Keywords: {keyword_list}")
 
     if not keyword_list:
         console.print("[red]✗[/red] No keywords provided")
@@ -126,8 +153,11 @@ def outline(
         # Load searcher
         task = progress.add_task("Loading corpus index...", total=None)
         try:
+            logger.info(f"Loading index from {index_dir}")
             searcher = CorpusSearcher(index_dir=index_dir)
+            logger.info("Index loaded successfully")
         except Exception as e:
+            logger.error(f"Failed to load index: {e}")
             console.print(f"[red]✗[/red] Failed to load index: {e}")
             return
         progress.update(task, completed=True)
@@ -135,14 +165,18 @@ def outline(
         # Initialize LLM client
         task = progress.add_task("Connecting to LLM...", total=None)
         try:
-            llm_client = create_llm_client(model=model)
+            logger.info(f"Connecting to LLM from config (model param '{model}' is ignored, using .env)")
+            llm_client = create_llm_from_config()
+            logger.info("LLM client connected")
         except Exception as e:
+            logger.error(f"Failed to connect to LLM: {e}")
             console.print(f"[red]✗[/red] Failed to connect to LLM: {e}")
-            console.print("[dim]Make sure Ollama is running: ollama serve[/dim]")
+            console.print("[dim]Make sure Ollama is running and check .env configuration[/dim]")
             return
         progress.update(task, completed=True)
 
         # Initialize generator
+        logger.info("Initializing outline generator")
         generator = OutlineGenerator(
             llm_client=llm_client,
             searcher=searcher,
@@ -152,6 +186,7 @@ def outline(
         # Generate outline
         task = progress.add_task("Generating outline structure...", total=None)
         try:
+            logger.info(f"Generating outline with {num_sections} sections, temperature={temperature}")
             outline_obj = generator.generate(
                 title=title,
                 keywords=keyword_list,
@@ -159,7 +194,9 @@ def outline(
                 num_sections=num_sections,
                 temperature=temperature,
             )
+            logger.info(f"Outline generated: {len(outline_obj.get_all_sections())} total sections")
         except Exception as e:
+            logger.error(f"Failed to generate outline: {e}", exc_info=True)
             console.print(f"[red]✗[/red] Failed to generate outline: {e}")
             return
         progress.update(task, completed=True)
@@ -192,14 +229,17 @@ def outline(
                     output_file.with_suffix(".json") if output_format == "both" else output_file
                 )
                 json_path.write_text(outline_obj.model_dump_json(indent=2))
+                logger.info(f"Saved JSON to {json_path}")
                 console.print(f"[green]✓[/green] Saved JSON to {json_path}")
 
             if output_format in ["markdown", "both"]:
                 md_path = output_file.with_suffix(".md") if output_format == "both" else output_file
                 md_path.write_text(outline_obj.to_markdown())
+                logger.info(f"Saved markdown to {md_path}")
                 console.print(f"[green]✓[/green] Saved markdown to {md_path}")
 
         except Exception as e:
+            logger.error(f"Failed to save outline: {e}")
             console.print(f"[red]✗[/red] Failed to save outline: {e}")
             return
     else:

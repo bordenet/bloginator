@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm:*)",
+      "Bash(python3.13 -m venv:*)",
+      "Bash(./scripts/setup-macos.sh:*)",
+      "Bash(./validate-monorepo.sh:*)",
+      "Bash(source:*)",
+      "Bash(black:*)",
+      "Bash(isort:*)",
+      "Bash(ruff check:*)",
+      "Bash(pytest:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfix: Resolve Python 3.13 venv activation and import issues\n\n- Add --copies flag to venv creation for Python 3.13 compatibility on macOS\n- Fix missing Searcher export in search module (__init__.py)\n- Add nosec comment for intentional 0.0.0.0 binding in web config\n- Skip web tests when fastapi not installed\n- Fix BlocklistEntry import in test_blocklist_cli\n- Fix unused variable warnings in test_version_manager\n- Apply black and isort formatting fixes\n- Merge .env.sample into .env.example and remove duplicate\n\nThe setup script now completes successfully without activation errors.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Read(//Users/matt/GitHub/Personal/blogs/**)",
+      "Read(//Users/matt/Library/CloudStorage/OneDrive-Personal/Documents/Career/TL/**)",
+      "Read(//Users/matt/Library/CloudStorage/OneDrive-Personal/Documents/Career/iStreamPlanet/**)",
+      "Read(//Volumes/**)",
+      "Bash(ping:*)",
+      "Bash(bloginator extract --help:*)",
+      "Bash(bloginator extract:*)",
+      "Bash(tee:*)",
+      "Bash(bloginator index --help:*)",
+      "Bash(bloginator index:*)",
+      "Bash(bloginator search:*)",
+      "Bash(bloginator outline --help:*)",
+      "Bash(bloginator draft --help:*)",
+      "Bash(chmod:*)",
+      "Bash(/Users/matt/GitHub/Personal/bloginator/test_e2e.sh:*)",
+      "Bash(curl:*)",
+      "Read(//private/tmp/bloginator_test_20251116_223140/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
