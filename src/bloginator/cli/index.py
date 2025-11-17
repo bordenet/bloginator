@@ -98,7 +98,7 @@ def index(source: Path, output: Path, chunk_size: int) -> None:
     if failed_count > 0:
         console.print(f"[yellow]✗ Failed to index {failed_count} document(s)[/yellow]")
 
-    console.print(f"\n[cyan]Index Statistics:[/cyan]")
+    console.print("\n[cyan]Index Statistics:[/cyan]")
     console.print(f"  Total chunks: {info['total_chunks']}")
     console.print(f"  Collection: {info['collection_name']}")
     console.print(f"  Output directory: {info['output_dir']}")

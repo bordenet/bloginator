@@ -215,9 +215,7 @@ class TestCompleteWorkflows:
         assert len(all_content) == len(queries)
         assert all(data["num_results"] >= 0 for data in all_content.values())
 
-    def test_incremental_corpus_building_workflow(
-        self, tmp_path: Path, fixtures_dir: Path
-    ) -> None:
+    def test_incremental_corpus_building_workflow(self, tmp_path: Path, fixtures_dir: Path) -> None:
         """Test workflow of incrementally building corpus over time."""
         index_dir = tmp_path / "incremental_corpus"
 
@@ -304,7 +302,7 @@ class TestCompleteWorkflows:
         assert len(templates) >= 12  # Should have at least 12 templates
 
         # Verify each template loads correctly
-        for template_id in templates.keys():
+        for template_id in templates:
             template = get_template(template_id)
 
             assert template is not None
@@ -330,8 +328,8 @@ class TestCompleteWorkflows:
         assert len(technical_templates) > 0
 
         # Verify templates are actually in the right categories
-        for template_id, template_meta in content_templates.items():
+        for _template_id, template_meta in content_templates.items():
             assert template_meta["category"] == "content"
 
-        for template_id, template_meta in career_templates.items():
+        for _template_id, template_meta in career_templates.items():
             assert template_meta["category"] == "career"

@@ -5,7 +5,7 @@ from unittest.mock import Mock
 import pytest
 
 from bloginator.generation.outline_generator import OutlineGenerator
-from bloginator.models.outline import Outline, OutlineSection
+from bloginator.models.outline import OutlineSection
 from bloginator.search import SearchResult
 
 

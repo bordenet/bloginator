@@ -130,9 +130,7 @@ class TestCorpusSearcher:
         """Test search with quality filter."""
         searcher = CorpusSearcher(index_dir=test_index)
 
-        results = searcher.search(
-            query="agile", n_results=5, quality_filter="preferred"
-        )
+        results = searcher.search(query="agile", n_results=5, quality_filter="preferred")
 
         assert len(results) > 0
         for result in results:
@@ -142,9 +140,7 @@ class TestCorpusSearcher:
         """Test search with format filter."""
         searcher = CorpusSearcher(index_dir=test_index)
 
-        results = searcher.search(
-            query="agile", n_results=5, format_filter="markdown"
-        )
+        results = searcher.search(query="agile", n_results=5, format_filter="markdown")
 
         assert len(results) > 0
         for result in results:
@@ -154,9 +150,7 @@ class TestCorpusSearcher:
         """Test search with tags filter."""
         searcher = CorpusSearcher(index_dir=test_index)
 
-        results = searcher.search(
-            query="agile", n_results=5, tags_filter=["culture"]
-        )
+        results = searcher.search(query="agile", n_results=5, tags_filter=["culture"])
 
         # Should only return results with "culture" tag
         assert len(results) > 0
@@ -168,9 +162,7 @@ class TestCorpusSearcher:
         """Test search with recency weighting."""
         searcher = CorpusSearcher(index_dir=test_index)
 
-        results = searcher.search_with_recency(
-            query="agile", n_results=3, recency_weight=0.8
-        )
+        results = searcher.search_with_recency(query="agile", n_results=3, recency_weight=0.8)
 
         assert len(results) > 0
         # All results should have recency scores
@@ -187,9 +179,7 @@ class TestCorpusSearcher:
         """Test search with quality weighting."""
         searcher = CorpusSearcher(index_dir=test_index)
 
-        results = searcher.search_with_quality(
-            query="agile", n_results=3, quality_weight=0.8
-        )
+        results = searcher.search_with_quality(query="agile", n_results=3, quality_weight=0.8)
 
         assert len(results) > 0
         # All results should have quality scores

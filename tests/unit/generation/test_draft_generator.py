@@ -5,7 +5,7 @@ from unittest.mock import Mock
 import pytest
 
 from bloginator.generation.draft_generator import DraftGenerator
-from bloginator.models.draft import Draft, DraftSection
+from bloginator.models.draft import DraftSection
 from bloginator.models.outline import Outline, OutlineSection
 from bloginator.search import SearchResult
 
@@ -117,9 +117,7 @@ class TestDraftGenerator:
         assert draft_section.citations[0].chunk_id == "chunk0"
         assert draft_section.citations[0].filename == "file0.md"
 
-    def test_generate_section_with_subsections(
-        self, generator, mock_llm_client, mock_searcher
-    ):
+    def test_generate_section_with_subsections(self, generator, mock_llm_client, mock_searcher):
         """Test generating section with subsections."""
         mock_searcher.search.return_value = [
             SearchResult(
@@ -316,9 +314,7 @@ class TestDraftGenerator:
         assert "Add more examples" in user_prompt
         assert "New source material" in user_prompt
 
-    def test_refine_section_preserves_subsections(
-        self, generator, mock_llm_client, mock_searcher
-    ):
+    def test_refine_section_preserves_subsections(self, generator, mock_llm_client, mock_searcher):
         """Test that refinement preserves subsections."""
         mock_searcher.search.return_value = []
 
