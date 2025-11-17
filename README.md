@@ -48,7 +48,8 @@ Bloginator solves this by:
 
 ### Flexible Deployment
 - **Local Mode**: Runs entirely locally with Ollama/LM Studio (complete privacy)
-- **Cloud Mode**: Optional cloud LLM support with cost controls and user consent
+- **Custom Endpoints**: Connect to any OpenAI-compatible API (vLLM, text-generation-webui, etc.)
+- **Cloud Mode**: Optional cloud LLM support (OpenAI, Anthropic) with cost controls and user consent
 
 ### Multi-Format Support
 - **Input**: PDF, DOCX, Markdown, TXT, ZIP archives
@@ -95,6 +96,29 @@ pre-commit install
 # Verify installation
 bloginator --version
 ```
+
+### Configuration (Optional)
+
+Bloginator works out-of-the-box with Ollama, but supports custom LLM endpoints:
+
+```bash
+# Copy environment template
+cp .env.example .env
+
+# Edit .env to configure your LLM
+# Examples:
+#   - Ollama (default): http://localhost:11434
+#   - LM Studio: http://localhost:1234/v1
+#   - Custom endpoint: https://your-api.com/v1
+```
+
+**Supported LLM Providers:**
+- **Ollama** (default) - Local, privacy-first
+- **LM Studio** - Local with OpenAI-compatible API
+- **vLLM** - High-performance self-hosted inference
+- **Custom endpoints** - Any OpenAI-compatible API
+
+See [CUSTOM_LLM_GUIDE.md](CUSTOM_LLM_GUIDE.md) for detailed configuration instructions.
 
 ### Basic Workflow
 
