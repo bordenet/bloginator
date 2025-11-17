@@ -6,10 +6,8 @@ Uses python-dotenv to load .env file from project root.
 
 import os
 from pathlib import Path
-from typing import Optional
 
 from dotenv import load_dotenv
-
 
 # Load .env file from project root
 _project_root = Path(__file__).parent.parent.parent
@@ -42,7 +40,7 @@ class Config:
     LLM_PROVIDER: str = os.getenv("BLOGINATOR_LLM_PROVIDER", "ollama")
     LLM_MODEL: str = os.getenv("BLOGINATOR_LLM_MODEL", "llama3")
     LLM_BASE_URL: str = os.getenv("BLOGINATOR_LLM_BASE_URL", "http://localhost:11434")
-    LLM_API_KEY: Optional[str] = os.getenv("BLOGINATOR_LLM_API_KEY")
+    LLM_API_KEY: str | None = os.getenv("BLOGINATOR_LLM_API_KEY")
     LLM_TIMEOUT: int = int(os.getenv("BLOGINATOR_LLM_TIMEOUT", "120"))
 
     # Generation defaults
@@ -50,10 +48,12 @@ class Config:
     LLM_MAX_TOKENS: int = int(os.getenv("BLOGINATOR_LLM_MAX_TOKENS", "2000"))
 
     # Custom LLM headers (for authentication, etc.)
-    LLM_CUSTOM_HEADERS: Optional[str] = os.getenv("BLOGINATOR_LLM_CUSTOM_HEADERS")
+    LLM_CUSTOM_HEADERS: str | None = os.getenv("BLOGINATOR_LLM_CUSTOM_HEADERS")
 
     # Web UI (if using)
-    WEB_HOST: str = os.getenv("BLOGINATOR_WEB_HOST", "0.0.0.0")
+    WEB_HOST: str = os.getenv(
+        "BLOGINATOR_WEB_HOST", "0.0.0.0"
+    )  # nosec B104 - intentional for web UI
     WEB_PORT: int = int(os.getenv("BLOGINATOR_WEB_PORT", "8000"))
 
     # Debug

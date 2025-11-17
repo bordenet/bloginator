@@ -1,7 +1,6 @@
 """Outline generation with RAG and coverage analysis."""
 
 from pathlib import Path
-from typing import Optional
 
 from bloginator.generation.llm_client import LLMClient
 from bloginator.models.outline import Outline, OutlineSection
@@ -121,9 +120,15 @@ Each section should have a title and brief description of its content."""
             # Note: We'd need to enhance search to return document IDs
             unique_sources.add(section.source_count)
 
-        outline.total_sources = len(unique_sources) if unique_sources else sum(
-            s.source_count for s in all_sections
-        ) // len(all_sections) if all_sections else 0
+        outline.total_sources = (
+            len(unique_sources)
+            if unique_sources
+            else (
+                sum(s.source_count for s in all_sections) // len(all_sections)
+                if all_sections
+                else 0
+            )
+        )
 
         outline.calculate_stats()
 
@@ -139,10 +144,10 @@ Each section should have a title and brief description of its content."""
             List of top-level OutlineSection objects
         """
         sections = []
-        current_section: Optional[OutlineSection] = None
-        current_subsection: Optional[OutlineSection] = None
+        current_section: OutlineSection | None = None
+        current_subsection: OutlineSection | None = None
 
-        lines = content.strip().split('\n')
+        lines = content.strip().split("\n")
 
         for line in lines:
             line = line.strip()
@@ -150,7 +155,7 @@ Each section should have a title and brief description of its content."""
                 continue
 
             # Main section (## Heading)
-            if line.startswith('## '):
+            if line.startswith("## "):
                 if current_section:
                     sections.append(current_section)
                 title = line[3:].strip()
@@ -158,7 +163,7 @@ Each section should have a title and brief description of its content."""
                 current_subsection = None
 
             # Subsection (### Heading)
-            elif line.startswith('### '):
+            elif line.startswith("### "):
                 if current_section:
                     title = line[4:].strip()
                     current_subsection = OutlineSection(title=title)
@@ -170,9 +175,7 @@ Each section should have a title and brief description of its content."""
                     " " + line if current_subsection.description else line
                 )
             elif current_section:
-                current_section.description += (
-                    " " + line if current_section.description else line
-                )
+                current_section.description += " " + line if current_section.description else line
 
         # Add final section
         if current_section:
@@ -180,9 +183,7 @@ Each section should have a title and brief description of its content."""
 
         return sections
 
-    def _analyze_section_coverage(
-        self, section: OutlineSection, keywords: list[str]
-    ) -> None:
+    def _analyze_section_coverage(self, section: OutlineSection, keywords: list[str]) -> None:
         """Analyze corpus coverage for a section.
 
         Updates section.coverage_pct and section.source_count based on

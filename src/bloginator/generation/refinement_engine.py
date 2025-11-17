@@ -1,7 +1,6 @@
 """Refinement engine for iterative draft improvement."""
 
 import logging
-from typing import Optional
 
 from bloginator.generation.draft_generator import DraftGenerator
 from bloginator.generation.llm_client import LLMClient
@@ -34,8 +33,8 @@ class RefinementEngine:
         self,
         llm_client: LLMClient,
         searcher: Searcher,
-        voice_scorer: Optional[VoiceScorer] = None,
-        safety_validator: Optional[SafetyValidator] = None,
+        voice_scorer: VoiceScorer | None = None,
+        safety_validator: SafetyValidator | None = None,
     ):
         """Initialize refinement engine.
 
@@ -176,9 +175,7 @@ Examples:
             sections_to_refine = draft.sections
         else:
             # Find matching sections
-            sections_to_refine = [
-                s for s in draft.sections if s.title in target_sections
-            ]
+            sections_to_refine = [s for s in draft.sections if s.title in target_sections]
 
         if not sections_to_refine:
             logger.warning("No sections matched for refinement, returning original")
@@ -246,10 +243,12 @@ Examples:
             return section
 
         # Build context from search results
-        context = "\n\n".join([
-            f"[Source: {r.metadata.get('filename', 'unknown')}]\n{r.content}"
-            for r in search_results[:5]
-        ])
+        context = "\n\n".join(
+            [
+                f"[Source: {r.metadata.get('filename', 'unknown')}]\n{r.content}"
+                for r in search_results[:5]
+            ]
+        )
 
         # Build refinement prompt
         refine_prompt = f"""Refine the following section based on the user's feedback.
@@ -298,6 +297,7 @@ Write the refined section content:"""
                     "similarity_score": result.similarity_score,
                 }
                 from bloginator.models.draft import Citation
+
                 refined_section.citations.append(Citation(**citation))
 
             return refined_section
@@ -311,7 +311,7 @@ Write the refined section content:"""
         draft: Draft,
         section_title: str,
         instructions: str,
-    ) -> Optional[DraftSection]:
+    ) -> DraftSection | None:
         """Refine a single section by title.
 
         Args:

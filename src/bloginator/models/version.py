@@ -2,7 +2,6 @@
 
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -26,7 +25,7 @@ class DraftVersion(BaseModel):
     timestamp: datetime = Field(default_factory=datetime.now)
     change_description: str = ""
     refinement_feedback: str = ""
-    parent_version: Optional[int] = Field(default=None, ge=1)
+    parent_version: int | None = Field(default=None, ge=1)
 
     class Config:
         """Pydantic config."""
@@ -47,7 +46,7 @@ class VersionHistory(BaseModel):
     draft_id: str
     versions: list[DraftVersion] = Field(default_factory=list)
     current_version: int = Field(default=0, ge=0)
-    storage_path: Optional[Path] = None
+    storage_path: Path | None = None
 
     class Config:
         """Pydantic config."""
@@ -86,7 +85,7 @@ class VersionHistory(BaseModel):
 
         return version
 
-    def get_version(self, version_number: int) -> Optional[DraftVersion]:
+    def get_version(self, version_number: int) -> DraftVersion | None:
         """Get a specific version by number.
 
         Args:
@@ -100,7 +99,7 @@ class VersionHistory(BaseModel):
 
         return self.versions[version_number - 1]
 
-    def get_current(self) -> Optional[DraftVersion]:
+    def get_current(self) -> DraftVersion | None:
         """Get the current active version.
 
         Returns:

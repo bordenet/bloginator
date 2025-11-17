@@ -20,9 +20,11 @@ class TestVoiceScorer:
 
         # Mock embedding model
         embedding_model = Mock()
-        embedding_model.encode.return_value = np.array([
-            [0.1, 0.2, 0.3],  # Mock embedding
-        ])
+        embedding_model.encode.return_value = np.array(
+            [
+                [0.1, 0.2, 0.3],  # Mock embedding
+            ]
+        )
 
         searcher.embedding_model = embedding_model
         return searcher
@@ -91,13 +93,15 @@ class TestVoiceScorer:
         # Generated content embedding
         generated_emb = np.array([1.0, 0.0, 0.0])
         # Corpus embeddings (similar to generated)
-        corpus_embs = np.array([
-            [0.9, 0.1, 0.0],
-            [0.8, 0.2, 0.0],
-            [0.85, 0.15, 0.0],
-            [0.95, 0.05, 0.0],
-            [0.87, 0.13, 0.0],
-        ])
+        corpus_embs = np.array(
+            [
+                [0.9, 0.1, 0.0],
+                [0.8, 0.2, 0.0],
+                [0.85, 0.15, 0.0],
+                [0.95, 0.05, 0.0],
+                [0.87, 0.13, 0.0],
+            ]
+        )
 
         def encode_side_effect(texts):
             if len(texts) == 1:
@@ -193,9 +197,11 @@ class TestVoiceScorer:
         ]
 
         # Mock similar embeddings
-        scorer.embedding_model.encode.return_value = np.array([
-            [1.0, 0.0, 0.0],  # Text embedding
-        ])
+        scorer.embedding_model.encode.return_value = np.array(
+            [
+                [1.0, 0.0, 0.0],  # Text embedding
+            ]
+        )
 
         score = scorer.score_text(
             text="Test text",

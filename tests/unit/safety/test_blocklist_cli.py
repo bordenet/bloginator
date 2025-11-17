@@ -6,7 +6,7 @@ import pytest
 from click.testing import CliRunner
 
 from bloginator.cli.blocklist import blocklist
-from bloginator.models.blocklist import BlocklistCategory, BlocklistPatternType
+from bloginator.models.blocklist import BlocklistCategory, BlocklistEntry, BlocklistPatternType
 from bloginator.safety import BlocklistManager
 
 
@@ -135,9 +135,7 @@ class TestBlocklistCLI:
         assert "Project Falcon" in result.output
         assert "2 total" in result.output
 
-    def test_list_with_category_filter(
-        self, runner: CliRunner, config_dir: Path
-    ) -> None:
+    def test_list_with_category_filter(self, runner: CliRunner, config_dir: Path) -> None:
         """Test listing with category filter."""
         manager = BlocklistManager(config_dir / "blocklist.json")
         manager.add_entry(
@@ -222,9 +220,7 @@ class TestBlocklistCLI:
         assert "Multiple entries match" in result.output
         assert "Please be more specific" in result.output
 
-    def test_validate_clean_file(
-        self, runner: CliRunner, config_dir: Path, tmp_path: Path
-    ) -> None:
+    def test_validate_clean_file(self, runner: CliRunner, config_dir: Path, tmp_path: Path) -> None:
         """Test validating a clean file."""
         # Create blocklist
         manager = BlocklistManager(config_dir / "blocklist.json")
@@ -326,9 +322,7 @@ class TestBlocklistCLI:
         assert result.exit_code == 0
         assert "Found 2 blocklist violation" in result.output
 
-    def test_validate_file_not_found(
-        self, runner: CliRunner, config_dir: Path
-    ) -> None:
+    def test_validate_file_not_found(self, runner: CliRunner, config_dir: Path) -> None:
         """Test validating non-existent file."""
         result = runner.invoke(
             blocklist,
@@ -349,9 +343,7 @@ class TestBlocklistCLI:
             # Should create .bloginator directory
             assert (Path.cwd() / ".bloginator" / "blocklist.json").exists()
 
-    def test_add_creates_config_dir(
-        self, runner: CliRunner, tmp_path: Path
-    ) -> None:
+    def test_add_creates_config_dir(self, runner: CliRunner, tmp_path: Path) -> None:
         """Test that add command creates config directory if needed."""
         config_dir = tmp_path / "nonexistent" / ".bloginator"
 

@@ -1,6 +1,5 @@
 """Voice similarity scoring for authentic content validation."""
 
-from typing import Optional
 
 from sentence_transformers import SentenceTransformer
 
@@ -23,7 +22,7 @@ class VoiceScorer:
     def __init__(
         self,
         searcher: CorpusSearcher,
-        embedding_model: Optional[SentenceTransformer] = None,
+        embedding_model: SentenceTransformer | None = None,
         sample_size: int = 20,
     ):
         """Initialize voice scorer.
@@ -57,9 +56,7 @@ class VoiceScorer:
         # Recalculate overall stats
         draft.calculate_stats()
 
-    def _score_section(
-        self, section: DraftSection, keywords: list[str]
-    ) -> None:
+    def _score_section(self, section: DraftSection, keywords: list[str]) -> None:
         """Score voice similarity for a section.
 
         Updates section.voice_score in place.
@@ -161,8 +158,7 @@ class VoiceScorer:
                 return dot(a, b) / (norm(a) * norm(b))
 
             similarities = [
-                cosine_similarity(text_embedding, corpus_emb)
-                for corpus_emb in corpus_embeddings
+                cosine_similarity(text_embedding, corpus_emb) for corpus_emb in corpus_embeddings
             ]
 
             score = float(sum(similarities) / len(similarities))
@@ -171,9 +167,7 @@ class VoiceScorer:
         except Exception:
             return 0.5
 
-    def get_voice_insights(
-        self, draft: Draft, threshold: float = 0.7
-    ) -> dict[str, any]:
+    def get_voice_insights(self, draft: Draft, threshold: float = 0.7) -> dict[str, any]:
         """Get insights about voice similarity across draft.
 
         Args:
@@ -190,14 +184,10 @@ class VoiceScorer:
         """
         all_sections = draft.get_all_sections()
 
-        authentic_sections = [
-            s.title for s in all_sections if s.voice_score >= threshold
-        ]
+        authentic_sections = [s.title for s in all_sections if s.voice_score >= threshold]
 
         weak_sections = [
-            (s.title, s.voice_score)
-            for s in all_sections
-            if s.voice_score < threshold
+            (s.title, s.voice_score) for s in all_sections if s.voice_score < threshold
         ]
 
         return {

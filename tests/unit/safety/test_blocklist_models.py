@@ -2,13 +2,7 @@
 
 from datetime import datetime
 
-import pytest
-
-from bloginator.models.blocklist import (
-    BlocklistCategory,
-    BlocklistEntry,
-    BlocklistPatternType,
-)
+from bloginator.models.blocklist import BlocklistCategory, BlocklistEntry, BlocklistPatternType
 
 
 class TestBlocklistEntry:

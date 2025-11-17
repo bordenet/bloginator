@@ -1,8 +1,9 @@
 """Tests for LLM client."""
 
+from unittest.mock import Mock, patch
+
 import pytest
 import requests
-from unittest.mock import Mock, patch
 
 from bloginator.generation.llm_client import (
     LLMClient,
@@ -143,9 +144,7 @@ class TestOllamaClient:
     def test_generate_http_error(self, mock_post):
         """Test handling of HTTP errors."""
         mock_response = Mock()
-        mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError(
-            "404 Not Found"
-        )
+        mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError("404 Not Found")
         mock_post.return_value = mock_response
 
         client = OllamaClient()

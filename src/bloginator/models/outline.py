@@ -1,7 +1,6 @@
 """Outline data models for document generation."""
 
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -141,9 +140,7 @@ class Outline(BaseModel):
 
         return "\n".join(lines)
 
-    def _section_to_markdown(
-        self, section: OutlineSection, level: int = 2
-    ) -> list[str]:
+    def _section_to_markdown(self, section: OutlineSection, level: int = 2) -> list[str]:
         """Convert section to markdown lines.
 
         Args:
@@ -164,8 +161,9 @@ class Outline(BaseModel):
             lines.append(section.description)
 
         # Coverage info
-        coverage_icon = "✅" if section.coverage_pct >= 70 else \
-                       "⚠️" if section.coverage_pct >= 50 else "❌"
+        coverage_icon = (
+            "✅" if section.coverage_pct >= 70 else "⚠️" if section.coverage_pct >= 50 else "❌"
+        )
         lines.append(
             f"{coverage_icon} *Coverage: {section.coverage_pct:.0f}% "
             f"from {section.source_count} document(s)*"

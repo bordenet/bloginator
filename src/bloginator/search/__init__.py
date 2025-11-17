@@ -9,4 +9,7 @@ This module handles:
 
 from bloginator.search.searcher import CorpusSearcher, SearchResult
 
-__all__ = ["CorpusSearcher", "SearchResult"]
+# Alias for backward compatibility
+Searcher = CorpusSearcher
+
+__all__ = ["CorpusSearcher", "SearchResult", "Searcher"]
