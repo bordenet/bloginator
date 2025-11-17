@@ -1,56 +1,23 @@
 #!/usr/bin/env bash
-#
 # Bloginator macOS Development Environment Setup
-#
-# Purpose:
-#   Automated setup script to configure a complete development environment
-#   for Bloginator on macOS. Installs all required dependencies, sets up
-#   Python virtual environment, and prepares the project for development.
-#
-# Usage:
-#   ./scripts/setup-macos.sh          # Interactive setup with prompts
-#   ./scripts/setup-macos.sh -y       # Auto-confirm all prompts
-#   ./scripts/setup-macos.sh -v       # Verbose output
-#   ./scripts/setup-macos.sh --help   # Show this help
-#
-# Options:
-#   -y, --yes       Auto-confirm all prompts (non-interactive mode)
-#   -v, --verbose   Display detailed output from all commands
-#   -h, --help      Display this help message
-#
-# Dependencies:
-#   - macOS 11.0+
-#   - Internet connection (for downloading packages)
-#
-# This script is idempotent and can be run multiple times safely.
+# Usage: ./scripts/setup-macos.sh [OPTIONS]
 
 set -euo pipefail
 
-# Repository root
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
-# Source common library
 # shellcheck disable=SC1091
 source "${REPO_ROOT}/scripts/lib/common.sh"
-
-# Initialize script
 init_script
 
-#######################################
-# Configuration
-#######################################
 readonly VENV_DIR="${REPO_ROOT}/.venv"
 readonly PYTHON_VERSION="3.10"
 readonly REQUIRED_PYTHON_MIN="3.10"
 
-# Setup options
 AUTO_CONFIRM=false
 VERBOSE=false
 
-#######################################
-# Parse command line arguments
-#######################################
 parse_args() {
     while [[ $# -gt 0 ]]; do
         case $1 in
@@ -73,48 +40,6 @@ parse_args() {
     done
 }
 
-#######################################
-# Prompt for confirmation
-# Arguments:
-#   $1 - Prompt message
-#   $2 - Default answer (y/n)
-# Returns:
-#   0 if yes, 1 if no
-#######################################
-confirm() {
-    local prompt=$1
-    local default=${2:-n}
-
-    if [[ "$AUTO_CONFIRM" == "true" ]]; then
-        log_info "$prompt [auto-confirmed]"
-        return 0
-    fi
-
-    local answer
-    read -r -p "$prompt [${default}]: " answer
-    answer=${answer:-$default}
-
-    [[ "$answer" =~ ^[Yy] ]]
-}
-
-#######################################
-# Run command with optional verbose output
-# Arguments:
-#   $@ - Command to run
-# Returns:
-#   Exit code of command
-#######################################
-run_quiet() {
-    if [[ "$VERBOSE" == "true" ]]; then
-        "$@"
-    else
-        "$@" &>/dev/null
-    fi
-}
-
-#######################################
-# Check if running on macOS
-#######################################
 check_macos() {
     log_section "Checking System Requirements"
 
@@ -128,9 +53,6 @@ check_macos() {
     log_success "System requirements check passed"
 }
 
-#######################################
-# Install Homebrew if not present
-#######################################
 install_homebrew() {
     log_section "Installing Homebrew"
 
@@ -153,9 +75,6 @@ install_homebrew() {
     fi
 }
 
-#######################################
-# Install Python
-#######################################
 install_python() {
     log_section "Installing Python"
 
@@ -194,9 +113,6 @@ install_python() {
     log_info "Python version: $(python3 --version)"
 }
 
-#######################################
-# Install Git
-#######################################
 install_git() {
     log_section "Installing Git"
 
@@ -214,9 +130,6 @@ install_git() {
     fi
 }
 
-#######################################
-# Install optional development tools
-#######################################
 install_dev_tools() {
     log_section "Installing Development Tools"
 
@@ -243,9 +156,6 @@ install_dev_tools() {
     fi
 }
 
-#######################################
-# Create Python virtual environment
-#######################################
 setup_virtualenv() {
     log_section "Setting Up Python Virtual Environment"
 
@@ -276,9 +186,6 @@ setup_virtualenv() {
     log_success "pip upgraded"
 }
 
-#######################################
-# Install Python dependencies
-#######################################
 install_python_dependencies() {
     log_section "Installing Python Dependencies"
 
@@ -312,9 +219,6 @@ install_python_dependencies() {
     log_success "Package verification completed"
 }
 
-#######################################
-# Install pre-commit hooks
-#######################################
 install_precommit_hooks() {
     log_section "Installing Pre-commit Hooks"
 
@@ -342,9 +246,6 @@ install_precommit_hooks() {
     fi
 }
 
-#######################################
-# Download sentence-transformers model
-#######################################
 download_ml_models() {
     log_section "Downloading ML Models"
 
@@ -363,9 +264,6 @@ download_ml_models() {
     fi
 }
 
-#######################################
-# Verify installation
-#######################################
 verify_installation() {
     log_section "Verifying Installation"
 
@@ -396,50 +294,46 @@ verify_installation() {
     log_success "Installation verification completed"
 }
 
-#######################################
-# Print post-installation instructions
-#######################################
 print_next_steps() {
     log_header "Installation Complete!"
 
-    echo ""
-    echo "Next steps:"
-    echo ""
-    echo "1. Activate the virtual environment:"
-    echo "   source .venv/bin/activate"
-    echo ""
-    echo "2. Verify the installation:"
-    echo "   python -m bloginator.cli.main --version"
-    echo ""
-    echo "3. Run validation tests:"
-    echo "   ./validate-monorepo.sh"
-    echo ""
-    echo "4. Try the CLI commands:"
-    echo "   bloginator extract --help"
-    echo "   bloginator index --help"
-    echo "   bloginator search --help"
-    echo ""
-    echo "5. Run tests:"
-    echo "   pytest tests/"
-    echo ""
-    echo "For more information, see:"
-    echo "  - README.md (project overview)"
-    echo "  - .claude/project-context.md (development guide)"
-    echo "  - .claude/coding-standards.md (code standards)"
-    echo ""
+    cat << EOF
+
+Next steps:
+
+1. Activate the virtual environment:
+   source .venv/bin/activate
+
+2. Verify the installation:
+   python -m bloginator.cli.main --version
+
+3. Run tests and validation:
+   ./validate-monorepo.sh
+
+4. Try the CLI commands:
+   bloginator extract --help
+   bloginator index --help
+   bloginator search --help
+   bloginator outline --help
+   bloginator draft --help
+
+For more information:
+  - README.md (project overview)
+  - .claude/project-context.md (development guide)
+
+EOF
 
     if [[ $ERROR_COUNT -gt 0 ]] || [[ $WARNING_COUNT -gt 0 ]]; then
         log_warning "Setup completed with $ERROR_COUNT error(s) and $WARNING_COUNT warning(s)"
-        echo ""
-        echo "Some issues were encountered. Review the output above."
     else
-        log_success "Setup completed successfully with no issues!"
+        log_success "Setup completed successfully!"
     fi
 }
 
-#######################################
-# Main setup workflow
-#######################################
+################################################################################
+# Main Execution
+################################################################################
+
 main() {
     log_header "Bloginator macOS Development Environment Setup"
 
