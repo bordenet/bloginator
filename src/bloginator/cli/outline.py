@@ -37,6 +37,29 @@ from bloginator.search import CorpusSearcher
     help="Optional thesis statement",
 )
 @click.option(
+    "--classification",
+    type=click.Choice(["guidance", "best-practice", "mandate", "principle", "opinion"]),
+    default="guidance",
+    help="Content classification: authority level and tone (default: guidance)",
+)
+@click.option(
+    "--audience",
+    type=click.Choice([
+        "ic-engineers",
+        "senior-engineers",
+        "engineering-leaders",
+        "qa-engineers",
+        "devops-sre",
+        "product-managers",
+        "technical-leadership",
+        "all-disciplines",
+        "executives",
+        "general",
+    ]),
+    default="all-disciplines",
+    help="Target audience for content (default: all-disciplines)",
+)
+@click.option(
     "--sections",
     "num_sections",
     type=int,
@@ -90,6 +113,8 @@ def outline(
     title: str,
     keywords: str,
     thesis: str,
+    classification: str,
+    audience: str,
     num_sections: int,
     temperature: float,
     model: str,
@@ -105,16 +130,26 @@ def outline(
     creates a structured outline with coverage statistics.
 
     Examples:
-      Generate outline:
+      Generate outline with classification and audience:
         bloginator outline --index output/index \\
           --title "Senior Engineer Career Ladder" \\
           --keywords "senior engineer,career ladder,IC track" \\
-          --thesis "Senior engineers grow through technical mastery AND impact"
+          --thesis "Senior engineers grow through technical mastery AND impact" \\
+          --classification best-practice \\
+          --audience engineering-leaders
+
+      Mandate for IC engineers:
+        bloginator outline --index output/index \\
+          --title "Code Review Standards" \\
+          --keywords "code review,quality,best practices" \\
+          --classification mandate \\
+          --audience ic-engineers
 
       Save to file:
         bloginator outline --index output/index \\
           --title "Agile Transformation" \\
           --keywords "agile,transformation,culture" \\
+          --classification guidance \\
           -o outline.json
 
       Use different model:
@@ -193,12 +228,15 @@ def outline(
         task = progress.add_task("Generating outline structure...", total=None)
         try:
             logger.info(
-                f"Generating outline with {num_sections} sections, temperature={temperature}"
+                f"Generating outline with {num_sections} sections, "
+                f"classification={classification}, audience={audience}, temperature={temperature}"
             )
             outline_obj = generator.generate(
                 title=title,
                 keywords=keyword_list,
                 thesis=thesis,
+                classification=classification,
+                audience=audience,
                 num_sections=num_sections,
                 temperature=temperature,
             )
@@ -212,6 +250,12 @@ def outline(
     # Display results
     console.print()
     console.print(f"[bold cyan]Outline: {outline_obj.title}[/bold cyan]")
+
+    # Display classification and audience as subtitle
+    classification_label = classification.replace("-", " ").title()
+    audience_label = audience.replace("-", " ").title()
+    console.print(f"[dim italic]{classification_label} • For {audience_label}[/dim italic]")
+
     if outline_obj.thesis:
         console.print(f"[dim]Thesis: {outline_obj.thesis}[/dim]")
     console.print()

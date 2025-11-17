@@ -23,6 +23,56 @@ class QualityRating(str, Enum):
     DEPRECATED = "deprecated"
 
 
+class ContentClassification(str, Enum):
+    """Content classification for tone and authority level.
+
+    Determines the authoritative stance and prescriptiveness of generated content.
+
+    Attributes:
+        GUIDANCE: Suggestive, non-prescriptive recommendations
+        BEST_PRACTICE: Established patterns with proven value
+        MANDATE: Required standards or policies (strong authority)
+        PRINCIPLE: Fundamental truths or values (philosophical)
+        OPINION: Personal perspective or viewpoint
+    """
+
+    GUIDANCE = "guidance"
+    BEST_PRACTICE = "best-practice"
+    MANDATE = "mandate"
+    PRINCIPLE = "principle"
+    OPINION = "opinion"
+
+
+class TargetAudience(str, Enum):
+    """Target audience for content generation.
+
+    Determines which corpus sources and language level to use.
+
+    Attributes:
+        IC_ENGINEERS: Individual contributor software engineers
+        SENIOR_ENGINEERS: Senior/Staff/Principal engineers
+        ENGINEERING_LEADERS: Engineering managers, directors, VPs
+        QA_ENGINEERS: Quality assurance and test engineers
+        DEVOPS_SRE: DevOps and Site Reliability Engineers
+        PRODUCT_MANAGERS: Product management
+        TECHNICAL_LEADERSHIP: Technical leads and architects
+        ALL_DISCIPLINES: General technical audience (all roles)
+        EXECUTIVES: C-level and senior leadership
+        GENERAL: Non-technical or broadly technical audience
+    """
+
+    IC_ENGINEERS = "ic-engineers"
+    SENIOR_ENGINEERS = "senior-engineers"
+    ENGINEERING_LEADERS = "engineering-leaders"
+    QA_ENGINEERS = "qa-engineers"
+    DEVOPS_SRE = "devops-sre"
+    PRODUCT_MANAGERS = "product-managers"
+    TECHNICAL_LEADERSHIP = "technical-leadership"
+    ALL_DISCIPLINES = "all-disciplines"
+    EXECUTIVES = "executives"
+    GENERAL = "general"
+
+
 class Document(BaseModel):
     """Document metadata and reference.
 
@@ -100,3 +150,40 @@ class Chunk(BaseModel):
     section_heading: str | None = Field(None, description="Section heading if available")
     char_start: int = Field(..., description="Character offset start in original document")
     char_end: int = Field(..., description="Character offset end in original document")
+
+
+class GenerationRequest(BaseModel):
+    """Request parameters for content generation.
+
+    Encapsulates all parameters needed to generate an outline or draft,
+    including topic, classification, and audience targeting.
+
+    Attributes:
+        title: Blog post or document title
+        keywords: Comma-separated keywords for content selection
+        thesis: Main argument or thesis statement
+        classification: Content classification (tone and authority level)
+        audience: Target audience for content
+        num_sections: Number of main sections in outline
+        temperature: LLM temperature (0.0-1.0, creativity level)
+        min_coverage: Minimum number of source documents per section
+    """
+
+    title: str = Field(..., description="Blog post or document title")
+    keywords: str = Field(..., description="Comma-separated keywords")
+    thesis: str | None = Field(None, description="Main argument or thesis statement")
+    classification: ContentClassification = Field(
+        default=ContentClassification.GUIDANCE,
+        description="Content classification (tone and authority)",
+    )
+    audience: TargetAudience = Field(
+        default=TargetAudience.ALL_DISCIPLINES, description="Target audience"
+    )
+    num_sections: int = Field(default=5, ge=3, le=10, description="Number of main sections")
+    temperature: float = Field(default=0.7, ge=0.0, le=1.0, description="LLM temperature")
+    min_coverage: int = Field(default=2, ge=1, description="Min source documents per section")
+
+    class Config:
+        """Pydantic model configuration."""
+
+        use_enum_values = True
