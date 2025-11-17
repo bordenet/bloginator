@@ -1,6 +1,5 @@
 """CLI command for generating outlines."""
 
-import json
 from pathlib import Path
 
 import click
@@ -190,19 +189,13 @@ def outline(
         try:
             if output_format in ["json", "both"]:
                 json_path = (
-                    output_file.with_suffix(".json")
-                    if output_format == "both"
-                    else output_file
+                    output_file.with_suffix(".json") if output_format == "both" else output_file
                 )
                 json_path.write_text(outline_obj.model_dump_json(indent=2))
                 console.print(f"[green]✓[/green] Saved JSON to {json_path}")
 
             if output_format in ["markdown", "both"]:
-                md_path = (
-                    output_file.with_suffix(".md")
-                    if output_format == "both"
-                    else output_file
-                )
+                md_path = output_file.with_suffix(".md") if output_format == "both" else output_file
                 md_path.write_text(outline_obj.to_markdown())
                 console.print(f"[green]✓[/green] Saved markdown to {md_path}")
 
@@ -220,9 +213,7 @@ def outline(
         console.print(
             f"[yellow]⚠️[/yellow] {outline_obj.low_coverage_sections} section(s) have low corpus coverage"
         )
-        console.print(
-            "[dim]Consider revising these sections or adding more source material[/dim]"
-        )
+        console.print("[dim]Consider revising these sections or adding more source material[/dim]")
 
 
 def _display_section_coverage(console: Console, sections: list, level: int = 0) -> None:

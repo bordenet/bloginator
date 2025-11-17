@@ -1,6 +1,5 @@
 """CLI command for document extraction."""
 
-import json
 import uuid
 from pathlib import Path
 
@@ -130,9 +129,7 @@ def extract(source: Path, output: Path, quality: str, tags: str | None) -> None:
 
             progress.update(task, advance=1)
 
-    console.print(
-        f"\n[green]✓ Successfully extracted {extracted_count} document(s)[/green]"
-    )
+    console.print(f"\n[green]✓ Successfully extracted {extracted_count} document(s)[/green]")
     if failed_count > 0:
         console.print(f"[yellow]✗ Failed to extract {failed_count} document(s)[/yellow]")
     console.print(f"[cyan]Output directory: {output}[/cyan]")

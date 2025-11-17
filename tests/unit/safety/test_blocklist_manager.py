@@ -3,13 +3,7 @@
 import json
 from pathlib import Path
 
-import pytest
-
-from bloginator.models.blocklist import (
-    BlocklistCategory,
-    BlocklistEntry,
-    BlocklistPatternType,
-)
+from bloginator.models.blocklist import BlocklistCategory, BlocklistEntry, BlocklistPatternType
 from bloginator.safety import BlocklistManager
 
 
@@ -98,9 +92,7 @@ class TestBlocklistManager:
         blocklist_file = tmp_path / "subdir" / "blocklist.json"
 
         manager = BlocklistManager(blocklist_file)
-        entry = BlocklistEntry(
-            id="1", pattern="Test", pattern_type=BlocklistPatternType.EXACT
-        )
+        entry = BlocklistEntry(id="1", pattern="Test", pattern_type=BlocklistPatternType.EXACT)
         manager.add_entry(entry)
 
         assert blocklist_file.exists()
@@ -296,9 +288,7 @@ class TestBlocklistManager:
         manager.add_entry(entry2)
         manager.add_entry(entry3)
 
-        company_entries = manager.get_entries_by_category(
-            BlocklistCategory.COMPANY_NAME
-        )
+        company_entries = manager.get_entries_by_category(BlocklistCategory.COMPANY_NAME)
 
         assert len(company_entries) == 2
         assert all(e.category == BlocklistCategory.COMPANY_NAME for e in company_entries)
@@ -308,9 +298,7 @@ class TestBlocklistManager:
         blocklist_file = tmp_path / "blocklist.json"
         manager = BlocklistManager(blocklist_file)
 
-        entry = BlocklistEntry(
-            id="1", pattern="Test", category=BlocklistCategory.COMPANY_NAME
-        )
+        entry = BlocklistEntry(id="1", pattern="Test", category=BlocklistCategory.COMPANY_NAME)
         manager.add_entry(entry)
 
         person_entries = manager.get_entries_by_category(BlocklistCategory.PERSON_NAME)

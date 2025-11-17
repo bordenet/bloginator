@@ -74,9 +74,7 @@ def revert(
         history = version_manager.load_history(draft_id)
 
         if history is None:
-            console.print(
-                f"[bold red]Error:[/bold red] No version history found for '{draft_id}'"
-            )
+            console.print(f"[bold red]Error:[/bold red] No version history found for '{draft_id}'")
             console.print(f"[dim]Searched in: {versions_dir}[/dim]")
             raise click.Abort()
 
@@ -84,9 +82,7 @@ def revert(
         target_version = history.get_version(version_number)
 
         if not target_version:
-            console.print(
-                f"[bold red]Error:[/bold red] Version {version_number} not found"
-            )
+            console.print(f"[bold red]Error:[/bold red] Version {version_number} not found")
             console.print(f"[dim]Available versions: 1-{len(history.versions)}[/dim]")
             raise click.Abort()
 
@@ -96,13 +92,12 @@ def revert(
         _display_revert_info(current_version, target_version)
 
         # Confirm if not forced
-        if not force:
-            if not click.confirm(
-                f"\nRevert from v{history.current_version} to v{version_number}?",
-                default=False,
-            ):
-                console.print("[yellow]Revert cancelled[/yellow]")
-                return
+        if not force and not click.confirm(
+            f"\nRevert from v{history.current_version} to v{version_number}?",
+            default=False,
+        ):
+            console.print("[yellow]Revert cancelled[/yellow]")
+            return
 
         # Perform revert
         console.print(f"\n[dim]Reverting to version {version_number}...[/dim]")
@@ -124,9 +119,7 @@ def revert(
                 default=str,
             )
 
-        console.print(
-            f"\n[bold green]✓[/bold green] Reverted to version {version_number}"
-        )
+        console.print(f"\n[bold green]✓[/bold green] Reverted to version {version_number}")
         console.print(f"[dim]Draft saved to: {output}[/dim]")
         console.print(
             f"[dim]Version history preserved in: {versions_dir / f'{draft_id}_history.json'}[/dim]"
@@ -135,7 +128,9 @@ def revert(
         # Show next steps
         console.print("\n[bold]Next steps:[/bold]")
         console.print(f"  • View all versions: bloginator diff {draft_id} --list-versions")
-        console.print(f"  • Compare versions: bloginator diff {draft_id} -v1 {version_number} -v2 {history.current_version}")
+        console.print(
+            f"  • Compare versions: bloginator diff {draft_id} -v1 {version_number} -v2 {history.current_version}"
+        )
         console.print(f"  • Refine this version: bloginator refine -d {output} -f '<feedback>'")
 
     except Exception as e:
@@ -196,8 +191,16 @@ def _display_revert_info(
         if current_version.draft.voice_score > 0 or target_version.draft.voice_score > 0:
             table.add_row(
                 "Voice Score",
-                f"{current_version.draft.voice_score:.2f}" if current_version.draft.voice_score > 0 else "—",
-                f"{target_version.draft.voice_score:.2f}" if target_version.draft.voice_score > 0 else "—",
+                (
+                    f"{current_version.draft.voice_score:.2f}"
+                    if current_version.draft.voice_score > 0
+                    else "—"
+                ),
+                (
+                    f"{target_version.draft.voice_score:.2f}"
+                    if target_version.draft.voice_score > 0
+                    else "—"
+                ),
             )
 
     console.print(table)

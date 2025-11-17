@@ -167,7 +167,9 @@ class TestPerformanceBenchmarks:
         assert elapsed < 60, f"Indexing took {elapsed:.1f}s for 12 docs"
 
         print(f"\\nIndexing: {elapsed:.1f}s for 12 documents")
-        print(f"Estimated time for 500 docs: {(elapsed/12)*500:.1f}s (~{(elapsed/12)*500/60:.1f} min)")
+        print(
+            f"Estimated time for 500 docs: {(elapsed/12)*500:.1f}s (~{(elapsed/12)*500/60:.1f} min)"
+        )
 
     def test_search_performance(self, large_corpus: dict) -> None:
         """Benchmark search performance."""
@@ -215,7 +217,7 @@ class TestPerformanceBenchmarks:
         for n, t in timings.items():
             assert t < 3.0, f"Search for {n} results took {t:.3f}s"
 
-        print(f"\\nSearch scaling:")
+        print("\\nSearch scaling:")
         for n, t in timings.items():
             print(f"  {n} results: {t:.3f}s")
 

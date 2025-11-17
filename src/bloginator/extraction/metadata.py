@@ -3,7 +3,7 @@
 import re
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import yaml
 
@@ -101,7 +101,7 @@ def extract_docx_properties(docx_path: Path) -> dict[str, Any]:
         return {}
 
 
-def parse_date_string(date_str: str) -> Optional[datetime]:
+def parse_date_string(date_str: str) -> datetime | None:
     """Parse date string in various formats.
 
     Attempts to parse dates in common formats:

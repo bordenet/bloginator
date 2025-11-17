@@ -2,7 +2,6 @@
 
 import tempfile
 from pathlib import Path
-from typing import List, Optional
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
@@ -44,9 +43,9 @@ class IndexStatsResponse(BaseModel):
 
 @router.post("/upload")
 async def upload_documents(
-    files: List[UploadFile] = File(...),
-    quality: Optional[str] = Form(None),
-    tags: Optional[str] = Form(None),
+    files: list[UploadFile] = File(...),
+    quality: str | None = Form(None),
+    tags: str | None = Form(None),
 ):
     """Upload and extract documents.
 
@@ -189,11 +188,7 @@ async def add_blocklist_entry(
     try:
         manager = BlocklistManager(blocklist_file=Path(blocklist_path))
 
-        from bloginator.models.blocklist import (
-            BlocklistCategory,
-            BlocklistEntry,
-            BlocklistPatternType,
-        )
+        from bloginator.models.blocklist import BlocklistCategory, BlocklistPatternType
 
         new_entry = manager.add_entry(
             pattern=entry.pattern,

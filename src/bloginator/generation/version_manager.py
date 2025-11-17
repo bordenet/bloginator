@@ -3,7 +3,6 @@
 import difflib
 import json
 from pathlib import Path
-from typing import Optional
 
 from bloginator.models.draft import Draft
 from bloginator.models.version import DraftVersion, VersionHistory
@@ -65,7 +64,7 @@ class VersionManager:
         self.save_history(history)
         return history
 
-    def load_history(self, draft_id: str) -> Optional[VersionHistory]:
+    def load_history(self, draft_id: str) -> VersionHistory | None:
         """Load version history from disk.
 
         Args:

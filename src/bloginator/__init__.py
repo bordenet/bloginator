@@ -11,16 +11,7 @@ __version__ = "0.1.0"
 __author__ = "Matt Bordenet"
 __email__ = "matt@bordenet.com"
 
-from bloginator import (
-    cli,
-    extraction,
-    generation,
-    indexing,
-    models,
-    safety,
-    search,
-    voice,
-)
+from bloginator import cli, extraction, generation, indexing, models, safety, search, voice
 
 __all__ = [
     "__version__",

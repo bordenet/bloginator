@@ -3,7 +3,6 @@
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -48,8 +47,8 @@ class Document(BaseModel):
     filename: str = Field(..., description="Original filename")
     source_path: Path = Field(..., description="Path to source file")
     format: str = Field(..., description="Document format (pdf, docx, markdown, txt)")
-    created_date: Optional[datetime] = Field(None, description="Document creation date")
-    modified_date: Optional[datetime] = Field(None, description="Document modification date")
+    created_date: datetime | None = Field(None, description="Document creation date")
+    modified_date: datetime | None = Field(None, description="Document modification date")
     indexed_date: datetime = Field(
         default_factory=datetime.now, description="When document was indexed"
     )
@@ -92,6 +91,6 @@ class Chunk(BaseModel):
     document_id: str = Field(..., description="ID of parent document")
     content: str = Field(..., description="Text content of chunk")
     chunk_index: int = Field(..., description="Position in document (0-indexed)")
-    section_heading: Optional[str] = Field(None, description="Section heading if available")
+    section_heading: str | None = Field(None, description="Section heading if available")
     char_start: int = Field(..., description="Character offset start in original document")
     char_end: int = Field(..., description="Character offset end in original document")
