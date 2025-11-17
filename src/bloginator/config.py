@@ -32,14 +32,16 @@ class Config:
     """
 
     # Corpus and storage
+    # Support both BLOGINATOR_* and legacy variable names
     CORPUS_DIR: Path = Path(os.getenv("BLOGINATOR_CORPUS_DIR", "corpus"))
-    CHROMA_DIR: Path = Path(os.getenv("BLOGINATOR_CHROMA_DIR", ".bloginator/chroma"))
+    CHROMA_DIR: Path = Path(os.getenv("BLOGINATOR_CHROMA_DIR") or os.getenv("CHROMA_DB_PATH", ".bloginator/chroma"))
     OUTPUT_DIR: Path = Path(os.getenv("BLOGINATOR_OUTPUT_DIR", "output"))
 
     # LLM Configuration
+    # Support both BLOGINATOR_* and OLLAMA_* variable names for compatibility
     LLM_PROVIDER: str = os.getenv("BLOGINATOR_LLM_PROVIDER", "ollama")
-    LLM_MODEL: str = os.getenv("BLOGINATOR_LLM_MODEL", "llama3")
-    LLM_BASE_URL: str = os.getenv("BLOGINATOR_LLM_BASE_URL", "http://localhost:11434")
+    LLM_MODEL: str = os.getenv("BLOGINATOR_LLM_MODEL") or os.getenv("OLLAMA_MODEL", "llama3")
+    LLM_BASE_URL: str = os.getenv("BLOGINATOR_LLM_BASE_URL") or os.getenv("OLLAMA_HOST", "http://localhost:11434")
     LLM_API_KEY: str | None = os.getenv("BLOGINATOR_LLM_API_KEY")
     LLM_TIMEOUT: int = int(os.getenv("BLOGINATOR_LLM_TIMEOUT", "120"))
 
