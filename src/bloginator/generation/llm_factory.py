@@ -14,11 +14,14 @@ from bloginator.generation.llm_client import (
 )
 
 
-def create_llm_from_config() -> LLMClient:
+def create_llm_from_config(verbose: bool = False) -> LLMClient:
     """Create LLM client from environment configuration.
 
     Reads configuration from environment variables (via config module)
     and creates the appropriate LLM client.
+
+    Args:
+        verbose: Show LLM request/response interactions
 
     Returns:
         Configured LLM client instance
@@ -46,6 +49,7 @@ def create_llm_from_config() -> LLMClient:
     kwargs = {
         "model": config.LLM_MODEL,
         "timeout": config.LLM_TIMEOUT,
+        "verbose": verbose,
     }
 
     # Provider-specific parameters
