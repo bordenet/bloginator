@@ -284,6 +284,9 @@ install_python_dependencies() {
     source "$VENV_DIR/bin/activate"
     log_info_verbose "Installing bloginator[dev]..."
     python -m pip install -e ".[dev]" > /dev/null 2>&1 || die "Failed to install dependencies"
+
+    log_info_verbose "Installing Streamlit UI dependencies..."
+    python -m pip install streamlit requests pyyaml > /dev/null 2>&1 || die "Failed to install Streamlit dependencies"
     log_step_done "Python dependencies"
 }
 
@@ -339,6 +342,8 @@ main() {
     echo "Next steps:"
     echo "  1. source .venv/bin/activate"
     echo "  2. ./validate-monorepo.sh"
+    echo "  3. ./run-e2e.sh           # Run end-to-end demo"
+    echo "  4. ./run-streamlit.sh     # Launch web UI"
     echo ""
 }
 

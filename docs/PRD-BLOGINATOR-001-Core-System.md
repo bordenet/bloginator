@@ -26,6 +26,18 @@ When creating new documents (job descriptions, career ladders, engineering playb
 1. **Start from scratch**: Fast but loses the nuance and voice developed over years
 2. **Manual synthesis**: Search through dozens of old documents, copy-paste relevant sections, stitch together coherent narrative—taking 8-40+ hours per document
 
+### The CLI Complexity Problem
+
+While command-line tools are powerful for automation and expert users, they create barriers for:
+
+1. **First-time users**: Learning CLI syntax and options is intimidating
+2. **Interactive exploration**: Difficult to iterate quickly on searches and generation
+3. **Visual feedback**: Hard to see progress, corpus coverage, and quality metrics
+4. **Workflow orchestration**: Users must remember multi-step sequences
+5. **Configuration discovery**: No visual way to explore available options
+
+**The accessibility gap**: A powerful tool that's hard to use won't get used consistently.
+
 **Current Reality**:
 - 8-40 hours per document searching through old materials
 - Documents scattered across:
@@ -392,20 +404,71 @@ Acceptance Criteria:
 
 #### 6. User Interface
 
-**Web UI (Primary Interface)**:
-- Dashboard: Corpus overview, statistics, recent documents
-- Corpus Management: Upload, tag, blocklist management
-- Document Creation: Outline builder → draft generation → refinement
-- Search: Semantic search interface with filters
-- Export: Multi-format export with options
+**WHY Two Interface Options:**
+
+Engineering leaders have different working styles and use cases:
+- **Web UI users** need visual feedback, guided workflows, and interactive exploration
+- **CLI users** need automation, scripting, and integration with existing tools
+- **Hybrid users** switch between UIs based on task (UI for exploration, CLI for production pipelines)
+
+Providing both ensures maximum adoption and productivity.
+
+**Streamlit Web UI (Primary Interface for Interactive Use)**:
+
+Built with Streamlit for rapid development and rich interactivity. Provides:
+
+- **Home Dashboard**: System status, corpus statistics, quick actions, recent activity
+- **Corpus Management**:
+  - Extract documents with visual progress and validation
+  - Build/rebuild index with real-time status
+  - View extraction statistics and source distribution
+  - Verify corpus configuration (corpus.yaml)
+- **Search Interface**:
+  - Interactive search with live results
+  - Adjustable filters (quality, recency weighting, number of results)
+  - Search history and suggested queries
+  - Rich result formatting with context highlighting
+- **Content Generation**:
+  - Outline generation with form-based inputs (title, keywords, thesis)
+  - Visual section editor and coverage indicators
+  - Draft generation with progress tracking
+  - Preview generated content inline
+  - Download drafts in multiple formats
+- **Analytics Dashboard**:
+  - Corpus coverage by topic
+  - Source distribution and quality metrics
+  - Temporal analysis (documents by year)
+  - Tag cloud and topic exploration
+  - Generated content statistics
+- **Settings Panel**:
+  - LLM configuration (Ollama host, model selection)
+  - Path configuration (corpus, index, output directories)
+  - Generation defaults (temperature, sections)
+  - System diagnostics and health checks
+
+**Key UX Principles**:
+- **Progressive disclosure**: Show simple options first, advanced in expandable sections
+- **Immediate feedback**: Visual confirmations, progress bars, error messages
+- **Stateful navigation**: Remember user's place in multi-step workflows
+- **Responsive layout**: Adapt to different screen sizes (desktop-first, mobile-friendly)
+- **Accessible design**: Clear labels, help text, color-blind friendly palette
 
 **CLI Tools (Power Users & Automation)**:
+
+Command-line interface for scripting and batch operations:
 - `bloginator extract <source>` - Extract and index documents
 - `bloginator search <query>` - Search corpus
 - `bloginator outline <concept>` - Generate document outline
 - `bloginator draft <outline>` - Generate draft from outline
 - `bloginator refine <draft> "<feedback>"` - Apply refinement
 - `bloginator export <draft> --format=md|docx|html` - Export
+
+**CLI Design Principles**:
+- Unix-style composability (pipe-friendly output)
+- Rich terminal formatting (colors, progress bars via rich library)
+- Verbose flags for debugging (`--verbose`, `--log-file`)
+- Sensible defaults minimize required flags
+- `--help` text includes examples and common patterns
 
 ---
 
@@ -539,22 +602,35 @@ Acceptance Criteria:
 - User can revert changes selectively
 - Clear diff showing what changed and why
 
-### Phase 4: Web UI (Weeks 7-8)
+### Phase 4: Streamlit Web UI (Weeks 7-8) ✅ IMPLEMENTED
 
-**Goal**: Interactive web interface for non-technical users
+**Goal**: Interactive web interface for all users
+
+**Why Streamlit**: Rapid development, Python-native, excellent data visualization, minimal frontend code
 
 **Deliverables**:
-- Web dashboard with corpus overview
-- Corpus upload and management UI
-- Document creation wizard (outline → draft → refine)
-- Search interface
-- Multi-format export
+- ✅ Home Dashboard (system status, quick actions, recent activity)
+- ✅ Corpus Management UI (extract, index, status views)
+- ✅ Interactive Search Interface (filters, live results)
+- ✅ Content Generation Workflow (outline → draft)
+- ✅ Analytics Dashboard (corpus stats, topic coverage)
+- ✅ Settings Panel (LLM config, paths, diagnostics)
+- ✅ Streamlit launcher script (`run-streamlit.sh`)
+
+**Implementation Details**:
+- **Architecture**: Multi-page Streamlit app with shared state
+- **Location**: `src/bloginator/ui/app.py` (main) + `pages/` (modules)
+- **Dependencies**: Streamlit, requests, pyyaml, chromadb
+- **Deployment**: Local-first (no cloud dependency)
 
 **Acceptance Criteria**:
-- Complete document creation workflow in browser
-- No CLI required for core workflows
-- Responsive design (desktop focus, mobile-friendly)
-- In-browser file upload with progress indication
+- ✅ Complete document creation workflow in browser
+- ✅ No CLI required for core workflows (CLI remains available)
+- ✅ Responsive design (desktop focus, mobile-friendly)
+- ✅ Real-time progress for long operations (extract, index, generate)
+- ✅ Visual corpus statistics and analytics
+- ✅ LLM configuration UI with connection testing
+- ✅ Launch with single command: `./run-streamlit.sh`
 
 ### Phase 5: Polish & External Sources (Weeks 9-10)
 
@@ -661,6 +737,27 @@ This PRD is approved when:
 5. ✅ Implementation phases are realistic and sequenced logically
 6. ✅ Risks are identified with credible mitigation strategies
 7. ✅ Open questions are resolved or marked as "decide during implementation"
+
+## Implementation Status (2025-11-17)
+
+**PHASE 4 COMPLETE**: Streamlit Web UI is fully implemented and functional.
+
+**What's Working**:
+- ✅ Full-featured Streamlit UI with 6 pages (Home, Corpus, Search, Generate, Analytics, Settings)
+- ✅ End-to-end workflow scripts (`run-e2e.sh`, `run-streamlit.sh`)
+- ✅ Enhanced setup script installs all UI dependencies
+- ✅ Visual corpus management (extract, index, status)
+- ✅ Interactive search with filters
+- ✅ Outline and draft generation with previews
+- ✅ Analytics dashboard with corpus insights
+- ✅ LLM configuration UI
+
+**What's Next**:
+- Refinement features (iterative draft improvement)
+- External source support with attribution
+- Template library
+- Blocklist management UI
+- Multi-format export from UI
 
 ---
 
