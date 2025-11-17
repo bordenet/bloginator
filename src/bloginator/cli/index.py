@@ -7,6 +7,7 @@ import click
 from rich.console import Console
 from rich.progress import Progress
 
+from bloginator.cli.error_reporting import ErrorCategory, ErrorTracker, create_error_panel
 from bloginator.extraction import chunk_text_by_paragraphs
 from bloginator.indexing import CorpusIndexer
 from bloginator.models import Document
@@ -39,18 +40,36 @@ def index(source: Path, output: Path, chunk_size: int) -> None:
     """
     console = Console()
 
+    # Initialize error tracker
+    error_tracker = ErrorTracker()
+
     # Find all extracted documents (metadata JSON files)
     meta_files = list(source.glob("*.json"))
 
     if not meta_files:
-        console.print("[yellow]No extracted documents found.[/yellow]")
-        console.print("[dim]Run 'bloginator extract' first to extract documents.[/dim]")
+        panel = create_error_panel(
+            "No Documents Found",
+            f"No extracted documents found in {source}",
+            "Run 'bloginator extract' first to extract documents from your corpus.",
+        )
+        console.print(panel)
         return
 
     console.print(f"[cyan]Indexing {len(meta_files)} document(s)...[/cyan]")
 
     # Initialize indexer
-    indexer = CorpusIndexer(output_dir=output)
+    try:
+        indexer = CorpusIndexer(output_dir=output)
+    except Exception as e:
+        category = error_tracker.categorize_exception(e)
+        advice = error_tracker.get_actionable_advice(category)
+        panel = create_error_panel(
+            "Indexer Initialization Failed",
+            f"Failed to initialize indexer: {e}",
+            advice,
+        )
+        console.print(panel)
+        raise
 
     indexed_count = 0
     failed_count = 0
@@ -67,8 +86,12 @@ def index(source: Path, output: Path, chunk_size: int) -> None:
                 # Load extracted text
                 text_file = source / f"{document.id}.txt"
                 if not text_file.exists():
-                    console.print(f"[yellow]⚠ Missing text file for {document.filename}[/yellow]")
+                    error = FileNotFoundError(f"Missing text file: {text_file}")
+                    category = ErrorCategory.FILE_NOT_FOUND
+                    error_tracker.record_error(category, document.filename, error)
+                    console.print(f"[yellow]⚠ {document.filename}: Missing text file[/yellow]")
                     failed_count += 1
+                    progress.update(task, advance=1)
                     continue
 
                 text = text_file.read_text(encoding="utf-8")
@@ -86,7 +109,11 @@ def index(source: Path, output: Path, chunk_size: int) -> None:
                 indexed_count += 1
 
             except Exception as e:
-                console.print(f"[red]✗ Failed to index {meta_file.name}: {e}[/red]")
+                # Categorize and track error
+                category = error_tracker.categorize_exception(e, meta_file)
+                context = document.filename if "document" in locals() else meta_file.name
+                error_tracker.record_error(category, context, e)
+                console.print(f"[red]✗ {context}: {type(e).__name__}[/red]")
                 failed_count += 1
 
             progress.update(task, advance=1)
@@ -102,3 +129,7 @@ def index(source: Path, output: Path, chunk_size: int) -> None:
     console.print(f"  Total chunks: {info['total_chunks']}")
     console.print(f"  Collection: {info['collection_name']}")
     console.print(f"  Output directory: {info['output_dir']}")
+
+    # Print error summary if there were failures
+    if failed_count > 0:
+        error_tracker.print_summary(console)
