@@ -495,6 +495,103 @@ bloginator search .bloginator/chroma "kubernetes devops" -n 10
    - Auto-mounted at `/Volumes/scratch` when lucybear-nas is reachable
    - Extraction works across SMB mounts
 
+## Pre-Commit Hook Philosophy
+
+**CRITICAL: Each pre-commit hook error is an opportunity to improve the codebase, NOT a roadblock to bypass.**
+
+### Required Mindset
+
+When encountering pre-commit hook errors:
+
+1. **ALWAYS FIX THE ISSUES** - Do not skip hooks or pass the buck
+2. **Improve Code Quality** - Each error fixed makes the codebase better
+3. **Learn the Standards** - Understand why the linter flagged the issue
+4. **Document Exceptions** - If you must ignore a rule, document why
+
+### Common Pre-Commit Hooks
+
+**black** - Code formatter
+- Auto-formats Python code to PEP 8 standard
+- Run: `black --line-length=100 src/ tests/`
+- Never skip - let black reformat the code
+
+**ruff** - Fast Python linter
+- Checks for style issues, bugs, and anti-patterns
+- Run: `ruff check --fix src/ tests/`
+- Many issues auto-fixable with `--fix`
+- Use `--unsafe-fixes` for more aggressive fixes
+
+**mypy** - Type checker
+- Validates type annotations
+- Pre-existing type errors can be addressed incrementally
+- OK to use `--no-verify` if errors are unrelated to your changes
+
+**shellcheck** - Shell script linter
+- Validates bash/sh scripts for common errors
+- ALWAYS fix shellcheck warnings before commit
+- Run: `shellcheck script.sh`
+
+### Workflow for Pre-Commit Errors
+
+```bash
+# 1. Run formatters first
+black --line-length=100 src/ tests/
+
+# 2. Fix linting issues
+ruff check --fix src/ tests/
+
+# 3. Check types (informational)
+mypy src/
+
+# 4. For shell scripts
+shellcheck *.sh scripts/*.sh
+
+# 5. Stage fixes and retry commit
+git add -A
+git commit -m "Your message"
+```
+
+### When to Use `--no-verify`
+
+**ONLY use `git commit --no-verify` when:**
+- Mypy errors are pre-existing and unrelated to your changes
+- You are committing non-Python files (YAML, Markdown, etc.)
+- You have documented the reason in the commit message
+
+**NEVER use `--no-verify` to:**
+- Skip black formatting
+- Bypass ruff linting errors
+- Ignore shellcheck warnings
+- Avoid fixing issues you introduced
+
+### Example: Handling Pre-Commit Hook Errors
+
+**BAD Approach:**
+```bash
+$ git commit -m "Add feature"
+# Error: black formatting failed
+$ git commit --no-verify -m "Add feature"  # ❌ WRONG
+```
+
+**GOOD Approach:**
+```bash
+$ git commit -m "Add feature"
+# Error: black formatting failed
+$ black --line-length=100 src/ tests/  # ✅ Fix the issue
+$ git add -A
+$ git commit -m "Add feature"  # ✅ Now it passes
+```
+
+### Benefits of Fixing Pre-Commit Errors
+
+1. **Consistent Style** - Code looks professional and is easier to read
+2. **Fewer Bugs** - Linters catch common mistakes before they reach production
+3. **Better Collaboration** - Standardized code reduces merge conflicts
+4. **Learning** - Understanding why something was flagged makes you a better developer
+5. **Trust** - Shows you care about code quality
+
+**Remember: Pre-commit hooks are your friends, not obstacles!**
+
 ### Next Session Recommendations
 
 1. **Test Generation Features**
