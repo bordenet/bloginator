@@ -11,13 +11,15 @@ class QualityRating(str, Enum):
     """Document quality rating.
 
     Attributes:
-        PREFERRED: High-quality, refined content (most recent/best)
-        STANDARD: Normal quality content (default)
+        PREFERRED: High-quality, authentic voice (prioritize for generation)
+        REFERENCE: Usable content with acceptable quality
+        SUPPLEMENTAL: Lower priority content (use sparingly)
         DEPRECATED: Outdated content (avoid using in generation)
     """
 
     PREFERRED = "preferred"
-    STANDARD = "standard"
+    REFERENCE = "reference"
+    SUPPLEMENTAL = "supplemental"
     DEPRECATED = "deprecated"
 
 
@@ -41,6 +43,8 @@ class Document(BaseModel):
         attribution_required: Whether attribution is required when quoting
         word_count: Number of words in document
         chunk_ids: List of chunk IDs belonging to this document
+        source_name: Name of corpus source (from corpus.yaml)
+        voice_notes: Notes about writing voice/style characteristics
     """
 
     id: str = Field(..., description="Unique document identifier")
@@ -53,7 +57,7 @@ class Document(BaseModel):
         default_factory=datetime.now, description="When document was indexed"
     )
     quality_rating: QualityRating = Field(
-        default=QualityRating.STANDARD, description="Content quality rating"
+        default=QualityRating.REFERENCE, description="Content quality rating"
     )
     tags: list[str] = Field(default_factory=list, description="User-defined tags")
     is_external_source: bool = Field(
@@ -64,6 +68,8 @@ class Document(BaseModel):
     )
     word_count: int = Field(default=0, description="Number of words in document")
     chunk_ids: list[str] = Field(default_factory=list, description="Chunk IDs in this document")
+    source_name: str | None = Field(None, description="Name of corpus source (from corpus.yaml)")
+    voice_notes: str | None = Field(None, description="Notes about writing voice/style")
 
     class Config:
         """Pydantic model configuration."""

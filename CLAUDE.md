@@ -49,6 +49,64 @@ The config system (`src/bloginator/config.py`) supports **backward compatibility
 
 **Why?** This allows using `.env` files from other projects (like films-not-made) without modification.
 
+### Corpus Configuration System
+
+Bloginator supports **two modes** for managing corpus sources:
+
+1. **Legacy Mode** - Direct path extraction
+   ```bash
+   bloginator extract corpus/ -o output/extracted --quality preferred
+   ```
+
+2. **Multi-Source Mode** - Configuration-driven (RECOMMENDED)
+   ```bash
+   bloginator extract -o output/extracted --config corpus.yaml
+   ```
+
+**Why Multi-Source Mode?**
+- Define multiple sources with rich metadata in one config file
+- Specify quality ratings, tags, and voice notes per source
+- Support mixed sources: OneDrive, local directories, symlinks
+- Better organization for large corpus collections
+- Automatic quality weighting during retrieval
+
+**Example corpus.yaml:**
+```yaml
+sources:
+  - name: "onedrive-blog-archive"
+    path: "/Users/you/OneDrive/Blog Archive"  # Absolute path
+    quality: "preferred"  # preferred | reference | supplemental | deprecated
+    voice_notes: "Authentic voice from 2019-2021"
+    tags: ["archive", "authentic-voice"]
+
+  - name: "recent-sanitized-posts"
+    path: "../../blogs/"  # Relative path (relative to corpus.yaml)
+    quality: "reference"
+    voice_notes: "Sanitized content - use sparingly for voice"
+    tags: ["recent", "ai-edited"]
+
+  - name: "films-blog"
+    path: "../films-not-made/blog"  # Symlink support!
+    quality: "preferred"
+    tags: ["film", "criticism"]
+```
+
+**Supported Path Types:**
+- Relative paths: `../../blogs/` (resolved relative to corpus.yaml location)
+- Absolute paths: `/Users/you/OneDrive/Blog`
+- Windows paths: `C:\Users\you\Documents\Blogs`
+- UNC paths: `\\server\share\blogs`
+- Symlinks: Fully supported, no data copying needed
+- URLs: `https://example.com/archive.zip` (future enhancement)
+
+**Quality Ratings Impact:**
+- `preferred` (1.5x weight) - Authentic voice, high-quality content
+- `reference` (1.0x weight) - Standard quality, usable content
+- `supplemental` (0.7x weight) - Lower priority, use sparingly
+- `deprecated` (0.3x weight) - Outdated, avoid in generation
+
+See `corpus.yaml.example` for complete schema with all options.
+
 ## Project Architecture
 
 ### Vector Storage (ChromaDB)
@@ -240,12 +298,103 @@ print(f"Base URL: {config.LLM_BASE_URL}")
 print(f"Chroma: {config.CHROMA_DIR}")
 ```
 
+## Field Testing Guide (For VS Code Claude)
+
+This section is specifically for Claude Code running in VS Code to perform field testing of new features.
+
+### Testing Corpus Configuration System (NEW)
+
+**Feature:** Multi-source corpus configuration with quality ratings, metadata, and mixed path types.
+
+**What Changed:**
+1. New `corpus.yaml` config format (see `corpus.yaml.example`)
+2. Updated `Document` model with `source_name` and `voice_notes` fields
+3. New `QualityRating` values: `preferred`, `reference`, `supplemental`, `deprecated`
+4. `bloginator extract` now supports `--config corpus.yaml` flag
+5. Full support for: relative paths, absolute paths, Windows paths, UNC paths, symlinks
+
+**Test Plan:**
+
+```bash
+# 1. Create test corpus.yaml
+cp corpus.yaml.example corpus.yaml
+
+# 2. Edit corpus.yaml with actual user sources:
+#    - OneDrive blog archive (if exists)
+#    - Local blog directory at ../../blogs/ (if exists)
+#    - Any symlinked directories
+#    Verify each source's path, quality rating, and metadata
+
+# 3. Test extraction with config
+bloginator extract -o output/extracted --config corpus.yaml
+
+# Expected output:
+# - Table showing all enabled sources
+# - Per-source extraction progress
+# - Total count of extracted documents
+# - Check output/extracted/*.json files have source_name and voice_notes
+
+# 4. Test indexing
+bloginator index output/extracted -o .bloginator/chroma
+
+# 5. Verify quality ratings in index
+# Check that documents from "preferred" sources are weighted higher
+
+# 6. Test search with different source qualities
+bloginator search "topic" --index .bloginator/chroma -n 10
+
+# 7. Test edge cases:
+#    - Relative paths (../../)
+#    - Absolute paths (/Users/...)
+#    - Nonexistent paths (should skip gracefully)
+#    - Disabled sources (enabled: false) - should skip
+#    - Empty directories - should handle gracefully
+```
+
+**Validation Checklist:**
+- [ ] Config loads without errors
+- [ ] Paths resolve correctly (relative, absolute, symlinks)
+- [ ] Source metadata (source_name, voice_notes, tags) appears in extracted JSON
+- [ ] Quality ratings are preserved through extract → index
+- [ ] Table displays correct source information
+- [ ] Extraction handles errors gracefully (missing paths, permissions)
+- [ ] Works with user's actual OneDrive/local blog paths
+- [ ] Symlinks are followed correctly (no data copying)
+
+**Known Limitations (Document for User):**
+- URLs not yet implemented (shows "not yet implemented" message)
+- Ignore patterns use simple startswith matching (not full glob)
+- No progress for individual sources >100 files
+- Windows UNC paths may need testing on Windows
+
+**Success Criteria:**
+User can point to multiple blog sources (OneDrive, local dirs, symlinks) in one config and extract them all with appropriate quality metadata.
+
+### Testing with Mixtral/Llama3
+
+**Before testing generation features:**
+
+```bash
+# 1. Verify Ollama connectivity
+curl http://192.168.5.53:11434/api/tags
+
+# 2. Test with mixtral (primary)
+bloginator outline "test topic" --index .bloginator/chroma
+
+# 3. Test with llama3 (alternative)
+OLLAMA_MODEL=llama3:8b bloginator outline "test topic"
+
+# 4. Verify quality weighting affects retrieval
+# Preferred sources should be retrieved more often
+```
+
 ## References
 
 - Main Documentation: `README.md`
 - Custom LLM Guide: `CUSTOM_LLM_GUIDE.md`
 - Environment Template: `.env.example`
 - Corpus Setup: `corpus/README.md`
+- Corpus Config Example: `corpus.yaml.example`
 
 ## Notes for Future Claude Sessions
 
