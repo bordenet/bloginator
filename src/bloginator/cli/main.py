@@ -12,6 +12,7 @@ from bloginator.cli.outline import outline
 from bloginator.cli.refine import refine
 from bloginator.cli.revert import revert
 from bloginator.cli.search import search
+from bloginator.cli.serve import serve
 
 
 @click.group()
@@ -49,6 +50,9 @@ def cli(ctx: click.Context) -> None:
         bloginator diff my-draft -v1 1 -v2 2
         bloginator revert my-draft 1 -o draft.json
 
+      Web UI:
+        bloginator serve --port 8000
+
     For more help on a command:
       bloginator <command> --help
     """
@@ -65,6 +69,7 @@ cli.add_command(outline)
 cli.add_command(refine)
 cli.add_command(revert)
 cli.add_command(search)
+cli.add_command(serve)
 
 
 @cli.command()

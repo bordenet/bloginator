@@ -1,0 +1,84 @@
+{
+  "title": "Engineering Career Ladder",
+  "thesis": "Clear framework for engineering career progression and expectations at each level",
+  "keywords": ["career", "progression", "levels", "expectations"],
+  "sections": [
+    {
+      "title": "Overview",
+      "description": "Purpose and philosophy of the career ladder",
+      "subsections": []
+    },
+    {
+      "title": "Junior Engineer",
+      "description": "Entry-level expectations and growth path",
+      "subsections": [
+        {
+          "title": "Technical Skills",
+          "description": "Expected technical capabilities"
+        },
+        {
+          "title": "Impact & Scope",
+          "description": "Level of impact and project scope"
+        },
+        {
+          "title": "Collaboration",
+          "description": "How they work with others"
+        }
+      ]
+    },
+    {
+      "title": "Mid-Level Engineer",
+      "description": "Intermediate expectations and responsibilities",
+      "subsections": [
+        {
+          "title": "Technical Skills",
+          "description": "Expected technical capabilities"
+        },
+        {
+          "title": "Impact & Scope",
+          "description": "Level of impact and project scope"
+        },
+        {
+          "title": "Collaboration & Mentorship",
+          "description": "How they work with and guide others"
+        }
+      ]
+    },
+    {
+      "title": "Senior Engineer",
+      "description": "Senior-level expectations and leadership",
+      "subsections": [
+        {
+          "title": "Technical Skills",
+          "description": "Expected technical capabilities"
+        },
+        {
+          "title": "Impact & Scope",
+          "description": "Level of impact and project scope"
+        },
+        {
+          "title": "Leadership & Influence",
+          "description": "How they lead and influence the organization"
+        }
+      ]
+    },
+    {
+      "title": "Staff Engineer & Beyond",
+      "description": "Principal and distinguished engineer expectations",
+      "subsections": [
+        {
+          "title": "Technical Vision",
+          "description": "Setting technical direction"
+        },
+        {
+          "title": "Organizational Impact",
+          "description": "Influence across the organization"
+        },
+        {
+          "title": "Strategic Leadership",
+          "description": "Leading through strategy and vision"
+        }
+      ]
+    }
+  ]
+}

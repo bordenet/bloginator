@@ -1,0 +1,49 @@
+{
+  "title": "Engineering Job Description",
+  "thesis": "",
+  "keywords": ["hiring", "role", "engineering", "requirements"],
+  "sections": [
+    {
+      "title": "Role Overview",
+      "description": "High-level description of the role and its impact",
+      "subsections": []
+    },
+    {
+      "title": "Responsibilities",
+      "description": "Key responsibilities and day-to-day activities",
+      "subsections": [
+        {
+          "title": "Technical Responsibilities",
+          "description": "Technical work and deliverables"
+        },
+        {
+          "title": "Leadership & Collaboration",
+          "description": "Team collaboration and leadership expectations"
+        }
+      ]
+    },
+    {
+      "title": "Requirements",
+      "description": "Required skills, experience, and qualifications",
+      "subsections": [
+        {
+          "title": "Technical Skills",
+          "description": "Required technical expertise"
+        },
+        {
+          "title": "Experience",
+          "description": "Years and type of experience needed"
+        },
+        {
+          "title": "Nice to Have",
+          "description": "Preferred but not required qualifications"
+        }
+      ]
+    },
+    {
+      "title": "What We Offer",
+      "description": "Benefits, culture, and growth opportunities",
+      "subsections": []
+    }
+  ]
+}

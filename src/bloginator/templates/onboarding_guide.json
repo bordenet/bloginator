@@ -1,0 +1,76 @@
+{
+  "title": "Engineering Onboarding Guide",
+  "thesis": "Comprehensive guide to help new engineers ramp up successfully",
+  "keywords": ["onboarding", "new hire", "ramp up", "getting started"],
+  "sections": [
+    {
+      "title": "Welcome",
+      "description": "Introduction and what to expect in your first weeks",
+      "subsections": []
+    },
+    {
+      "title": "Week 1: Setup & Orientation",
+      "description": "Get your environment configured and meet the team",
+      "subsections": [
+        {
+          "title": "Day 1 Checklist",
+          "description": "Equipment, accounts, and initial setup"
+        },
+        {
+          "title": "Development Environment",
+          "description": "Setting up your local development environment"
+        },
+        {
+          "title": "Team Introductions",
+          "description": "Meet your team and key stakeholders"
+        }
+      ]
+    },
+    {
+      "title": "Week 2-4: Learning & Starter Tasks",
+      "description": "Understand the codebase and complete first contributions",
+      "subsections": [
+        {
+          "title": "Codebase Overview",
+          "description": "Architecture and key components"
+        },
+        {
+          "title": "First Pull Request",
+          "description": "Starter tasks to get familiar with the workflow"
+        },
+        {
+          "title": "Key Resources",
+          "description": "Documentation, wikis, and learning materials"
+        }
+      ]
+    },
+    {
+      "title": "Month 2-3: Increasing Impact",
+      "description": "Take on larger tasks and build expertise",
+      "subsections": [
+        {
+          "title": "Feature Ownership",
+          "description": "Leading small features end-to-end"
+        },
+        {
+          "title": "On-Call Training",
+          "description": "Shadowing and preparing for on-call rotation"
+        }
+      ]
+    },
+    {
+      "title": "Resources & Support",
+      "description": "Where to get help and find information",
+      "subsections": [
+        {
+          "title": "Mentorship",
+          "description": "Your onboarding buddy and technical mentor"
+        },
+        {
+          "title": "Common Questions",
+          "description": "FAQ and troubleshooting"
+        }
+      ]
+    }
+  ]
+}
