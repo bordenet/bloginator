@@ -10,6 +10,7 @@ from rich.console import Console
 from rich.progress import Progress
 from rich.table import Table
 
+from bloginator.cli.error_reporting import ErrorTracker, create_error_panel
 from bloginator.corpus_config import CorpusConfig
 from bloginator.extraction import (
     count_words,
@@ -194,6 +195,9 @@ def _extract_single_source(
     """Extract from single source (legacy mode)."""
     import os
 
+    # Initialize error tracker
+    error_tracker = ErrorTracker()
+
     # Load existing extractions for skip logic
     existing_docs = _load_existing_extractions(output)
 
@@ -275,7 +279,10 @@ def _extract_single_source(
                 extracted_count += 1
 
             except Exception as e:
-                console.print(f"[red]✗ Failed to extract {file_path.name}: {e}[/red]")
+                # Categorize and track error
+                category = error_tracker.categorize_exception(e, file_path)
+                error_tracker.record_error(category, file_path.name, e)
+                console.print(f"[red]✗ {file_path.name}: {type(e).__name__}[/red]")
                 failed_count += 1
 
             progress.update(task, advance=1)
@@ -287,6 +294,10 @@ def _extract_single_source(
         console.print(f"[yellow]✗ Failed to extract {failed_count} document(s)[/yellow]")
     console.print(f"[cyan]Output directory: {output}[/cyan]")
 
+    # Print error summary if there were failures
+    if failed_count > 0:
+        error_tracker.print_summary(console)
+
 
 def _extract_from_config(
     config_path: Path, output: Path, console: Console, force: bool = False
@@ -294,11 +305,21 @@ def _extract_from_config(
     """Extract from multiple sources using corpus.yaml config."""
     import os
 
+    # Initialize error tracker
+    error_tracker = ErrorTracker()
+
     # Load config
     try:
         corpus_config = CorpusConfig.load_from_file(config_path)
     except Exception as e:
-        console.print(f"[red]Error loading config: {e}[/red]")
+        category = error_tracker.categorize_exception(e)
+        advice = error_tracker.get_actionable_advice(category)
+        panel = create_error_panel(
+            "Configuration Error",
+            f"Failed to load {config_path}: {e}",
+            advice,
+        )
+        console.print(panel)
         raise
 
     # Load existing extractions for skip logic
@@ -353,7 +374,9 @@ def _extract_from_config(
                 )
                 continue
         except Exception as e:
-            console.print(f"[red]✗ Failed to resolve path for '{source_cfg.name}': {e}[/red]")
+            category = error_tracker.categorize_exception(e)
+            error_tracker.record_error(category, f"source '{source_cfg.name}'", e)
+            console.print(f"[red]✗ Failed to resolve '{source_cfg.name}': {type(e).__name__}[/red]")
             continue
 
         if not resolved_path.exists():
@@ -459,7 +482,10 @@ def _extract_from_config(
                     extracted_count += 1
 
                 except Exception as e:
-                    console.print(f"  [red]✗ Failed: {file_path.name}: {e}[/red]")
+                    # Categorize and track error
+                    category = error_tracker.categorize_exception(e, file_path)
+                    error_tracker.record_error(category, f"{source_cfg.name}/{file_path.name}", e)
+                    console.print(f"  [red]✗ {file_path.name}: {type(e).__name__}[/red]")
                     failed_count += 1
 
                 progress.update(task, advance=1)
@@ -483,3 +509,7 @@ def _extract_from_config(
     if total_failed > 0:
         console.print(f"[bold yellow]Total: {total_failed} document(s) failed[/bold yellow]")
     console.print(f"[cyan]Output directory: {output}[/cyan]")
+
+    # Print error summary if there were failures
+    if total_failed > 0:
+        error_tracker.print_summary(console)
