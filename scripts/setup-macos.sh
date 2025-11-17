@@ -113,7 +113,8 @@ install_python() {
         if [[ $(echo -e "${major_minor}\n${REQUIRED_PYTHON_MIN}" | sort -V | head -n1) != "${REQUIRED_PYTHON_MIN}" ]]; then
             log_warning "Python version $python_version is below minimum $REQUIRED_PYTHON_MIN"
             PYTHON_CMD=""
-        elif [[ $(echo -e "${major_minor}\n${REQUIRED_PYTHON_MAX}" | sort -V | head -n1) != "${major_minor}" ]]; then
+        elif [[ "${major_minor}" == "${REQUIRED_PYTHON_MAX}" ]] || \
+             [[ $(echo -e "${REQUIRED_PYTHON_MAX}\n${major_minor}" | sort -V | head -n1) != "${major_minor}" ]]; then
             log_warning "Python version $python_version is not compatible (requires <$REQUIRED_PYTHON_MAX)"
             PYTHON_CMD=""
         else
