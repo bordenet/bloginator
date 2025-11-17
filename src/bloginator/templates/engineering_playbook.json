@@ -1,0 +1,67 @@
+{
+  "title": "Engineering Playbook",
+  "thesis": "Comprehensive guide to team practices, processes, and principles",
+  "keywords": ["engineering", "practices", "processes", "culture", "standards"],
+  "sections": [
+    {
+      "title": "Team Mission & Values",
+      "description": "Our purpose, principles, and core values",
+      "subsections": []
+    },
+    {
+      "title": "Development Practices",
+      "description": "How we write, review, and deploy code",
+      "subsections": [
+        {
+          "title": "Code Standards",
+          "description": "Coding conventions and style guidelines"
+        },
+        {
+          "title": "Code Review Process",
+          "description": "How we review and approve changes"
+        },
+        {
+          "title": "Testing Strategy",
+          "description": "Our approach to testing and quality assurance"
+        }
+      ]
+    },
+    {
+      "title": "Collaboration & Communication",
+      "description": "How we work together and stay aligned",
+      "subsections": [
+        {
+          "title": "Meeting Cadence",
+          "description": "Regular meetings and ceremonies"
+        },
+        {
+          "title": "Communication Channels",
+          "description": "Where and how we communicate"
+        },
+        {
+          "title": "Decision Making",
+          "description": "How we make and document decisions"
+        }
+      ]
+    },
+    {
+      "title": "Technical Practices",
+      "description": "Architecture, infrastructure, and technical standards",
+      "subsections": [
+        {
+          "title": "Architecture Principles",
+          "description": "Key architectural decisions and patterns"
+        },
+        {
+          "title": "Infrastructure & DevOps",
+          "description": "How we build and deploy systems"
+        }
+      ]
+    },
+    {
+      "title": "Continuous Improvement",
+      "description": "How we learn, grow, and evolve our practices",
+      "subsections": []
+    }
+  ]
+}
