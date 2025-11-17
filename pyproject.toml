@@ -161,6 +161,8 @@ select = [
 ]
 ignore = [
     "E501",  # line too long (handled by black)
+    "B904",  # Within except clause, raise with from err - intentional in error handlers
+    "B008",  # Do not perform function calls in argument defaults - FastAPI pattern
 ]
 
 [tool.ruff.lint.per-file-ignores]

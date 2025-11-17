@@ -13,6 +13,7 @@ __email__ = "matt@bordenet.com"
 
 from bloginator import cli, extraction, generation, indexing, models, safety, search, voice
 
+
 __all__ = [
     "__version__",
     "__author__",

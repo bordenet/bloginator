@@ -79,7 +79,7 @@ class VersionManager:
             return None
 
         try:
-            with open(history_path) as f:
+            with history_path.open() as f:
                 data = json.load(f)
 
             history = VersionHistory(**data)
@@ -98,7 +98,7 @@ class VersionManager:
         if history.storage_path is None:
             history.storage_path = self._get_history_path(history.draft_id)
 
-        with open(history.storage_path, "w") as f:
+        with history.storage_path.open("w") as f:
             json.dump(
                 history.model_dump(mode="json"),
                 f,

@@ -55,7 +55,7 @@ class TestVersionManager:
         assert history_path.exists()
 
         # Verify content
-        with open(history_path) as f:
+        with history_path.open() as f:
             data = json.load(f)
 
         assert data["draft_id"] == "my-draft"
@@ -86,7 +86,7 @@ class TestVersionManager:
         """Test loading corrupted history file."""
         # Write invalid JSON
         bad_path = temp_dir / "bad_history.json"
-        with open(bad_path, "w") as f:
+        with bad_path.open("w") as f:
             f.write("not valid json {")
 
         with pytest.raises(ValueError, match="Failed to load"):
@@ -108,7 +108,7 @@ class TestVersionManager:
         saved_path = temp_dir / "test_history.json"
         assert saved_path.exists()
 
-        with open(saved_path) as f:
+        with saved_path.open() as f:
             data = json.load(f)
 
         assert len(data["versions"]) == 2
