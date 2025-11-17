@@ -1,0 +1,21 @@
+Code Review Best Practices
+
+Code review is essential for maintaining code quality and knowledge sharing. Here are key principles:
+
+1. Review Code, Not People
+Focus on the code itself, not the author. Be respectful and constructive in feedback. Remember that everyone makes mistakes and learns through iteration.
+
+2. Automate What You Can
+Use linters, formatters, and automated tests to catch mechanical issues. This frees reviewers to focus on logic, architecture, and design decisions.
+
+3. Review Promptly
+Timely reviews keep development flowing. Aim to review within 24 hours. If you need more time, acknowledge the request and provide a timeline.
+
+4. Ask Questions
+When you don't understand something, ask clarifying questions rather than assuming intent. This helps both reviewer and author learn.
+
+5. Approve with Nits
+For minor issues (nits), approve the PR and trust the author to fix them. Don't block progress on trivial matters.
+
+6. Be Specific
+Vague feedback like "this could be better" isn't helpful. Suggest specific improvements or alternatives.
