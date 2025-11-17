@@ -6,7 +6,7 @@ corpus sources with metadata.
 
 import re
 from datetime import datetime
-from pathlib import Path, PureWindowsPath
+from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
@@ -225,7 +225,7 @@ class CorpusConfig(BaseModel):
         if not config_path.exists():
             raise FileNotFoundError(f"Config file not found: {config_path}")
 
-        with open(config_path) as f:
+        with config_path.open() as f:
             data = yaml.safe_load(f)
 
         if not data:

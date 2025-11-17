@@ -43,7 +43,7 @@ def _load_existing_extractions(output_dir: Path) -> dict[str, tuple[str, datetim
     # Scan all .json metadata files
     for json_file in output_dir.glob("*.json"):
         try:
-            with open(json_file, "r", encoding="utf-8") as f:
+            with json_file.open(encoding="utf-8") as f:
                 metadata = json.load(f)
 
             source_path = metadata.get("source_path")
@@ -61,7 +61,9 @@ def _load_existing_extractions(output_dir: Path) -> dict[str, tuple[str, datetim
     return existing
 
 
-def _should_skip_file(file_path: Path, existing_docs: dict[str, tuple[str, datetime]], force: bool = False) -> tuple[bool, str | None]:
+def _should_skip_file(
+    file_path: Path, existing_docs: dict[str, tuple[str, datetime]], force: bool = False
+) -> tuple[bool, str | None]:
     """Determine if a file should be skipped during extraction.
 
     Args:
@@ -136,7 +138,12 @@ def _should_skip_file(file_path: Path, existing_docs: dict[str, tuple[str, datet
     help="Force re-extraction of all files, even if already extracted",
 )
 def extract(
-    source: Path | None, output: Path, config: Path | None, quality: str, tags: str | None, force: bool
+    source: Path | None,
+    output: Path,
+    config: Path | None,
+    quality: str,
+    tags: str | None,
+    force: bool,
 ) -> None:
     """Extract documents from SOURCE to OUTPUT directory.
 
@@ -198,7 +205,7 @@ def _extract_single_source(
         supported_extensions = {".pdf", ".docx", ".md", ".markdown", ".txt"}
 
         # Walk directory tree, following symlinks
-        for root, dirs, filenames in os.walk(source, followlinks=True):
+        for root, _dirs, filenames in os.walk(source, followlinks=True):
             root_path = Path(root)
             for filename in filenames:
                 # Skip temp files
@@ -281,7 +288,9 @@ def _extract_single_source(
     console.print(f"[cyan]Output directory: {output}[/cyan]")
 
 
-def _extract_from_config(config_path: Path, output: Path, console: Console, force: bool = False) -> None:
+def _extract_from_config(
+    config_path: Path, output: Path, console: Console, force: bool = False
+) -> None:
     """Extract from multiple sources using corpus.yaml config."""
     import os
 
@@ -330,21 +339,27 @@ def _extract_from_config(config_path: Path, output: Path, console: Console, forc
     # Process each source
     for source_cfg in enabled_sources:
         if source_cfg.is_url():
-            console.print(f"[yellow]⊘ Skipping URL source '{source_cfg.name}' (not yet implemented)[/yellow]")
+            console.print(
+                f"[yellow]⊘ Skipping URL source '{source_cfg.name}' (not yet implemented)[/yellow]"
+            )
             continue
 
         # Resolve path
         try:
             resolved_path = source_cfg.resolve_path(config_dir)
             if not isinstance(resolved_path, Path):
-                console.print(f"[yellow]⊘ Skipping '{source_cfg.name}' (path resolution issue)[/yellow]")
+                console.print(
+                    f"[yellow]⊘ Skipping '{source_cfg.name}' (path resolution issue)[/yellow]"
+                )
                 continue
         except Exception as e:
             console.print(f"[red]✗ Failed to resolve path for '{source_cfg.name}': {e}[/red]")
             continue
 
         if not resolved_path.exists():
-            console.print(f"[yellow]⊘ Skipping '{source_cfg.name}' (path does not exist: {resolved_path})[/yellow]")
+            console.print(
+                f"[yellow]⊘ Skipping '{source_cfg.name}' (path does not exist: {resolved_path})[/yellow]"
+            )
             continue
 
         console.print(f"[cyan]Processing '{source_cfg.name}' from {resolved_path}...[/cyan]")
@@ -359,7 +374,7 @@ def _extract_from_config(config_path: Path, output: Path, console: Console, forc
             supported_extensions = set(corpus_config.extraction.include_extensions)
             ignore_patterns = corpus_config.extraction.ignore_patterns
 
-            for root, dirs, filenames in os.walk(
+            for root, _dirs, filenames in os.walk(
                 resolved_path,
                 followlinks=corpus_config.extraction.follow_symlinks,
             ):
@@ -462,7 +477,9 @@ def _extract_from_config(config_path: Path, output: Path, console: Console, forc
     # Summary
     console.print(f"\n[bold green]Total: {total_extracted} document(s) extracted[/bold green]")
     if total_skipped > 0:
-        console.print(f"[bold cyan]Total: {total_skipped} document(s) skipped (already extracted)[/bold cyan]")
+        console.print(
+            f"[bold cyan]Total: {total_skipped} document(s) skipped (already extracted)[/bold cyan]"
+        )
     if total_failed > 0:
         console.print(f"[bold yellow]Total: {total_failed} document(s) failed[/bold yellow]")
     console.print(f"[cyan]Output directory: {output}[/cyan]")

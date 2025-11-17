@@ -39,7 +39,7 @@ class TestRefineCLI:
         )
 
         draft_path = temp_dir / "draft.json"
-        with open(draft_path, "w") as f:
+        with draft_path.open("w") as f:
             json.dump(draft.model_dump(mode="json"), f, default=str)
 
         return draft_path
@@ -229,7 +229,7 @@ class TestRefineCLI:
     ):
         """Test refinement with invalid draft JSON."""
         bad_draft = temp_dir / "bad.json"
-        with open(bad_draft, "w") as f:
+        with bad_draft.open("w") as f:
             f.write("not valid json {")
 
         result = runner.invoke(
