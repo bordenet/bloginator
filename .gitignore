@@ -153,6 +153,11 @@ test-corpus/
 *.db
 *.sqlite3
 
+# Sensitive corpus configuration (local paths to proprietary content)
+corpus.local.yaml
+corpus/*.local.yaml
+corpus.*.yaml
+
 # ChromaDB
 chroma.sqlite3
 chroma/

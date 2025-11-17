@@ -1,0 +1,61 @@
+# Bloginator Corpus Configuration - EXAMPLE
+# Copy this to corpus.local.yaml and customize with your actual paths
+# NEVER commit corpus.local.yaml to git (it's in .gitignore)
+
+sources:
+  # Example: Public blogs from your website or GitHub
+  - name: "public-blogs"
+    path: "/path/to/your/public/blogs"
+    quality: "preferred"  # preferred | reference | supplemental | deprecated
+    voice_notes: "Most recent blog posts from public website. Well-edited and safe."
+    tags: ["recent", "public", "professional"]
+    enabled: true
+
+  # Example: Professional technical writing (cloud storage)
+  - name: "professional-technical-writing"
+    path: "/Users/you/OneDrive/Documents/Career/Company1"
+    quality: "preferred"
+    voice_notes: "Professional technical blog posts with authentic voice."
+    tags: ["technical", "professional"]
+    enabled: true
+
+  # Example: Working drafts on NAS
+  - name: "working-drafts-nas"
+    path: "/Volumes/nas-mount/blog-drafts"
+    quality: "reference"  # Working copy, may have drafts
+    voice_notes: "Live working copy. May contain work-in-progress content."
+    tags: ["nas", "drafts"]
+    enabled: true
+
+  # Example: Historical content from previous role
+  - name: "historical-technical-blogs"
+    path: "/Users/you/Archive/Company2/blogs"
+    quality: "preferred"
+    voice_notes: "Historical technical content from 2017-2021."
+    tags: ["historical", "technical"]
+    enabled: false  # Disabled by default
+
+  # Example: SMB/network share
+  - name: "network-share-blogs"
+    path: "/Volumes/share-mount/career-docs"
+    quality: "reference"
+    voice_notes: "Content from network share. Mount first!"
+    tags: ["network", "smb"]
+    enabled: false  # Enable after mounting share
+
+# Quality Levels Explained:
+# - preferred: High-quality, authentic voice, use freely for generation
+# - reference: Good quality, but use with consideration (may be edited/sanitized)
+# - supplemental: Lower quality or off-topic, use sparingly
+# - deprecated: Keep for reference but don't use for generation
+
+# Notes on Sources:
+# 1. github-personal-blogs: Most recent, safest for public consumption
+# 2. example-company (both): Professional technical writing, authentic voice
+# 3. istreamplanet: Historical technical blog posts, specialized domain knowledge
+# 4. NAS vs OneDrive: NAS has working copies, OneDrive has archives
+
+# Usage:
+#   Extract: bloginator extract -o output/extracted --config corpus.yaml
+#   Index:   bloginator index output/extracted -o .bloginator/chroma
+#   Search:  bloginator search "your query"
