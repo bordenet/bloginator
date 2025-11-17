@@ -12,11 +12,13 @@ source "${REPO_ROOT}/scripts/lib/common.sh"
 init_script
 
 readonly VENV_DIR="${REPO_ROOT}/.venv"
-readonly PYTHON_VERSION="3.10"
+readonly PYTHON_VERSION="3.13"
 readonly REQUIRED_PYTHON_MIN="3.10"
+readonly REQUIRED_PYTHON_MAX="3.14"  # Exclusive upper bound
 
 AUTO_CONFIRM=false
 VERBOSE=false
+PYTHON_CMD=""  # Will be set by install_python()
 
 parse_args() {
     while [[ $# -gt 0 ]]; do
@@ -75,6 +77,26 @@ install_homebrew() {
     fi
 }
 
+find_compatible_python() {
+    # Try to find a compatible Python version (3.10-3.13)
+    for version in 3.13 3.12 3.11 3.10; do
+        if command -v "python${version}" &>/dev/null; then
+            local py_version
+            py_version=$("python${version}" --version 2>&1 | awk '{print $2}')
+            local major_minor
+            major_minor=$(echo "$py_version" | cut -d. -f1,2)
+
+            # Check if version is in range [3.10, 3.14)
+            if [[ $(echo -e "${major_minor}\n${REQUIRED_PYTHON_MIN}" | sort -V | head -n1) == "${REQUIRED_PYTHON_MIN}" ]] && \
+               [[ $(echo -e "${major_minor}\n${REQUIRED_PYTHON_MAX}" | sort -V | head -n1) == "${major_minor}" ]]; then
+                echo "python${version}"
+                return 0
+            fi
+        fi
+    done
+    return 1
+}
+
 install_python() {
     log_section "Installing Python"
 
@@ -83,34 +105,46 @@ install_python() {
         python_version=$(python3 --version 2>&1 | awk '{print $2}')
         log_info "Python already installed: $python_version"
 
-        # Check version meets minimum requirement
+        # Check version compatibility (>=3.10, <3.14)
         local major_minor
         major_minor=$(echo "$python_version" | cut -d. -f1,2)
 
-        if [[ $(echo -e "$major_minor\n$REQUIRED_PYTHON_MIN" | sort -V | head -n1) == "$REQUIRED_PYTHON_MIN" ]] && \
-           [[ "$major_minor" != "$(echo -e "$major_minor\n$REQUIRED_PYTHON_MIN" | sort -V | tail -n1)" ]]; then
-            log_warning "Python version $python_version is below recommended $REQUIRED_PYTHON_MIN"
-            if confirm "Install Python $PYTHON_VERSION via Homebrew?" "y"; then
-                run_quiet brew install "python@${PYTHON_VERSION}"
-                log_success "Python $PYTHON_VERSION installed"
-            fi
+        # Check if version is too old or too new
+        if [[ $(echo -e "${major_minor}\n${REQUIRED_PYTHON_MIN}" | sort -V | head -n1) != "${REQUIRED_PYTHON_MIN}" ]]; then
+            log_warning "Python version $python_version is below minimum $REQUIRED_PYTHON_MIN"
+            PYTHON_CMD=""
+        elif [[ "${major_minor}" == "${REQUIRED_PYTHON_MAX}" ]] || \
+             [[ $(echo -e "${REQUIRED_PYTHON_MAX}\n${major_minor}" | sort -V | head -n1) != "${major_minor}" ]]; then
+            log_warning "Python version $python_version is not compatible (requires <$REQUIRED_PYTHON_MAX)"
+            PYTHON_CMD=""
         else
             log_success "Python version meets requirements"
-        fi
-    else
-        log_info "Installing Python $PYTHON_VERSION..."
-        if confirm "Install Python $PYTHON_VERSION?" "y"; then
-            run_quiet brew install "python@${PYTHON_VERSION}"
-            log_success "Python $PYTHON_VERSION installed"
-        else
-            die "Python is required for Bloginator"
+            PYTHON_CMD="python3"
+            return 0
         fi
     fi
 
+    # Try to find a compatible Python version
+    log_info "Looking for compatible Python version..."
+    if PYTHON_CMD=$(find_compatible_python); then
+        log_success "Found compatible Python: $PYTHON_CMD ($($PYTHON_CMD --version 2>&1 | awk '{print $2}'))"
+        return 0
+    fi
+
+    # Need to install a compatible Python
+    log_info "Installing Python $PYTHON_VERSION..."
+    if confirm "Install Python $PYTHON_VERSION via Homebrew?" "y"; then
+        run_quiet brew install "python@${PYTHON_VERSION}"
+        PYTHON_CMD="python${PYTHON_VERSION}"
+        log_success "Python $PYTHON_VERSION installed"
+    else
+        die "A compatible Python version (${REQUIRED_PYTHON_MIN} <= version < ${REQUIRED_PYTHON_MAX}) is required"
+    fi
+
     # Verify installation
-    require_command python3 "Python installation failed"
-    log_info "Using Python: $(which python3)"
-    log_info "Python version: $(python3 --version)"
+    require_command "$PYTHON_CMD" "Python installation failed"
+    log_info "Using Python: $(which "$PYTHON_CMD")"
+    log_info "Python version: $($PYTHON_CMD --version)"
 }
 
 install_git() {
@@ -172,7 +206,8 @@ setup_virtualenv() {
     fi
 
     log_info "Creating virtual environment at $VENV_DIR..."
-    python3 -m venv "$VENV_DIR"
+    log_info "Using Python: $PYTHON_CMD"
+    "$PYTHON_CMD" -m venv "$VENV_DIR"
     log_success "Virtual environment created"
 
     # Activate virtual environment
@@ -182,7 +217,7 @@ setup_virtualenv() {
 
     # Upgrade pip
     log_info "Upgrading pip..."
-    run_quiet python3 -m pip install --upgrade pip
+    run_quiet python -m pip install --upgrade pip
     log_success "pip upgraded"
 }
 
