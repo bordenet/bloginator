@@ -1,3 +1,6 @@
+# Security
+.env
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -193,3 +196,7 @@ htmlcov/
 # Ollama/LM Studio cache
 .ollama/
 .lmstudio/
+
+
+#Ignore vscode AI rules
+.github/instructions/codacy.instructions.md
