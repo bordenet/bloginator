@@ -41,7 +41,59 @@ Bloginator will recursively scan this directory and index all supported files.
 
 ## Getting Started
 
-### 1. Add Your Writing
+### Option A: Quick Setup (Recommended for Multiple Sources)
+
+**1. Create corpus.yaml configuration:**
+
+```bash
+# Copy example config
+cp corpus.yaml.example corpus.yaml
+
+# Edit with your sources
+nano corpus.yaml
+```
+
+**2. Configure your sources in corpus.yaml:**
+
+```yaml
+sources:
+  # OneDrive archive
+  - name: "onedrive-blog-archive"
+    path: "/Users/you/OneDrive/Blog Archive"
+    quality: "preferred"  # High-quality authentic voice
+    voice_notes: "Original blog posts from 2019-2021"
+    tags: ["archive", "authentic-voice"]
+    enabled: true
+
+  # Recent sanitized posts
+  - name: "recent-blog-posts"
+    path: "../../blogs/"  # Relative paths supported!
+    quality: "reference"  # Usable but sanitized
+    voice_notes: "Recent posts - voice reads too AI, use sparingly"
+    tags: ["recent", "ai-edited"]
+    enabled: true
+
+  # Symlinked film blog
+  - name: "films-not-made"
+    path: "../films-not-made/blog"  # Symlinks work!
+    quality: "preferred"
+    tags: ["film", "criticism"]
+    enabled: true
+```
+
+**3. Extract and index:**
+
+```bash
+# Extract from all enabled sources
+bloginator extract -o output/extracted --config corpus.yaml
+
+# Index into ChromaDB
+bloginator index output/extracted -o .bloginator/chroma
+```
+
+### Option B: Manual Setup (Legacy, Single Source)
+
+**1. Add Your Writing:**
 
 You can either copy files or use symbolic links (recommended to avoid duplicating data):
 
@@ -60,17 +112,26 @@ cp important-post.md corpus/
 
 **Symbolic links are fully supported!** The extraction tool follows symlinks automatically, so you can link to directories anywhere on your system without copying data.
 
-### 2. Index Your Corpus
-
-Once you've added files, index them into ChromaDB:
+**2. Extract and index:**
 
 ```bash
-# From project root
-bloginator index corpus/
+# Extract from directory
+bloginator extract corpus/ -o output/extracted --quality preferred
 
-# Or specify custom output directory
-bloginator index corpus/ --chroma-dir .bloginator/chroma
+# Index into ChromaDB
+bloginator index output/extracted -o .bloginator/chroma
 ```
+
+## Supported Path Types
+
+corpus.yaml supports all these path formats:
+
+- **Relative paths**: `../../blogs/` (relative to corpus.yaml location)
+- **Absolute paths**: `/Users/you/OneDrive/Blog Archive`
+- **Windows paths**: `C:\Users\you\Documents\Blogs`
+- **UNC paths**: `\\server\share\blogs`
+- **Symlinks**: Full support, no data copying needed!
+- **URLs**: `https://example.com/posts.zip` (future - not yet implemented)
 
 ### 3. Search to Verify
 
