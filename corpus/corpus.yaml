@@ -1,0 +1,52 @@
+# Bloginator Corpus Configuration
+# Multi-source blog corpus with quality ratings and metadata
+
+sources:
+  # Most recent, public blogs (safest and most genericized)
+  - name: "github-personal-blogs"
+    path: "/Users/matt/GitHub/Personal/blogs/"
+    quality: "preferred"  # Current, public, well-edited
+    voice_notes: "Most recent blog posts from public website (2024). Well-edited, safe, and genericized. Best for professional content generation."
+    tags: ["recent", "public", "2024", "professional"]
+    enabled: true
+
+  # Telepathy Labs blogs (OneDrive)
+  - name: "telepathy-labs-onedrive"
+    path: "/Users/matt/OneDrive - Personal/Documents/Career/TL"
+    quality: "preferred"  # Authentic professional voice
+    voice_notes: "Telepathy Labs blog posts and technical writing. Authentic professional voice with technical depth."
+    tags: ["telepathy-labs", "technical", "professional", "onedrive"]
+    enabled: true
+
+  # Telepathy Labs blogs (NAS - live/working copy)
+  - name: "telepathy-labs-nas"
+    path: "/Volumes/scratch/TL"
+    quality: "reference"  # Working copy, may have drafts
+    voice_notes: "Live working copy of TL materials on NAS. May contain drafts and work-in-progress. Use as reference."
+    tags: ["telepathy-labs", "nas", "working-copy", "drafts"]
+    enabled: true
+
+  # iStreamPlanet blogs (2017-2021)
+  - name: "istreamplanet-blogs"
+    path: "/Users/matt/OneDrive - Personal/Documents/Career/iStreamPlanet"
+    quality: "preferred"  # Historical but high-quality
+    voice_notes: "iStreamPlanet blog posts and technical writing (2017-2021). High-quality technical content, live streaming and video delivery expertise."
+    tags: ["istreamplanet", "2017-2021", "video-streaming", "technical", "historical"]
+    enabled: true
+
+# Quality Levels Explained:
+# - preferred: High-quality, authentic voice, use freely for generation
+# - reference: Good quality, but use with consideration (may be edited/sanitized)
+# - supplemental: Lower quality or off-topic, use sparingly
+# - deprecated: Keep for reference but don't use for generation
+
+# Notes on Sources:
+# 1. github-personal-blogs: Most recent, safest for public consumption
+# 2. telepathy-labs (both): Professional technical writing, authentic voice
+# 3. istreamplanet: Historical technical blog posts, specialized domain knowledge
+# 4. NAS vs OneDrive: NAS has working copies, OneDrive has archives
+
+# Usage:
+#   Extract: bloginator extract -o output/extracted --config corpus.yaml
+#   Index:   bloginator index output/extracted -o .bloginator/chroma
+#   Search:  bloginator search "your query"
