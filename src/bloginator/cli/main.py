@@ -4,10 +4,13 @@ import click
 
 from bloginator import __version__
 from bloginator.cli.blocklist import blocklist
+from bloginator.cli.diff import diff
 from bloginator.cli.draft import draft
 from bloginator.cli.extract import extract
 from bloginator.cli.index import index
 from bloginator.cli.outline import outline
+from bloginator.cli.refine import refine
+from bloginator.cli.revert import revert
 from bloginator.cli.search import search
 
 
@@ -26,17 +29,25 @@ def cli(ctx: click.Context) -> None:
       2. bloginator index output/extracted -o output/index
       3. bloginator search output/index "your query"
       4. bloginator outline --index output/index --keywords "topic,theme"
-      5. bloginator draft outline.json -o draft.md
+      5. bloginator draft --outline outline.json -o draft.md
+      6. bloginator refine -d draft.md -f "make more engaging"
+      7. bloginator diff my-draft --list-versions
+      8. bloginator revert my-draft 2 -o draft.md
 
     Examples:
-      Extract documents:
+      Extract and index:
         bloginator extract ~/my-writing -o output/extracted
-
-      Index documents:
         bloginator index output/extracted -o output/index
 
-      Search corpus:
+      Search and generate:
         bloginator search output/index "agile transformation"
+        bloginator outline --index output/index --keywords "agile,transformation"
+        bloginator draft --index output/index --outline outline.json -o draft.md
+
+      Refine and iterate:
+        bloginator refine -i output/index -d draft.json -f "more optimistic tone"
+        bloginator diff my-draft -v1 1 -v2 2
+        bloginator revert my-draft 1 -o draft.json
 
     For more help on a command:
       bloginator <command> --help
@@ -46,10 +57,13 @@ def cli(ctx: click.Context) -> None:
 
 # Register commands
 cli.add_command(blocklist)
+cli.add_command(diff)
 cli.add_command(draft)
 cli.add_command(extract)
 cli.add_command(index)
 cli.add_command(outline)
+cli.add_command(refine)
+cli.add_command(revert)
 cli.add_command(search)
 
 
