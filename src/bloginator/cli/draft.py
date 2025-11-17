@@ -89,6 +89,12 @@ from bloginator.search import CorpusSearcher
     type=click.Path(path_type=Path),
     help="Path to log file (logs to stdout if not specified)",
 )
+@click.option(
+    "--verbose",
+    "-v",
+    is_flag=True,
+    help="Show LLM request/response interactions",
+)
 def draft(
     index_dir: Path,
     outline_file: Path,
@@ -102,6 +108,7 @@ def draft(
     score_voice: bool,
     config_dir: Path,
     log_file: Path | None,
+    verbose: bool,
 ) -> None:
     """Generate document draft from outline.
 
@@ -137,11 +144,8 @@ def draft(
         log_file.parent.mkdir(parents=True, exist_ok=True)
         logging.basicConfig(
             level=logging.INFO,
-            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-            handlers=[
-                logging.FileHandler(log_file),
-                logging.StreamHandler()
-            ]
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            handlers=[logging.FileHandler(log_file), logging.StreamHandler()],
         )
         logger = logging.getLogger(__name__)
         logger.info(f"Logging to {log_file}")
@@ -187,8 +191,10 @@ def draft(
         # Initialize LLM client
         task = progress.add_task("Connecting to LLM...", total=None)
         try:
-            logger.info(f"Connecting to LLM from config (model param '{model}' is ignored, using .env)")
-            llm_client = create_llm_from_config()
+            logger.info(
+                f"Connecting to LLM from config (model param '{model}' is ignored, using .env)"
+            )
+            llm_client = create_llm_from_config(verbose=verbose)
             logger.info("LLM client connected")
         except Exception as e:
             logger.error(f"Failed to connect to LLM: {e}")
@@ -237,13 +243,17 @@ def draft(
             total=None,
         )
         try:
-            logger.info(f"Generating draft with {len(outline_obj.sections)} sections, temperature={temperature}")
+            logger.info(
+                f"Generating draft with {len(outline_obj.sections)} sections, temperature={temperature}"
+            )
             draft_obj = generator.generate(
                 outline=outline_obj,
                 temperature=temperature,
                 max_section_words=max_section_words,
             )
-            logger.info(f"Draft generated: {draft_obj.total_words} words, {draft_obj.total_citations} citations")
+            logger.info(
+                f"Draft generated: {draft_obj.total_words} words, {draft_obj.total_citations} citations"
+            )
         except Exception as e:
             logger.error(f"Failed to generate draft: {e}", exc_info=True)
             console.print(f"[red]✗[/red] Failed to generate draft: {e}")
@@ -286,9 +296,7 @@ def draft(
         voice_color = (
             "green"
             if draft_obj.voice_score >= 0.7
-            else "yellow"
-            if draft_obj.voice_score >= 0.5
-            else "red"
+            else "yellow" if draft_obj.voice_score >= 0.5 else "red"
         )
         stats_table.add_row(
             "Voice Score:",
