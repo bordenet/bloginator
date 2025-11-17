@@ -1,0 +1,104 @@
+{
+  "title": "Request for Proposal Response",
+  "thesis": "",
+  "keywords": ["RFP", "proposal", "bid", "vendor", "capabilities"],
+  "sections": [
+    {
+      "title": "Executive Summary",
+      "description": "High-level overview of our proposal and value proposition",
+      "subsections": []
+    },
+    {
+      "title": "Company Overview",
+      "description": "About our company and relevant experience",
+      "subsections": [
+        {
+          "title": "Company Background",
+          "description": "History, mission, and core competencies"
+        },
+        {
+          "title": "Relevant Experience",
+          "description": "Similar projects and case studies"
+        },
+        {
+          "title": "Team Qualifications",
+          "description": "Key team members and their expertise"
+        }
+      ]
+    },
+    {
+      "title": "Understanding of Requirements",
+      "description": "Our interpretation of your needs",
+      "subsections": [
+        {
+          "title": "Problem Statement",
+          "description": "What we understand you're trying to solve"
+        },
+        {
+          "title": "Key Requirements",
+          "description": "Critical requirements we will address"
+        }
+      ]
+    },
+    {
+      "title": "Proposed Solution",
+      "description": "Detailed description of our approach",
+      "subsections": [
+        {
+          "title": "Solution Overview",
+          "description": "High-level approach and methodology"
+        },
+        {
+          "title": "Technical Approach",
+          "description": "Technology stack and implementation strategy"
+        },
+        {
+          "title": "Deliverables",
+          "description": "What will be delivered and when"
+        }
+      ]
+    },
+    {
+      "title": "Implementation Plan",
+      "description": "Timeline, phases, and milestones",
+      "subsections": [
+        {
+          "title": "Project Phases",
+          "description": "Breakdown of work into phases"
+        },
+        {
+          "title": "Timeline",
+          "description": "Estimated timeline for each phase"
+        },
+        {
+          "title": "Resource Plan",
+          "description": "Team composition and allocation"
+        }
+      ]
+    },
+    {
+      "title": "Pricing",
+      "description": "Cost breakdown and payment terms",
+      "subsections": [
+        {
+          "title": "Cost Breakdown",
+          "description": "Detailed pricing by phase or deliverable"
+        },
+        {
+          "title": "Payment Terms",
+          "description": "Payment schedule and conditions"
+        }
+      ]
+    },
+    {
+      "title": "Risk Management",
+      "description": "Potential risks and mitigation strategies",
+      "subsections": []
+    },
+    {
+      "title": "References & Case Studies",
+      "description": "Relevant client references and success stories",
+      "subsections": []
+    }
+  ]
+}

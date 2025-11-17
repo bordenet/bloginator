@@ -1,0 +1,81 @@
+{
+  "title": "Team Charter",
+  "thesis": "Define team mission, values, and ways of working",
+  "keywords": ["team", "charter", "mission", "values", "culture"],
+  "sections": [
+    {
+      "title": "Team Mission",
+      "description": "Our purpose and what we aim to achieve",
+      "subsections": []
+    },
+    {
+      "title": "Team Values",
+      "description": "Core principles that guide how we work",
+      "subsections": [
+        {
+          "title": "Value 1",
+          "description": "First core value and what it means in practice"
+        },
+        {
+          "title": "Value 2",
+          "description": "Second core value and what it means in practice"
+        },
+        {
+          "title": "Value 3",
+          "description": "Third core value and what it means in practice"
+        }
+      ]
+    },
+    {
+      "title": "Team Structure & Roles",
+      "description": "How the team is organized and key roles",
+      "subsections": [
+        {
+          "title": "Team Composition",
+          "description": "Team members and their primary responsibilities"
+        },
+        {
+          "title": "Decision Rights",
+          "description": "Who makes what decisions and how"
+        }
+      ]
+    },
+    {
+      "title": "Ways of Working",
+      "description": "Our processes, rituals, and collaboration norms",
+      "subsections": [
+        {
+          "title": "Meeting Cadence",
+          "description": "Regular team meetings and ceremonies"
+        },
+        {
+          "title": "Communication Norms",
+          "description": "How we communicate and stay aligned"
+        },
+        {
+          "title": "Collaboration Practices",
+          "description": "How we work together on projects"
+        }
+      ]
+    },
+    {
+      "title": "Success Metrics",
+      "description": "How we measure our team's effectiveness",
+      "subsections": [
+        {
+          "title": "Business Metrics",
+          "description": "Impact on business outcomes"
+        },
+        {
+          "title": "Team Health Metrics",
+          "description": "Indicators of team effectiveness and well-being"
+        }
+      ]
+    },
+    {
+      "title": "Growth & Development",
+      "description": "How we support individual and team growth",
+      "subsections": []
+    }
+  ]
+}

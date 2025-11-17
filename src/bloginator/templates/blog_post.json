@@ -1,0 +1,45 @@
+{
+  "title": "Technical Blog Post",
+  "thesis": "",
+  "keywords": ["technology", "engineering", "best practices"],
+  "sections": [
+    {
+      "title": "Introduction",
+      "description": "Hook the reader and introduce the topic",
+      "subsections": []
+    },
+    {
+      "title": "Background",
+      "description": "Provide context and explain why this matters",
+      "subsections": []
+    },
+    {
+      "title": "Core Content",
+      "description": "Main technical content, examples, and insights",
+      "subsections": [
+        {
+          "title": "Key Concept 1",
+          "description": "First major point or technique"
+        },
+        {
+          "title": "Key Concept 2",
+          "description": "Second major point or technique"
+        },
+        {
+          "title": "Key Concept 3",
+          "description": "Third major point or technique"
+        }
+      ]
+    },
+    {
+      "title": "Practical Application",
+      "description": "How to apply these concepts in real scenarios",
+      "subsections": []
+    },
+    {
+      "title": "Conclusion",
+      "description": "Summarize key takeaways and call to action",
+      "subsections": []
+    }
+  ]
+}
