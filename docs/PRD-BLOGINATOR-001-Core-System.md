@@ -61,6 +61,27 @@ Generic AI tools (ChatGPT, Claude, etc.) can generate content quickly but produc
 
 **The credibility gap**: Engineering leaders are hired for their perspective and experience. Documents that sound like they were written by anyone (or anything) undermine that value.
 
+### The Intent Communication Problem (NEW - 2025-11-17)
+
+When creating documents, authors must communicate not just WHAT they're writing about, but also:
+1. **Authority Level**: Is this a suggestion, best practice, or requirement?
+2. **Target Audience**: Who should read and act on this?
+
+**Current Reality**:
+- Readers must infer whether content is prescriptive or suggestive
+- No clear indication of intended audience (IC engineers vs. leaders vs. QA vs. general)
+- Same content interpreted differently by different audiences
+- Authority level unclear (Is "you should" a recommendation or requirement?)
+- Content meant for one audience confuses another (too technical vs. not technical enough)
+
+**Impact**:
+- Mandates are treated as suggestions (compliance issues)
+- Guidance is treated as mandates (rigid implementation)
+- Wrong audience reads content (IC engineers reading leadership strategy docs)
+- Wasted time and miscommunication
+
+**WHY Classification + Audience Matter**: Clear communication of intent ensures readers understand how to interpret and apply content appropriately. These become first-class metadata that appear in document subtitles and guide LLM tone/language selection.
+
 ### The Proprietary Content Problem
 
 When manually stitching together documents from multiple employers, there's constant risk of:

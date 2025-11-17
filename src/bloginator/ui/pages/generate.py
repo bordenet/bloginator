@@ -92,6 +92,59 @@ def show_outline_generation():
         height=100,
     )
 
+    # NEW: Classification and Audience selectors
+    st.markdown("---")
+    st.subheader("Content Classification & Audience")
+
+    col_class, col_audience = st.columns(2)
+
+    with col_class:
+        classification = st.selectbox(
+            "Classification",
+            options=[
+                "Guidance",
+                "Best Practice",
+                "Mandate",
+                "Principle",
+                "Opinion",
+            ],
+            index=0,
+            help="""
+            **Content authority level:**
+            - **Guidance**: Suggestive, non-prescriptive recommendations
+            - **Best Practice**: Established patterns with proven value
+            - **Mandate**: Required standards or policies (strong authority)
+            - **Principle**: Fundamental truths or values (philosophical)
+            - **Opinion**: Personal perspective or viewpoint
+            """,
+        )
+
+    with col_audience:
+        audience = st.selectbox(
+            "Target Audience",
+            options=[
+                "All Disciplines (General)",
+                "IC Engineers",
+                "Senior Engineers",
+                "Engineering Leaders",
+                "QA Engineers",
+                "DevOps/SRE",
+                "Product Managers",
+                "Technical Leadership",
+                "Executives",
+                "General (Non-technical)",
+            ],
+            index=0,
+            help="""
+            **Target audience affects:**
+            - Language level and technical depth
+            - Which corpus sources are prioritized
+            - Examples and analogies used
+            """,
+        )
+
+    st.markdown("---")
+
     col1, col2, col3 = st.columns(3)
 
     with col1:
@@ -144,6 +197,28 @@ def show_outline_generation():
 
         with st.spinner("Generating outline... This may take a few minutes."):
             try:
+                # Map UI labels to CLI values
+                classification_map = {
+                    "Guidance": "guidance",
+                    "Best Practice": "best-practice",
+                    "Mandate": "mandate",
+                    "Principle": "principle",
+                    "Opinion": "opinion",
+                }
+
+                audience_map = {
+                    "All Disciplines (General)": "all-disciplines",
+                    "IC Engineers": "ic-engineers",
+                    "Senior Engineers": "senior-engineers",
+                    "Engineering Leaders": "engineering-leaders",
+                    "QA Engineers": "qa-engineers",
+                    "DevOps/SRE": "devops-sre",
+                    "Product Managers": "product-managers",
+                    "Technical Leadership": "technical-leadership",
+                    "Executives": "executives",
+                    "General (Non-technical)": "general",
+                }
+
                 cmd = [
                     "bloginator",
                     "outline",
@@ -153,6 +228,10 @@ def show_outline_generation():
                     title,
                     "--keywords",
                     keywords,
+                    "--classification",
+                    classification_map.get(classification, "guidance"),
+                    "--audience",
+                    audience_map.get(audience, "all-disciplines"),
                     "--sections",
                     str(num_sections),
                     "--temperature",

@@ -41,6 +41,8 @@ class OutlineGenerator:
         title: str,
         keywords: list[str],
         thesis: str = "",
+        classification: str = "guidance",
+        audience: str = "all-disciplines",
         num_sections: int = 5,
         temperature: float = 0.7,
     ) -> Outline:
@@ -50,6 +52,8 @@ class OutlineGenerator:
             title: Document title
             keywords: Keywords/themes for the document
             thesis: Optional thesis statement
+            classification: Content classification (guidance, best-practice, mandate, principle, opinion)
+            audience: Target audience (ic-engineers, engineering-leaders, all-disciplines, etc.)
             num_sections: Target number of top-level sections
             temperature: LLM sampling temperature
 
@@ -61,15 +65,44 @@ class OutlineGenerator:
             >>> outline = generator.generate(
             ...     title="Senior Engineer Career Ladder",
             ...     keywords=["senior engineer", "career ladder", "IC track"],
-            ...     thesis="Senior engineers grow through technical mastery AND impact"
+            ...     thesis="Senior engineers grow through technical mastery AND impact",
+            ...     classification="best-practice",
+            ...     audience="engineering-leaders"
             ... )
             >>> outline.calculate_stats()
             >>> print(f"Coverage: {outline.avg_coverage:.0f}%")
         """
+        # Build classification and audience context
+        classification_context = {
+            "guidance": "This is GUIDANCE - suggestive, non-prescriptive recommendations. Use language like 'consider', 'might', 'could help'. Present options and trade-offs.",
+            "best-practice": "This is a BEST PRACTICE - established patterns with proven value. Use language like 'should', 'recommended', 'proven approach'. Include evidence from experience.",
+            "mandate": "This is a MANDATE - required standards or policies. Use language like 'must', 'required', 'shall'. Be clear about consequences of non-compliance.",
+            "principle": "This is a PRINCIPLE - fundamental truth or value. Use language that explores 'why' and underlying philosophy. Focus on timeless concepts.",
+            "opinion": "This is a PERSONAL OPINION - subjective perspective. Use first-person language, acknowledge other viewpoints exist. Be authentic."
+        }.get(classification, "This is guidance.")
+
+        audience_context = {
+            "ic-engineers": "TARGET AUDIENCE: Individual Contributor Engineers. Use practical, hands-on examples. Focus on daily work, technical skills, tools and techniques.",
+            "senior-engineers": "TARGET AUDIENCE: Senior/Staff/Principal Engineers. Emphasize technical depth, architectural decisions, mentorship, and cross-team impact.",
+            "engineering-leaders": "TARGET AUDIENCE: Engineering Managers, Directors, VPs. Focus on people management, team dynamics, org structure, strategic planning.",
+            "qa-engineers": "TARGET AUDIENCE: QA and Test Engineers. Emphasize quality practices, testing strategies, automation, and quality culture.",
+            "devops-sre": "TARGET AUDIENCE: DevOps and SRE. Focus on infrastructure, reliability, deployment, monitoring, and operational excellence.",
+            "product-managers": "TARGET AUDIENCE: Product Managers. Emphasize product thinking, user needs, roadmaps, and cross-functional collaboration.",
+            "technical-leadership": "TARGET AUDIENCE: Technical Leads and Architects. Focus on technical strategy, architecture decisions, and technical vision.",
+            "all-disciplines": "TARGET AUDIENCE: All Technical Roles. Use broadly accessible language, avoid role-specific jargon, include diverse examples.",
+            "executives": "TARGET AUDIENCE: C-level and Senior Leadership. Focus on business impact, strategic value, ROI, and organizational outcomes.",
+            "general": "TARGET AUDIENCE: General/Non-Technical. Minimize jargon, explain technical concepts simply, use analogies."
+        }.get(audience, "TARGET AUDIENCE: General technical audience.")
+
         # Build prompt for outline generation
-        system_prompt = """You are an expert at creating document outlines.
+        system_prompt = f"""You are an expert at creating document outlines.
 Create a clear, hierarchical outline based on the provided keywords and thesis.
 Focus on logical flow and comprehensive coverage of the topic.
+
+{classification_context}
+
+{audience_context}
+
 Return ONLY the outline in this format:
 
 ## Section Title
@@ -83,11 +116,14 @@ Continue this pattern for all sections."""
         user_prompt = f"""Create a detailed outline for a document with:
 
 Title: {title}
+Classification: {classification.replace('-', ' ').title()}
+Audience: {audience.replace('-', ' ').title()}
 Keywords: {', '.join(keywords)}
 {f'Thesis: {thesis}' if thesis else ''}
 
 Create approximately {num_sections} main sections with relevant subsections.
-Each section should have a title and brief description of its content."""
+Each section should have a title and brief description of its content.
+Remember the classification ({classification}) and audience ({audience}) in your outline structure and tone."""
 
         # Generate outline structure with LLM
         response = self.llm_client.generate(
@@ -108,6 +144,8 @@ Each section should have a title and brief description of its content."""
         outline = Outline(
             title=title,
             thesis=thesis,
+            classification=classification,
+            audience=audience,
             keywords=keywords,
             sections=sections,
         )
