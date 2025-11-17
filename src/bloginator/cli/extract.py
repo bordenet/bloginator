@@ -1,6 +1,8 @@
 """CLI command for document extraction."""
 
+import json
 import uuid
+from datetime import datetime
 from pathlib import Path
 
 import click
@@ -16,6 +18,91 @@ from bloginator.extraction import (
     extract_yaml_frontmatter,
 )
 from bloginator.models import Document, QualityRating
+
+
+def _load_existing_extractions(output_dir: Path) -> dict[str, tuple[str, datetime]]:
+    """Load existing extractions from output directory.
+
+    Scans all *.json metadata files and builds a mapping of:
+        source_path → (doc_id, modified_date)
+
+    This allows us to skip files that have already been extracted
+    and haven't changed since extraction.
+
+    Args:
+        output_dir: Directory containing extracted *.json metadata files
+
+    Returns:
+        Dictionary mapping source file paths to (doc_id, modified_date) tuples
+    """
+    existing = {}
+
+    if not output_dir.exists():
+        return existing
+
+    # Scan all .json metadata files
+    for json_file in output_dir.glob("*.json"):
+        try:
+            with open(json_file, "r", encoding="utf-8") as f:
+                metadata = json.load(f)
+
+            source_path = metadata.get("source_path")
+            doc_id = metadata.get("id")
+            modified_date_str = metadata.get("modified_date")
+
+            if source_path and doc_id and modified_date_str:
+                # Parse the modified date
+                modified_date = datetime.fromisoformat(modified_date_str.replace("Z", "+00:00"))
+                existing[str(source_path)] = (doc_id, modified_date)
+        except (json.JSONDecodeError, ValueError, KeyError):
+            # Skip invalid metadata files
+            continue
+
+    return existing
+
+
+def _should_skip_file(file_path: Path, existing_docs: dict[str, tuple[str, datetime]], force: bool = False) -> tuple[bool, str | None]:
+    """Determine if a file should be skipped during extraction.
+
+    Args:
+        file_path: Path to the file being considered
+        existing_docs: Dictionary from _load_existing_extractions()
+        force: If True, never skip (re-extract everything)
+
+    Returns:
+        Tuple of (should_skip, reason_or_doc_id)
+        - If should_skip is True, reason_or_doc_id contains the doc_id to reuse
+        - If should_skip is False, reason_or_doc_id is None
+    """
+    # Skip temp files (Office/Word temp files starting with ~$)
+    if file_path.name.startswith("~$"):
+        return True, None
+
+    # Never skip if --force is enabled
+    if force:
+        return False, None
+
+    # Check if file was already extracted
+    source_path_str = str(file_path.absolute())
+    if source_path_str not in existing_docs:
+        return False, None
+
+    doc_id, extracted_mtime = existing_docs[source_path_str]
+
+    # Get current file modification time
+    try:
+        current_mtime = datetime.fromtimestamp(file_path.stat().st_mtime)
+
+        # Skip if file hasn't been modified since extraction
+        # Use a small tolerance (1 second) to handle filesystem timestamp precision
+        if current_mtime <= extracted_mtime:
+            return True, doc_id
+    except (OSError, ValueError):
+        # If we can't stat the file, don't skip it
+        return False, None
+
+    # File was modified after extraction, needs re-extraction
+    return False, None
 
 
 @click.command()
@@ -43,8 +130,13 @@ from bloginator.models import Document, QualityRating
     "--tags",
     help="Comma-separated tags for documents",
 )
+@click.option(
+    "--force",
+    is_flag=True,
+    help="Force re-extraction of all files, even if already extracted",
+)
 def extract(
-    source: Path | None, output: Path, config: Path | None, quality: str, tags: str | None
+    source: Path | None, output: Path, config: Path | None, quality: str, tags: str | None, force: bool
 ) -> None:
     """Extract documents from SOURCE to OUTPUT directory.
 
@@ -74,11 +166,11 @@ def extract(
     # Determine extraction mode
     if config:
         # MODE 2: Config-based multi-source extraction
-        _extract_from_config(config, output, console)
+        _extract_from_config(config, output, console, force)
     elif source:
         # MODE 1: Legacy single-source extraction
         tag_list = [t.strip() for t in tags.split(",")] if tags else []
-        _extract_single_source(source, output, quality, tag_list, console)
+        _extract_single_source(source, output, quality, tag_list, console, force)
     else:
         console.print("[red]Error: Must provide either SOURCE or --config[/red]")
         raise click.UsageError("Must provide either SOURCE argument or --config option")
@@ -90,9 +182,13 @@ def _extract_single_source(
     quality: str,
     tag_list: list[str],
     console: Console,
+    force: bool = False,
 ) -> None:
     """Extract from single source (legacy mode)."""
     import os
+
+    # Load existing extractions for skip logic
+    existing_docs = _load_existing_extractions(output)
 
     # Get list of files to extract
     if source.is_file():
@@ -105,6 +201,10 @@ def _extract_single_source(
         for root, dirs, filenames in os.walk(source, followlinks=True):
             root_path = Path(root)
             for filename in filenames:
+                # Skip temp files
+                if filename.startswith("~$"):
+                    continue
+
                 file_path = root_path / filename
                 if file_path.suffix.lower() in supported_extensions:
                     files.append(file_path)
@@ -113,16 +213,25 @@ def _extract_single_source(
         console.print("[yellow]No supported files found.[/yellow]")
         return
 
-    console.print(f"[cyan]Extracting {len(files)} file(s)...[/cyan]")
+    console.print(f"[cyan]Found {len(files)} file(s)...[/cyan]")
 
     extracted_count = 0
+    skipped_count = 0
     failed_count = 0
 
     with Progress() as progress:
-        task = progress.add_task("[green]Extracting...", total=len(files))
+        task = progress.add_task("[green]Processing...", total=len(files))
 
         for file_path in files:
             try:
+                # Check if we should skip this file
+                should_skip, doc_id = _should_skip_file(file_path, existing_docs, force)
+
+                if should_skip:
+                    skipped_count += 1
+                    progress.update(task, advance=1)
+                    continue
+
                 # Extract text
                 text = extract_text_from_file(file_path)
 
@@ -165,12 +274,14 @@ def _extract_single_source(
             progress.update(task, advance=1)
 
     console.print(f"\n[green]✓ Successfully extracted {extracted_count} document(s)[/green]")
+    if skipped_count > 0:
+        console.print(f"[cyan]↻ Skipped {skipped_count} document(s) (already extracted)[/cyan]")
     if failed_count > 0:
         console.print(f"[yellow]✗ Failed to extract {failed_count} document(s)[/yellow]")
     console.print(f"[cyan]Output directory: {output}[/cyan]")
 
 
-def _extract_from_config(config_path: Path, output: Path, console: Console) -> None:
+def _extract_from_config(config_path: Path, output: Path, console: Console, force: bool = False) -> None:
     """Extract from multiple sources using corpus.yaml config."""
     import os
 
@@ -180,6 +291,9 @@ def _extract_from_config(config_path: Path, output: Path, console: Console) -> N
     except Exception as e:
         console.print(f"[red]Error loading config: {e}[/red]")
         raise
+
+    # Load existing extractions for skip logic
+    existing_docs = _load_existing_extractions(output)
 
     enabled_sources = corpus_config.get_enabled_sources()
 
@@ -209,6 +323,7 @@ def _extract_from_config(config_path: Path, output: Path, console: Console) -> N
     console.print()
 
     total_extracted = 0
+    total_skipped = 0
     total_failed = 0
     config_dir = config_path.parent
 
@@ -237,7 +352,9 @@ def _extract_from_config(config_path: Path, output: Path, console: Console) -> N
         # Get files from this source
         files = []
         if resolved_path.is_file():
-            files = [resolved_path]
+            # Skip temp files even for single files
+            if not resolved_path.name.startswith("~$"):
+                files = [resolved_path]
         else:
             supported_extensions = set(corpus_config.extraction.include_extensions)
             ignore_patterns = corpus_config.extraction.ignore_patterns
@@ -248,6 +365,10 @@ def _extract_from_config(config_path: Path, output: Path, console: Console) -> N
             ):
                 root_path = Path(root)
                 for filename in filenames:
+                    # Skip temp files
+                    if filename.startswith("~$"):
+                        continue
+
                     # Check ignore patterns
                     if any(filename.startswith(p.rstrip("*")) for p in ignore_patterns):
                         continue
@@ -263,14 +384,23 @@ def _extract_from_config(config_path: Path, output: Path, console: Console) -> N
         console.print(f"  [dim]Found {len(files)} file(s)[/dim]")
 
         extracted_count = 0
+        skipped_count = 0
         failed_count = 0
 
         # Extract files from this source
         with Progress() as progress:
-            task = progress.add_task(f"[green]Extracting {source_cfg.name}...", total=len(files))
+            task = progress.add_task(f"[green]Processing {source_cfg.name}...", total=len(files))
 
             for file_path in files:
                 try:
+                    # Check if we should skip this file
+                    should_skip, doc_id = _should_skip_file(file_path, existing_docs, force)
+
+                    if should_skip:
+                        skipped_count += 1
+                        progress.update(task, advance=1)
+                        continue
+
                     # Extract text
                     text = extract_text_from_file(file_path)
 
@@ -320,14 +450,19 @@ def _extract_from_config(config_path: Path, output: Path, console: Console) -> N
                 progress.update(task, advance=1)
 
         console.print(f"  [green]✓ {extracted_count} extracted[/green]")
+        if skipped_count > 0:
+            console.print(f"  [cyan]↻ {skipped_count} skipped[/cyan]")
         if failed_count > 0:
             console.print(f"  [yellow]✗ {failed_count} failed[/yellow]")
 
         total_extracted += extracted_count
+        total_skipped += skipped_count
         total_failed += failed_count
 
     # Summary
     console.print(f"\n[bold green]Total: {total_extracted} document(s) extracted[/bold green]")
+    if total_skipped > 0:
+        console.print(f"[bold cyan]Total: {total_skipped} document(s) skipped (already extracted)[/bold cyan]")
     if total_failed > 0:
         console.print(f"[bold yellow]Total: {total_failed} document(s) failed[/bold yellow]")
     console.print(f"[cyan]Output directory: {output}[/cyan]")
