@@ -1,6 +1,7 @@
 """CLI command for generating drafts."""
 
 import json
+import logging
 from pathlib import Path
 
 import click
@@ -8,7 +9,8 @@ from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 
-from bloginator.generation import DraftGenerator, SafetyValidator, VoiceScorer, create_llm_client
+from bloginator.generation import DraftGenerator, SafetyValidator, VoiceScorer
+from bloginator.generation.llm_factory import create_llm_from_config
 from bloginator.models.outline import Outline
 from bloginator.search import CorpusSearcher
 
@@ -82,6 +84,11 @@ from bloginator.search import CorpusSearcher
     default=Path(".bloginator"),
     help="Configuration directory for blocklist (default: .bloginator)",
 )
+@click.option(
+    "--log-file",
+    type=click.Path(path_type=Path),
+    help="Path to log file (logs to stdout if not specified)",
+)
 def draft(
     index_dir: Path,
     outline_file: Path,
@@ -94,6 +101,7 @@ def draft(
     validate_safety: bool,
     score_voice: bool,
     config_dir: Path,
+    log_file: Path | None,
 ) -> None:
     """Generate document draft from outline.
 
@@ -124,13 +132,34 @@ def draft(
           -o draft.json \\
           --format json
     """
+    # Configure logging
+    if log_file:
+        log_file.parent.mkdir(parents=True, exist_ok=True)
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            handlers=[
+                logging.FileHandler(log_file),
+                logging.StreamHandler()
+            ]
+        )
+        logger = logging.getLogger(__name__)
+        logger.info(f"Logging to {log_file}")
+        logger.info(f"Starting draft generation from outline: {outline_file}")
+    else:
+        logging.basicConfig(level=logging.WARNING)
+        logger = logging.getLogger(__name__)
+
     console = Console()
 
     # Load outline
     try:
+        logger.info(f"Loading outline from {outline_file}")
         outline_data = json.loads(outline_file.read_text())
         outline_obj = Outline.model_validate(outline_data)
+        logger.info(f"Outline loaded: {outline_obj.title}")
     except Exception as e:
+        logger.error(f"Failed to load outline: {e}")
         console.print(f"[red]✗[/red] Failed to load outline: {e}")
         return
 
@@ -146,8 +175,11 @@ def draft(
         # Load searcher
         task = progress.add_task("Loading corpus index...", total=None)
         try:
+            logger.info(f"Loading index from {index_dir}")
             searcher = CorpusSearcher(index_dir=index_dir)
+            logger.info("Index loaded successfully")
         except Exception as e:
+            logger.error(f"Failed to load index: {e}")
             console.print(f"[red]✗[/red] Failed to load index: {e}")
             return
         progress.update(task, completed=True)
@@ -155,10 +187,13 @@ def draft(
         # Initialize LLM client
         task = progress.add_task("Connecting to LLM...", total=None)
         try:
-            llm_client = create_llm_client(model=model)
+            logger.info(f"Connecting to LLM from config (model param '{model}' is ignored, using .env)")
+            llm_client = create_llm_from_config()
+            logger.info("LLM client connected")
         except Exception as e:
+            logger.error(f"Failed to connect to LLM: {e}")
             console.print(f"[red]✗[/red] Failed to connect to LLM: {e}")
-            console.print("[dim]Make sure Ollama is running: ollama serve[/dim]")
+            console.print("[dim]Make sure Ollama is running and check .env configuration[/dim]")
             return
         progress.update(task, completed=True)
 
@@ -202,12 +237,15 @@ def draft(
             total=None,
         )
         try:
+            logger.info(f"Generating draft with {len(outline_obj.sections)} sections, temperature={temperature}")
             draft_obj = generator.generate(
                 outline=outline_obj,
                 temperature=temperature,
                 max_section_words=max_section_words,
             )
+            logger.info(f"Draft generated: {draft_obj.total_words} words, {draft_obj.total_citations} citations")
         except Exception as e:
+            logger.error(f"Failed to generate draft: {e}", exc_info=True)
             console.print(f"[red]✗[/red] Failed to generate draft: {e}")
             return
         progress.update(task, completed=True)
@@ -309,14 +347,17 @@ def draft(
         if output_format in ["markdown", "both"]:
             md_path = output_file.with_suffix(".md") if output_format == "both" else output_file
             md_path.write_text(draft_obj.to_markdown(include_citations=True))
+            logger.info(f"Saved markdown to {md_path}")
             console.print(f"[green]✓[/green] Saved markdown to {md_path}")
 
         if output_format in ["json", "both"]:
             json_path = output_file.with_suffix(".json") if output_format == "both" else output_file
             json_path.write_text(draft_obj.model_dump_json(indent=2))
+            logger.info(f"Saved JSON to {json_path}")
             console.print(f"[green]✓[/green] Saved JSON to {json_path}")
 
     except Exception as e:
+        logger.error(f"Failed to save draft: {e}")
         console.print(f"[red]✗[/red] Failed to save draft: {e}")
         return
 
