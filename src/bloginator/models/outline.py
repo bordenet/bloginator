@@ -53,6 +53,8 @@ class Outline(BaseModel):
     Attributes:
         title: Document title
         thesis: Main thesis or purpose statement
+        classification: Content classification (guidance, best-practice, mandate, principle, opinion)
+        audience: Target audience (ic-engineers, engineering-leaders, all-disciplines, etc.)
         keywords: Keywords/themes used for generation
         sections: Top-level sections
         created_date: When outline was generated
@@ -63,6 +65,14 @@ class Outline(BaseModel):
 
     title: str = Field(..., description="Document title")
     thesis: str = Field(default="", description="Main thesis/purpose")
+    classification: str = Field(
+        default="guidance",
+        description="Content classification (tone and authority level)",
+    )
+    audience: str = Field(
+        default="all-disciplines",
+        description="Target audience for content",
+    )
     keywords: list[str] = Field(default_factory=list, description="Keywords/themes")
     sections: list[OutlineSection] = Field(default_factory=list)
     created_date: datetime = Field(default_factory=datetime.now)
@@ -115,9 +125,17 @@ class Outline(BaseModel):
         """
         lines = []
 
-        # Title and thesis
+        # Title
         lines.append(f"# {self.title}")
         lines.append("")
+
+        # Classification and Audience as subtitle
+        classification_label = self.classification.replace("-", " ").title()
+        audience_label = self.audience.replace("-", " ").title()
+        lines.append(f"*{classification_label} • For {audience_label}*")
+        lines.append("")
+
+        # Thesis
         if self.thesis:
             lines.append(f"**Thesis**: {self.thesis}")
             lines.append("")
