@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bloginator"
-version = "0.1.0"
+version = "1.0.0"
 description = "Authentic content generation from your own writing corpus"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.10,<3.14"
 license = {text = "MIT"}
 authors = [
     {name = "Matt Bordenet", email = "matt@bordenet.com"},
@@ -227,6 +227,7 @@ markers = [
     "e2e: marks tests as end-to-end tests",
     "integration: marks tests as integration tests",
     "unit: marks tests as unit tests",
+    "benchmark: marks tests as performance benchmarks",
     "performance: marks tests as performance benchmarks",
 ]
 filterwarnings = [
