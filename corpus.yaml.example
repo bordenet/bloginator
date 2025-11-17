@@ -1,0 +1,144 @@
+# Corpus Configuration
+# ====================
+# Define your blog corpus sources with metadata for better indexing and retrieval.
+#
+# Each source can specify:
+# - path: Local directory, symlink, or file path
+# - quality: preferred (high quality, authentic voice) | reference (usable) | supplemental (lower priority)
+# - date_range: Time period for recency weighting
+# - voice_notes: Characteristics of the writing style
+# - tags: Custom tags for filtering/weighting
+#
+# Usage:
+#   1. Copy this file to corpus.yaml
+#   2. Configure your sources below
+#   3. Run: bloginator extract --config corpus.yaml
+#   4. Index normally: bloginator index output/extracted -o chroma_db
+
+sources:
+  # Example: OneDrive archive (2019-2021)
+  - name: "onedrive-blog-archive"
+    path: "/Users/you/OneDrive/Blog Archive"
+    type: "directory"  # Can be: directory, symlink, file
+    enabled: true
+
+    # Quality affects search ranking (preferred > reference > supplemental)
+    quality: "preferred"
+
+    # Date range for recency weighting
+    date_range:
+      start: "2019-01-01"
+      end: "2021-12-31"
+
+    # Voice and style notes
+    voice_notes: |
+      Authentic writing voice from 2019-2021 era.
+      Strong personal style, good for voice preservation.
+      Original unedited content.
+
+    # Custom tags for filtering
+    tags:
+      - "archive"
+      - "authentic-voice"
+      - "historical"
+
+  # Example: Recent blog posts (sanitized/AI-edited)
+  - name: "recent-blog-posts"
+    path: "../../blogs/"
+    type: "directory"
+    enabled: true
+
+    # Lower quality due to AI sanitization
+    quality: "reference"
+
+    date_range:
+      start: "2022-01-01"
+      end: "2024-12-31"
+
+    voice_notes: |
+      Recent posts that were sanitized for publication.
+      Voice reads too much like AI - use sparingly for content ideas
+      but prefer older sources for voice preservation.
+
+    tags:
+      - "recent"
+      - "sanitized"
+      - "ai-edited"
+
+  # Example: Symlinked film blog
+  - name: "films-not-made-blog"
+    path: "../films-not-made/blog"
+    type: "symlink"
+    enabled: true
+    quality: "preferred"
+
+    voice_notes: |
+      Film criticism and analysis blog.
+      Strong authentic voice, excellent for style learning.
+
+    tags:
+      - "film"
+      - "criticism"
+      - "preferred"
+
+  # Example: Specific high-quality posts
+  - name: "best-essays"
+    path: "/Users/you/Documents/Essays/Best"
+    type: "directory"
+    enabled: true
+    quality: "preferred"
+
+    voice_notes: "Hand-picked best essays - prioritize highly for voice preservation"
+
+    tags:
+      - "curated"
+      - "essays"
+      - "high-quality"
+
+  # Example: Disabled source (keep config but don't process)
+  - name: "old-drafts"
+    path: "/Users/you/Dropbox/Old Drafts"
+    type: "directory"
+    enabled: false  # Skip this source
+    quality: "supplemental"
+
+    voice_notes: "Unfinished drafts - disabled for now"
+
+# Global extraction settings (override with CLI flags)
+extraction:
+  chunk_size: 1000  # Maximum characters per chunk
+  follow_symlinks: true  # Always follow symlinks
+  recursive: true  # Scan subdirectories
+
+  # File type filters
+  include_extensions:
+    - ".md"
+    - ".markdown"
+    - ".txt"
+    - ".pdf"
+    - ".docx"
+
+  # Ignore patterns (glob)
+  ignore_patterns:
+    - ".*"  # Hidden files
+    - "_*"  # Files starting with underscore
+    - "draft_*"
+    - "TODO.md"
+    - "README.md"
+
+# Indexing hints
+indexing:
+  # Quality weights for search ranking
+  quality_weights:
+    preferred: 1.5    # Boost preferred sources by 50%
+    reference: 1.0    # Standard weight
+    supplemental: 0.7 # Reduce supplemental source weight
+
+  # Recency decay (how much to reduce weight per year old)
+  recency_decay: 0.1  # 10% reduction per year
+
+  # Tag-based boosting
+  tag_boosts:
+    "authentic-voice": 1.2
+    "curated": 1.3
+    "ai-edited": 0.8
