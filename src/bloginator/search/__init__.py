@@ -9,7 +9,7 @@ This module handles:
 
 from bloginator.search.searcher import CorpusSearcher, SearchResult
 
-# Alias for backward compatibility
+# Backward compatibility alias
 Searcher = CorpusSearcher
 
 __all__ = ["CorpusSearcher", "SearchResult", "Searcher"]

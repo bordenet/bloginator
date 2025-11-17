@@ -43,15 +43,22 @@ Bloginator will recursively scan this directory and index all supported files.
 
 ### 1. Add Your Writing
 
-Copy your blog posts and writing samples into this directory:
+You can either copy files or use symbolic links (recommended to avoid duplicating data):
 
 ```bash
-# Example: Copy from another directory
+# Option A: Create symbolic links (recommended - no data duplication)
+ln -s ~/my-blog/posts corpus/my_blog
+ln -s ../films-not-made/blog corpus/films_blog
+
+# Option B: Copy files
 cp ~/my-blog/posts/*.md corpus/
 
-# Example: Copy from films-not-made or another project
-cp ../films-not-made/blog/*.md corpus/
+# Option C: Mix of both
+ln -s ../large-blog-archive corpus/archive
+cp important-post.md corpus/
 ```
+
+**Symbolic links are fully supported!** The extraction tool follows symlinks automatically, so you can link to directories anywhere on your system without copying data.
 
 ### 2. Index Your Corpus
 
