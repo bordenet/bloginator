@@ -1,9 +1,19 @@
 """Tests for web UI routes."""
 
 import pytest
-from fastapi.testclient import TestClient
 
-from bloginator.web.app import create_app
+try:
+    from fastapi.testclient import TestClient
+
+    from bloginator.web.app import create_app
+
+    FASTAPI_AVAILABLE = True
+except ImportError:
+    FASTAPI_AVAILABLE = False
+
+pytestmark = pytest.mark.skipif(
+    not FASTAPI_AVAILABLE, reason="fastapi not installed (requires: pip install bloginator[web])"
+)
 
 
 class TestMainRoutes:

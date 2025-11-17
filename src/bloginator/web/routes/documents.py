@@ -1,16 +1,14 @@
 """Document generation API routes."""
 
 from pathlib import Path
-from typing import List, Optional
 
-from fastapi import APIRouter, Form, HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from bloginator.generation.draft_generator import DraftGenerator
 from bloginator.generation.llm_client import create_llm_client
 from bloginator.generation.outline_generator import OutlineGenerator
 from bloginator.generation.refinement_engine import RefinementEngine
-from bloginator.generation.version_manager import VersionManager
 from bloginator.models.draft import Draft
 from bloginator.models.outline import Outline
 from bloginator.search import Searcher
@@ -39,8 +37,8 @@ class OutlineRequest(BaseModel):
     """Request model for outline generation."""
 
     title: str
-    keywords: List[str]
-    thesis: Optional[str] = None
+    keywords: list[str]
+    thesis: str | None = None
     index_path: str
     llm_model: str = "llama3"
 

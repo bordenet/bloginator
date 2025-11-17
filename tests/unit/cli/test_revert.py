@@ -78,13 +78,18 @@ class TestRevertCLI:
         """Test basic revert operation."""
         output_path = temp_dir / "draft.json"
 
-        result = runner.invoke(revert, [
-            "test-draft",
-            "1",
-            "--versions-dir", str(temp_dir),
-            "--output", str(output_path),
-            "--force",  # Skip confirmation
-        ])
+        result = runner.invoke(
+            revert,
+            [
+                "test-draft",
+                "1",
+                "--versions-dir",
+                str(temp_dir),
+                "--output",
+                str(output_path),
+                "--force",  # Skip confirmation
+            ],
+        )
 
         assert result.exit_code == 0
         assert "Reverted to version 1" in result.output
@@ -98,12 +103,18 @@ class TestRevertCLI:
         output_path = temp_dir / "draft.json"
 
         # Simulate user confirming
-        result = runner.invoke(revert, [
-            "test-draft",
-            "1",
-            "--versions-dir", str(temp_dir),
-            "--output", str(output_path),
-        ], input="y\n")
+        result = runner.invoke(
+            revert,
+            [
+                "test-draft",
+                "1",
+                "--versions-dir",
+                str(temp_dir),
+                "--output",
+                str(output_path),
+            ],
+            input="y\n",
+        )
 
         assert result.exit_code == 0
         assert output_path.exists()
@@ -113,12 +124,18 @@ class TestRevertCLI:
         output_path = temp_dir / "draft.json"
 
         # Simulate user cancelling
-        result = runner.invoke(revert, [
-            "test-draft",
-            "1",
-            "--versions-dir", str(temp_dir),
-            "--output", str(output_path),
-        ], input="n\n")
+        result = runner.invoke(
+            revert,
+            [
+                "test-draft",
+                "1",
+                "--versions-dir",
+                str(temp_dir),
+                "--output",
+                str(output_path),
+            ],
+            input="n\n",
+        )
 
         assert result.exit_code == 0
         assert "cancelled" in result.output.lower()
@@ -130,13 +147,18 @@ class TestRevertCLI:
 
         output_path = temp_dir / "draft.json"
 
-        result = runner.invoke(revert, [
-            "nonexistent-draft",
-            "1",
-            "--versions-dir", str(temp_dir),
-            "--output", str(output_path),
-            "--force",
-        ])
+        result = runner.invoke(
+            revert,
+            [
+                "nonexistent-draft",
+                "1",
+                "--versions-dir",
+                str(temp_dir),
+                "--output",
+                str(output_path),
+                "--force",
+            ],
+        )
 
         assert result.exit_code != 0
         assert "No version history found" in result.output
@@ -148,13 +170,18 @@ class TestRevertCLI:
 
         output_path = temp_dir / "draft.json"
 
-        result = runner.invoke(revert, [
-            "test-draft",
-            "99",
-            "--versions-dir", str(temp_dir),
-            "--output", str(output_path),
-            "--force",
-        ])
+        result = runner.invoke(
+            revert,
+            [
+                "test-draft",
+                "99",
+                "--versions-dir",
+                str(temp_dir),
+                "--output",
+                str(output_path),
+                "--force",
+            ],
+        )
 
         assert result.exit_code != 0
         assert "not found" in result.output
@@ -163,13 +190,18 @@ class TestRevertCLI:
         """Test that revert saves the draft JSON."""
         output_path = temp_dir / "draft.json"
 
-        result = runner.invoke(revert, [
-            "test-draft",
-            "1",
-            "--versions-dir", str(temp_dir),
-            "--output", str(output_path),
-            "--force",
-        ])
+        result = runner.invoke(
+            revert,
+            [
+                "test-draft",
+                "1",
+                "--versions-dir",
+                str(temp_dir),
+                "--output",
+                str(output_path),
+                "--force",
+            ],
+        )
 
         assert result.exit_code == 0
         assert output_path.exists()
@@ -183,13 +215,18 @@ class TestRevertCLI:
         """Test that revert displays version information."""
         output_path = temp_dir / "draft.json"
 
-        result = runner.invoke(revert, [
-            "test-draft",
-            "1",
-            "--versions-dir", str(temp_dir),
-            "--output", str(output_path),
-            "--force",
-        ])
+        result = runner.invoke(
+            revert,
+            [
+                "test-draft",
+                "1",
+                "--versions-dir",
+                str(temp_dir),
+                "--output",
+                str(output_path),
+                "--force",
+            ],
+        )
 
         assert result.exit_code == 0
         # Should display version info table
@@ -199,13 +236,18 @@ class TestRevertCLI:
         """Test that revert shows helpful next steps."""
         output_path = temp_dir / "draft.json"
 
-        result = runner.invoke(revert, [
-            "test-draft",
-            "1",
-            "--versions-dir", str(temp_dir),
-            "--output", str(output_path),
-            "--force",
-        ])
+        result = runner.invoke(
+            revert,
+            [
+                "test-draft",
+                "1",
+                "--versions-dir",
+                str(temp_dir),
+                "--output",
+                str(output_path),
+                "--force",
+            ],
+        )
 
         assert result.exit_code == 0
         assert "Next steps" in result.output or "bloginator" in result.output
@@ -216,25 +258,34 @@ class TestRevertCLI:
 
         output_path = temp_dir / "draft.json"
 
-        result = runner.invoke(revert, [
-            "test-draft",
-            "1",
-            "--versions-dir", str(temp_dir),
-            "--output", str(output_path),
-            "--force",
-        ])
+        result = runner.invoke(
+            revert,
+            [
+                "test-draft",
+                "1",
+                "--versions-dir",
+                str(temp_dir),
+                "--output",
+                str(output_path),
+                "--force",
+            ],
+        )
 
         assert result.exit_code != 0
         assert "Revert failed" in result.output or "Error" in result.output
 
     def test_revert_missing_output_path(self, runner, temp_dir, mock_version_manager):
         """Test revert without output path (should fail - output is required)."""
-        result = runner.invoke(revert, [
-            "test-draft",
-            "1",
-            "--versions-dir", str(temp_dir),
-            "--force",
-        ])
+        result = runner.invoke(
+            revert,
+            [
+                "test-draft",
+                "1",
+                "--versions-dir",
+                str(temp_dir),
+                "--force",
+            ],
+        )
 
         # Should fail because --output is required
         assert result.exit_code != 0

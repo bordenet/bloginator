@@ -3,11 +3,9 @@
 import json
 import logging
 from pathlib import Path
-from typing import Optional
 
 import click
 from rich.console import Console
-from rich.panel import Panel
 from rich.table import Table
 
 from bloginator.generation.llm_client import create_llm_client
@@ -85,12 +83,12 @@ def refine(
     index: Path,
     draft: Path,
     feedback: str,
-    output: Optional[Path],
+    output: Path | None,
     versions_dir: Path,
     llm_model: str,
     validate_safety: bool,
     score_voice: bool,
-    blocklist: Optional[Path],
+    blocklist: Path | None,
     show_diff: bool,
 ) -> None:
     """Refine a draft document based on natural language feedback.
@@ -160,9 +158,7 @@ def refine(
             console.print("[dim]Creating new version history...[/dim]")
             history = version_manager.create_history(draft_id, current_draft)
         else:
-            console.print(
-                f"[dim]Loaded version history: {len(history.versions)} versions[/dim]"
-            )
+            console.print(f"[dim]Loaded version history: {len(history.versions)} versions[/dim]")
 
         # Parse feedback
         console.print(f"\n[bold]Analyzing feedback:[/bold] {feedback}\n")
@@ -299,6 +295,4 @@ def _display_refinement_results(
 
     # Safety warnings
     if refined.has_blocklist_violations:
-        console.print(
-            "\n[bold yellow]⚠[/bold yellow] Refined draft contains blocklist violations"
-        )
+        console.print("\n[bold yellow]⚠[/bold yellow] Refined draft contains blocklist violations")

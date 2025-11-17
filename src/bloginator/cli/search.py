@@ -230,18 +230,22 @@ def _display_results(
         row = [f"{result.combined_score:.3f}"]
 
         if show_scores:
-            row.extend([
-                f"{result.similarity_score:.2f}",
-                f"{result.recency_score:.2f}",
-                f"{result.quality_score:.2f}",
-            ])
+            row.extend(
+                [
+                    f"{result.similarity_score:.2f}",
+                    f"{result.recency_score:.2f}",
+                    f"{result.quality_score:.2f}",
+                ]
+            )
 
-        row.extend([
-            content_preview,
-            filename,
-            date_display,
-            quality_display,
-        ])
+        row.extend(
+            [
+                content_preview,
+                filename,
+                date_display,
+                quality_display,
+            ]
+        )
 
         table.add_row(*row)
 

@@ -4,8 +4,6 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-import pytest
-
 from bloginator.models import Chunk, Document, QualityRating
 
 

@@ -1,7 +1,6 @@
 """Safety validation for generated content using blocklist."""
 
 from pathlib import Path
-from typing import Optional
 
 from bloginator.models.draft import Draft, DraftSection
 from bloginator.safety import BlocklistManager
@@ -112,10 +111,12 @@ class SafetyValidator:
 
         lines = []
         for i, v in enumerate(violations, 1):
-            lines.append(f"{i}. Pattern '{v['pattern']}' in section '{v.get('section_title', 'Unknown')}'")
-            matches_str = ", ".join(f"'{m}'" for m in v['matches'][:3])
+            lines.append(
+                f"{i}. Pattern '{v['pattern']}' in section '{v.get('section_title', 'Unknown')}'"
+            )
+            matches_str = ", ".join(f"'{m}'" for m in v["matches"][:3])
             lines.append(f"   Matched: {matches_str}")
-            if v.get('notes'):
+            if v.get("notes"):
                 lines.append(f"   Notes: {v['notes']}")
 
         return "\n".join(lines)
@@ -129,11 +130,7 @@ class SafetyValidator:
         Returns:
             List of sections that passed validation
         """
-        return [
-            s
-            for s in draft.get_all_sections()
-            if not s.has_blocklist_violations
-        ]
+        return [s for s in draft.get_all_sections() if not s.has_blocklist_violations]
 
     def get_unsafe_sections(self, draft: Draft) -> list[DraftSection]:
         """Get list of sections with violations.
@@ -144,15 +141,9 @@ class SafetyValidator:
         Returns:
             List of sections with blocklist violations
         """
-        return [
-            s
-            for s in draft.get_all_sections()
-            if s.has_blocklist_violations
-        ]
+        return [s for s in draft.get_all_sections() if s.has_blocklist_violations]
 
-    def validate_before_generation(
-        self, title: str, keywords: list[str], thesis: str = ""
-    ) -> dict:
+    def validate_before_generation(self, title: str, keywords: list[str], thesis: str = "") -> dict:
         """Pre-validate inputs before generation.
 
         Checks if title, keywords, or thesis contain blocklist violations
@@ -201,12 +192,13 @@ class SafetyValidator:
             category: Category classification
             notes: Why this is blocked
         """
+        import uuid
+
         from bloginator.models.blocklist import (
             BlocklistCategory,
             BlocklistEntry,
             BlocklistPatternType,
         )
-        import uuid
 
         entry = BlocklistEntry(
             id=str(uuid.uuid4()),

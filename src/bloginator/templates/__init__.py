@@ -9,7 +9,7 @@ from typing import Dict, Optional
 TEMPLATES_DIR = Path(__file__).parent
 
 # Template catalog
-TEMPLATES: Dict[str, Dict[str, str]] = {
+TEMPLATES: dict[str, dict[str, str]] = {
     "blog_post": {
         "name": "Blog Post",
         "description": "Technical blog post with introduction, body, and conclusion",
@@ -85,7 +85,7 @@ TEMPLATES: Dict[str, Dict[str, str]] = {
 }
 
 
-def get_template(template_id: str) -> Optional[Dict]:
+def get_template(template_id: str) -> dict | None:
     """Load a template by ID.
 
     Args:
@@ -116,7 +116,7 @@ def get_template(template_id: str) -> Optional[Dict]:
     return data
 
 
-def list_templates(category: Optional[str] = None) -> Dict[str, Dict[str, str]]:
+def list_templates(category: str | None = None) -> dict[str, dict[str, str]]:
     """List available templates.
 
     Args:
@@ -126,8 +126,6 @@ def list_templates(category: Optional[str] = None) -> Dict[str, Dict[str, str]]:
         Dictionary of templates
     """
     if category:
-        return {
-            k: v for k, v in TEMPLATES.items() if v["category"] == category
-        }
+        return {k: v for k, v in TEMPLATES.items() if v["category"] == category}
 
     return TEMPLATES

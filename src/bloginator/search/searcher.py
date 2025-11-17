@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import chromadb
 from sentence_transformers import SentenceTransformer
@@ -106,9 +106,9 @@ class CorpusSearcher:
         self,
         query: str,
         n_results: int = 10,
-        quality_filter: Optional[str] = None,
-        tags_filter: Optional[list[str]] = None,
-        format_filter: Optional[str] = None,
+        quality_filter: str | None = None,
+        tags_filter: list[str] | None = None,
+        format_filter: str | None = None,
     ) -> list[SearchResult]:
         """Search corpus with basic semantic similarity.
 
@@ -155,8 +155,8 @@ class CorpusSearcher:
         return search_results[:n_results]
 
     def _build_where_filter(
-        self, quality_filter: Optional[str], format_filter: Optional[str]
-    ) -> Optional[dict[str, Any]]:
+        self, quality_filter: str | None, format_filter: str | None
+    ) -> dict[str, Any] | None:
         """Build ChromaDB where filter from parameters.
 
         Args:
@@ -223,8 +223,8 @@ class CorpusSearcher:
 
             # Combined score: (1 - recency_weight) * similarity + recency_weight * recency
             result.combined_score = (
-                (1 - recency_weight) * result.similarity_score + recency_weight * result.recency_score
-            )
+                1 - recency_weight
+            ) * result.similarity_score + recency_weight * result.recency_score
 
         # Sort by combined score and return top n
         results.sort(key=lambda r: r.combined_score, reverse=True)
@@ -257,8 +257,8 @@ class CorpusSearcher:
 
             # Combined score: (1 - quality_weight) * similarity + quality_weight * quality
             result.combined_score = (
-                (1 - quality_weight) * result.similarity_score + quality_weight * result.quality_score
-            )
+                1 - quality_weight
+            ) * result.similarity_score + quality_weight * result.quality_score
 
         # Sort by combined score and return top n
         results.sort(key=lambda r: r.combined_score, reverse=True)
