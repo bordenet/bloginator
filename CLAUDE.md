@@ -168,6 +168,9 @@ The alias exists for backward compatibility with older code.
 ```
 bloginator/
 ├── corpus/              # Raw input files (markdown, PDFs)
+│   ├── my_blog/        # Can be symlink to ~/blog/posts
+│   ├── archive/        # Can be symlink to large archive
+│   └── local_post.md   # Or real files
 ├── output/
 │   └── extracted/       # Extracted text + metadata
 ├── chroma_db/           # ChromaDB vector store
@@ -175,6 +178,11 @@ bloginator/
 ├── .env                 # Local configuration (gitignored)
 └── .env.example         # Template with documentation
 ```
+
+**Symbolic Links Fully Supported:**
+- The extraction tool uses `os.walk(followlinks=True)` to traverse symlinked directories
+- No need to copy large blog archives - just link them!
+- Example: `ln -s ~/my-blogs/archive corpus/archive`
 
 ## Common Tasks
 
