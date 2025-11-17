@@ -1,0 +1,95 @@
+{
+  "title": "Engineering Performance Review",
+  "thesis": "Comprehensive framework for evaluating engineering performance and growth",
+  "keywords": ["performance", "review", "feedback", "growth", "development"],
+  "sections": [
+    {
+      "title": "Review Period Overview",
+      "description": "Summary of the review period and key highlights",
+      "subsections": []
+    },
+    {
+      "title": "Technical Excellence",
+      "description": "Evaluation of technical skills and contributions",
+      "subsections": [
+        {
+          "title": "Code Quality & Craftsmanship",
+          "description": "Quality of work, best practices, and attention to detail"
+        },
+        {
+          "title": "Technical Decision Making",
+          "description": "Architecture choices, trade-offs, and problem-solving"
+        },
+        {
+          "title": "Breadth & Depth",
+          "description": "Range of technologies and depth of expertise"
+        }
+      ]
+    },
+    {
+      "title": "Impact & Delivery",
+      "description": "Evaluation of results and business impact",
+      "subsections": [
+        {
+          "title": "Project Contributions",
+          "description": "Key projects and features delivered"
+        },
+        {
+          "title": "Scope & Complexity",
+          "description": "Scale of problems tackled"
+        },
+        {
+          "title": "Velocity & Reliability",
+          "description": "Execution speed and consistency"
+        }
+      ]
+    },
+    {
+      "title": "Collaboration & Communication",
+      "description": "Evaluation of teamwork and communication skills",
+      "subsections": [
+        {
+          "title": "Team Collaboration",
+          "description": "Working with peers, cross-functional partners"
+        },
+        {
+          "title": "Mentorship & Knowledge Sharing",
+          "description": "Helping others grow and sharing expertise"
+        },
+        {
+          "title": "Communication",
+          "description": "Clarity, documentation, and stakeholder management"
+        }
+      ]
+    },
+    {
+      "title": "Leadership & Initiative",
+      "description": "Evaluation of ownership and proactive contributions",
+      "subsections": [
+        {
+          "title": "Ownership & Accountability",
+          "description": "Taking responsibility and following through"
+        },
+        {
+          "title": "Initiative & Innovation",
+          "description": "Identifying opportunities and driving improvements"
+        }
+      ]
+    },
+    {
+      "title": "Areas of Strength",
+      "description": "Key strengths to continue leveraging",
+      "subsections": []
+    },
+    {
+      "title": "Growth Opportunities",
+      "description": "Areas for development and improvement",
+      "subsections": []
+    },
+    {
+      "title": "Goals for Next Period",
+      "description": "Specific, measurable goals for the coming review period",
+      "subsections": []
+    }
+  ]
+}

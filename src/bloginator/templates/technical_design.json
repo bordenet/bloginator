@@ -1,0 +1,72 @@
+{
+  "title": "Technical Design Document",
+  "thesis": "",
+  "keywords": ["design", "architecture", "technical", "proposal"],
+  "sections": [
+    {
+      "title": "Overview",
+      "description": "High-level summary of the design",
+      "subsections": [
+        {
+          "title": "Problem Statement",
+          "description": "What problem are we solving and why"
+        },
+        {
+          "title": "Goals & Non-Goals",
+          "description": "What we aim to achieve and explicit out-of-scope items"
+        }
+      ]
+    },
+    {
+      "title": "Background",
+      "description": "Context and existing systems",
+      "subsections": [
+        {
+          "title": "Current State",
+          "description": "How things work today"
+        },
+        {
+          "title": "Requirements",
+          "description": "Functional and non-functional requirements"
+        }
+      ]
+    },
+    {
+      "title": "Proposed Solution",
+      "description": "Detailed design of the proposed approach",
+      "subsections": [
+        {
+          "title": "Architecture",
+          "description": "System components and their interactions"
+        },
+        {
+          "title": "Data Model",
+          "description": "Data structures and storage"
+        },
+        {
+          "title": "API Design",
+          "description": "Interfaces and contracts"
+        },
+        {
+          "title": "Implementation Plan",
+          "description": "Phased rollout and milestones"
+        }
+      ]
+    },
+    {
+      "title": "Alternatives Considered",
+      "description": "Other approaches evaluated and why they were not chosen",
+      "subsections": []
+    },
+    {
+      "title": "Trade-offs & Risks",
+      "description": "Known limitations, risks, and mitigation strategies",
+      "subsections": []
+    },
+    {
+      "title": "Success Metrics",
+      "description": "How we'll measure success of this design",
+      "subsections": []
+    }
+  ]
+}
