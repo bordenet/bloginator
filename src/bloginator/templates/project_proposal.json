@@ -1,0 +1,82 @@
+{
+  "title": "Project Proposal",
+  "thesis": "",
+  "keywords": ["project", "proposal", "planning", "roadmap"],
+  "sections": [
+    {
+      "title": "Executive Summary",
+      "description": "Brief overview of the project and its value",
+      "subsections": []
+    },
+    {
+      "title": "Problem & Opportunity",
+      "description": "What problem are we solving and why now",
+      "subsections": [
+        {
+          "title": "Current State",
+          "description": "Existing situation and pain points"
+        },
+        {
+          "title": "Business Impact",
+          "description": "Cost of inaction and opportunity cost"
+        }
+      ]
+    },
+    {
+      "title": "Proposed Solution",
+      "description": "What we plan to build and how it solves the problem",
+      "subsections": [
+        {
+          "title": "Key Features",
+          "description": "Core functionality and user experience"
+        },
+        {
+          "title": "Technical Approach",
+          "description": "High-level technical strategy"
+        }
+      ]
+    },
+    {
+      "title": "Scope & Timeline",
+      "description": "Project phases and delivery timeline",
+      "subsections": [
+        {
+          "title": "In Scope",
+          "description": "What will be delivered in this project"
+        },
+        {
+          "title": "Out of Scope",
+          "description": "What is explicitly excluded"
+        },
+        {
+          "title": "Milestones",
+          "description": "Key deliverables and timeline"
+        }
+      ]
+    },
+    {
+      "title": "Success Metrics",
+      "description": "How we'll measure success",
+      "subsections": [
+        {
+          "title": "Launch Criteria",
+          "description": "Definition of done for MVP"
+        },
+        {
+          "title": "Success KPIs",
+          "description": "Metrics to track post-launch"
+        }
+      ]
+    },
+    {
+      "title": "Resources & Dependencies",
+      "description": "Team, budget, and external dependencies",
+      "subsections": []
+    },
+    {
+      "title": "Risks & Mitigation",
+      "description": "Potential risks and how we'll address them",
+      "subsections": []
+    }
+  ]
+}

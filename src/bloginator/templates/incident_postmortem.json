@@ -1,0 +1,90 @@
+{
+  "title": "Incident Postmortem",
+  "thesis": "Blameless analysis of incident with timeline, impact, and action items",
+  "keywords": ["incident", "postmortem", "retrospective", "outage", "reliability"],
+  "sections": [
+    {
+      "title": "Incident Summary",
+      "description": "Brief overview of what happened",
+      "subsections": [
+        {
+          "title": "Impact",
+          "description": "User impact, duration, and severity"
+        },
+        {
+          "title": "Root Cause",
+          "description": "One-line summary of root cause"
+        }
+      ]
+    },
+    {
+      "title": "Timeline",
+      "description": "Chronological sequence of events",
+      "subsections": [
+        {
+          "title": "Detection",
+          "description": "When and how we detected the incident"
+        },
+        {
+          "title": "Response",
+          "description": "Actions taken during the incident"
+        },
+        {
+          "title": "Resolution",
+          "description": "How the incident was resolved"
+        }
+      ]
+    },
+    {
+      "title": "Root Cause Analysis",
+      "description": "Detailed analysis of what went wrong and why",
+      "subsections": [
+        {
+          "title": "Triggering Event",
+          "description": "What initiated the incident"
+        },
+        {
+          "title": "Contributing Factors",
+          "description": "Conditions that allowed the incident to occur"
+        },
+        {
+          "title": "Why It Wasn't Caught Earlier",
+          "description": "Gaps in detection and prevention"
+        }
+      ]
+    },
+    {
+      "title": "What Went Well",
+      "description": "Positive aspects of the response",
+      "subsections": []
+    },
+    {
+      "title": "What Went Poorly",
+      "description": "Areas where the response could have been better",
+      "subsections": []
+    },
+    {
+      "title": "Action Items",
+      "description": "Concrete steps to prevent recurrence",
+      "subsections": [
+        {
+          "title": "Immediate Fixes",
+          "description": "Quick wins to reduce risk"
+        },
+        {
+          "title": "Long-term Improvements",
+          "description": "Systemic changes to improve reliability"
+        },
+        {
+          "title": "Monitoring & Detection",
+          "description": "Improvements to catch issues earlier"
+        }
+      ]
+    },
+    {
+      "title": "Lessons Learned",
+      "description": "Key takeaways and broader implications",
+      "subsections": []
+    }
+  ]
+}
