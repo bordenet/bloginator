@@ -1,6 +1,5 @@
 """Tests for diff CLI command."""
 
-import json
 import tempfile
 from pathlib import Path
 from unittest.mock import Mock, patch
@@ -97,11 +96,15 @@ class TestDiffCLI:
 
     def test_diff_list_versions(self, runner, temp_dir, mock_version_manager):
         """Test listing all versions."""
-        result = runner.invoke(diff, [
-            "test-draft",
-            "--versions-dir", str(temp_dir),
-            "--list-versions",
-        ])
+        result = runner.invoke(
+            diff,
+            [
+                "test-draft",
+                "--versions-dir",
+                str(temp_dir),
+                "--list-versions",
+            ],
+        )
 
         assert result.exit_code == 0
         assert "Versions for" in result.output or "test-draft" in result.output
@@ -109,10 +112,14 @@ class TestDiffCLI:
 
     def test_diff_default_comparison(self, runner, temp_dir, mock_version_manager):
         """Test default diff (current vs previous)."""
-        result = runner.invoke(diff, [
-            "test-draft",
-            "--versions-dir", str(temp_dir),
-        ])
+        result = runner.invoke(
+            diff,
+            [
+                "test-draft",
+                "--versions-dir",
+                str(temp_dir),
+            ],
+        )
 
         assert result.exit_code == 0
         # Should show diff output
@@ -120,12 +127,18 @@ class TestDiffCLI:
 
     def test_diff_specific_versions(self, runner, temp_dir, mock_version_manager):
         """Test comparing specific versions."""
-        result = runner.invoke(diff, [
-            "test-draft",
-            "--versions-dir", str(temp_dir),
-            "-v1", "1",
-            "-v2", "2",
-        ])
+        result = runner.invoke(
+            diff,
+            [
+                "test-draft",
+                "--versions-dir",
+                str(temp_dir),
+                "-v1",
+                "1",
+                "-v2",
+                "2",
+            ],
+        )
 
         assert result.exit_code == 0
 
@@ -136,12 +149,17 @@ class TestDiffCLI:
 
     def test_diff_show_content(self, runner, temp_dir, mock_version_manager):
         """Test showing full version content."""
-        result = runner.invoke(diff, [
-            "test-draft",
-            "--versions-dir", str(temp_dir),
-            "-v2", "1",
-            "--show-content",
-        ])
+        result = runner.invoke(
+            diff,
+            [
+                "test-draft",
+                "--versions-dir",
+                str(temp_dir),
+                "-v2",
+                "1",
+                "--show-content",
+            ],
+        )
 
         assert result.exit_code == 0
         # Should show version content instead of diff
@@ -150,10 +168,14 @@ class TestDiffCLI:
         """Test diff with non-existent draft history."""
         mock_version_manager.load_history.return_value = None
 
-        result = runner.invoke(diff, [
-            "nonexistent-draft",
-            "--versions-dir", str(temp_dir),
-        ])
+        result = runner.invoke(
+            diff,
+            [
+                "nonexistent-draft",
+                "--versions-dir",
+                str(temp_dir),
+            ],
+        )
 
         assert result.exit_code != 0
         assert "No version history found" in result.output
@@ -163,22 +185,32 @@ class TestDiffCLI:
         history = mock_version_manager.load_history.return_value
         history.get_version.return_value = None
 
-        result = runner.invoke(diff, [
-            "test-draft",
-            "--versions-dir", str(temp_dir),
-            "-v1", "99",
-        ])
+        result = runner.invoke(
+            diff,
+            [
+                "test-draft",
+                "--versions-dir",
+                str(temp_dir),
+                "-v1",
+                "99",
+            ],
+        )
 
         assert result.exit_code != 0
         assert "not found" in result.output
 
     def test_diff_custom_context_lines(self, runner, temp_dir, mock_version_manager):
         """Test diff with custom context lines."""
-        result = runner.invoke(diff, [
-            "test-draft",
-            "--versions-dir", str(temp_dir),
-            "--context-lines", "5",
-        ])
+        result = runner.invoke(
+            diff,
+            [
+                "test-draft",
+                "--versions-dir",
+                str(temp_dir),
+                "--context-lines",
+                "5",
+            ],
+        )
 
         assert result.exit_code == 0
 
@@ -188,10 +220,14 @@ class TestDiffCLI:
 
     def test_diff_displays_stats(self, runner, temp_dir, mock_version_manager):
         """Test that diff displays change statistics."""
-        result = runner.invoke(diff, [
-            "test-draft",
-            "--versions-dir", str(temp_dir),
-        ])
+        result = runner.invoke(
+            diff,
+            [
+                "test-draft",
+                "--versions-dir",
+                str(temp_dir),
+            ],
+        )
 
         assert result.exit_code == 0
         # Should show statistics

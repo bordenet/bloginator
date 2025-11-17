@@ -1,7 +1,6 @@
 """ChromaDB indexer for document corpus."""
 
 from pathlib import Path
-from typing import Optional
 
 import chromadb
 from sentence_transformers import SentenceTransformer
@@ -77,9 +76,11 @@ class CorpusIndexer:
                 # Document-level metadata
                 "filename": document.filename,
                 "format": document.format,
-                "quality_rating": document.quality_rating.value
-                if hasattr(document.quality_rating, "value")
-                else document.quality_rating,
+                "quality_rating": (
+                    document.quality_rating.value
+                    if hasattr(document.quality_rating, "value")
+                    else document.quality_rating
+                ),
                 "is_external_source": document.is_external_source,
                 "tags": ",".join(document.tags) if document.tags else "",
             }

@@ -54,11 +54,12 @@ class TestRefineCLI:
     @pytest.fixture
     def mock_components(self):
         """Create mock components for refinement."""
-        with patch("bloginator.cli.refine.Searcher") as mock_searcher_cls, \
-             patch("bloginator.cli.refine.create_llm_client") as mock_llm_fn, \
-             patch("bloginator.cli.refine.RefinementEngine") as mock_engine_cls, \
-             patch("bloginator.cli.refine.VersionManager") as mock_vm_cls:
-
+        with (
+            patch("bloginator.cli.refine.Searcher") as mock_searcher_cls,
+            patch("bloginator.cli.refine.create_llm_client") as mock_llm_fn,
+            patch("bloginator.cli.refine.RefinementEngine") as mock_engine_cls,
+            patch("bloginator.cli.refine.VersionManager") as mock_vm_cls,
+        ):
             # Setup mocks
             mock_searcher = Mock()
             mock_llm = Mock()
@@ -112,15 +113,22 @@ class TestRefineCLI:
 
     def test_refine_basic(self, runner, draft_file, index_dir, temp_dir, mock_components):
         """Test basic refinement."""
-        result = runner.invoke(refine, [
-            "--index", str(index_dir),
-            "--draft", str(draft_file),
-            "--feedback", "Make introduction more engaging",
-            "--versions-dir", str(temp_dir / "versions"),
-            "--no-validate-safety",
-            "--no-score-voice",
-            "--no-show-diff",
-        ])
+        result = runner.invoke(
+            refine,
+            [
+                "--index",
+                str(index_dir),
+                "--draft",
+                str(draft_file),
+                "--feedback",
+                "Make introduction more engaging",
+                "--versions-dir",
+                str(temp_dir / "versions"),
+                "--no-validate-safety",
+                "--no-score-voice",
+                "--no-show-diff",
+            ],
+        )
 
         assert result.exit_code == 0
         assert "Refinement complete" in result.output
@@ -140,16 +148,24 @@ class TestRefineCLI:
         """Test refinement with custom output path."""
         output_path = temp_dir / "refined.json"
 
-        result = runner.invoke(refine, [
-            "--index", str(index_dir),
-            "--draft", str(draft_file),
-            "--feedback", "Improve it",
-            "--output", str(output_path),
-            "--versions-dir", str(temp_dir / "versions"),
-            "--no-validate-safety",
-            "--no-score-voice",
-            "--no-show-diff",
-        ])
+        result = runner.invoke(
+            refine,
+            [
+                "--index",
+                str(index_dir),
+                "--draft",
+                str(draft_file),
+                "--feedback",
+                "Improve it",
+                "--output",
+                str(output_path),
+                "--versions-dir",
+                str(temp_dir / "versions"),
+                "--no-validate-safety",
+                "--no-score-voice",
+                "--no-show-diff",
+            ],
+        )
 
         assert result.exit_code == 0
         assert output_path.exists()
@@ -163,15 +179,22 @@ class TestRefineCLI:
         mock_components,
     ):
         """Test refinement with voice scoring enabled."""
-        result = runner.invoke(refine, [
-            "--index", str(index_dir),
-            "--draft", str(draft_file),
-            "--feedback", "Improve it",
-            "--versions-dir", str(temp_dir / "versions"),
-            "--no-validate-safety",
-            "--score-voice",
-            "--no-show-diff",
-        ])
+        result = runner.invoke(
+            refine,
+            [
+                "--index",
+                str(index_dir),
+                "--draft",
+                str(draft_file),
+                "--feedback",
+                "Improve it",
+                "--versions-dir",
+                str(temp_dir / "versions"),
+                "--no-validate-safety",
+                "--score-voice",
+                "--no-show-diff",
+            ],
+        )
 
         assert result.exit_code == 0
 
@@ -182,12 +205,19 @@ class TestRefineCLI:
 
     def test_refine_missing_draft(self, runner, index_dir, temp_dir):
         """Test refinement with non-existent draft file."""
-        result = runner.invoke(refine, [
-            "--index", str(index_dir),
-            "--draft", "nonexistent.json",
-            "--feedback", "Improve it",
-            "--versions-dir", str(temp_dir / "versions"),
-        ])
+        result = runner.invoke(
+            refine,
+            [
+                "--index",
+                str(index_dir),
+                "--draft",
+                "nonexistent.json",
+                "--feedback",
+                "Improve it",
+                "--versions-dir",
+                str(temp_dir / "versions"),
+            ],
+        )
 
         assert result.exit_code != 0
 
@@ -202,12 +232,19 @@ class TestRefineCLI:
         with open(bad_draft, "w") as f:
             f.write("not valid json {")
 
-        result = runner.invoke(refine, [
-            "--index", str(index_dir),
-            "--draft", str(bad_draft),
-            "--feedback", "Improve it",
-            "--versions-dir", str(temp_dir / "versions"),
-        ])
+        result = runner.invoke(
+            refine,
+            [
+                "--index",
+                str(index_dir),
+                "--draft",
+                str(bad_draft),
+                "--feedback",
+                "Improve it",
+                "--versions-dir",
+                str(temp_dir / "versions"),
+            ],
+        )
 
         assert result.exit_code != 0
 
@@ -222,15 +259,22 @@ class TestRefineCLI:
         """Test that refinement creates/updates version history."""
         versions_dir = temp_dir / "versions"
 
-        result = runner.invoke(refine, [
-            "--index", str(index_dir),
-            "--draft", str(draft_file),
-            "--feedback", "Improve it",
-            "--versions-dir", str(versions_dir),
-            "--no-validate-safety",
-            "--no-score-voice",
-            "--no-show-diff",
-        ])
+        result = runner.invoke(
+            refine,
+            [
+                "--index",
+                str(index_dir),
+                "--draft",
+                str(draft_file),
+                "--feedback",
+                "Improve it",
+                "--versions-dir",
+                str(versions_dir),
+                "--no-validate-safety",
+                "--no-score-voice",
+                "--no-show-diff",
+            ],
+        )
 
         assert result.exit_code == 0
 
@@ -248,15 +292,22 @@ class TestRefineCLI:
         mock_components,
     ):
         """Test that refinement displays results table."""
-        result = runner.invoke(refine, [
-            "--index", str(index_dir),
-            "--draft", str(draft_file),
-            "--feedback", "Improve it",
-            "--versions-dir", str(temp_dir / "versions"),
-            "--no-validate-safety",
-            "--no-score-voice",
-            "--no-show-diff",
-        ])
+        result = runner.invoke(
+            refine,
+            [
+                "--index",
+                str(index_dir),
+                "--draft",
+                str(draft_file),
+                "--feedback",
+                "Improve it",
+                "--versions-dir",
+                str(temp_dir / "versions"),
+                "--no-validate-safety",
+                "--no-score-voice",
+                "--no-show-diff",
+            ],
+        )
 
         assert result.exit_code == 0
         assert "Refinement Results" in result.output or "Word Count" in result.output
@@ -270,15 +321,22 @@ class TestRefineCLI:
         mock_components,
     ):
         """Test that refinement shows diff when requested."""
-        result = runner.invoke(refine, [
-            "--index", str(index_dir),
-            "--draft", str(draft_file),
-            "--feedback", "Improve it",
-            "--versions-dir", str(temp_dir / "versions"),
-            "--no-validate-safety",
-            "--no-score-voice",
-            "--show-diff",
-        ])
+        result = runner.invoke(
+            refine,
+            [
+                "--index",
+                str(index_dir),
+                "--draft",
+                str(draft_file),
+                "--feedback",
+                "Improve it",
+                "--versions-dir",
+                str(temp_dir / "versions"),
+                "--no-validate-safety",
+                "--no-score-voice",
+                "--show-diff",
+            ],
+        )
 
         assert result.exit_code == 0
 
@@ -298,16 +356,24 @@ class TestRefineCLI:
         with patch("bloginator.cli.refine.create_llm_client") as mock_llm_fn:
             mock_llm_fn.return_value = Mock()
 
-            result = runner.invoke(refine, [
-                "--index", str(index_dir),
-                "--draft", str(draft_file),
-                "--feedback", "Improve it",
-                "--llm-model", "custom-model",
-                "--versions-dir", str(temp_dir / "versions"),
-                "--no-validate-safety",
-                "--no-score-voice",
-                "--no-show-diff",
-            ])
+            runner.invoke(
+                refine,
+                [
+                    "--index",
+                    str(index_dir),
+                    "--draft",
+                    str(draft_file),
+                    "--feedback",
+                    "Improve it",
+                    "--llm-model",
+                    "custom-model",
+                    "--versions-dir",
+                    str(temp_dir / "versions"),
+                    "--no-validate-safety",
+                    "--no-score-voice",
+                    "--no-show-diff",
+                ],
+            )
 
             # Verify custom model was requested
             mock_llm_fn.assert_called_once_with(model="custom-model")

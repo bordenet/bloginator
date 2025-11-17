@@ -7,11 +7,7 @@ This module defines all data models used throughout the application:
 - Configuration models
 """
 
-from bloginator.models.blocklist import (
-    BlocklistCategory,
-    BlocklistEntry,
-    BlocklistPatternType,
-)
+from bloginator.models.blocklist import BlocklistCategory, BlocklistEntry, BlocklistPatternType
 from bloginator.models.document import Chunk, Document, QualityRating
 from bloginator.models.draft import Citation, Draft, DraftSection
 from bloginator.models.outline import Outline, OutlineSection

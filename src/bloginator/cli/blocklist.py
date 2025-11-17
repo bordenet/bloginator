@@ -7,11 +7,7 @@ import click
 from rich.console import Console
 from rich.table import Table
 
-from bloginator.models.blocklist import (
-    BlocklistCategory,
-    BlocklistEntry,
-    BlocklistPatternType,
-)
+from bloginator.models.blocklist import BlocklistCategory, BlocklistEntry, BlocklistPatternType
 from bloginator.safety import BlocklistManager
 
 
@@ -62,9 +58,7 @@ def blocklist() -> None:
     help="Category for organization (default: other)",
 )
 @click.option("--notes", default="", help="Explanation of why this is blocked")
-def add(
-    config_dir: Path, pattern: str, pattern_type: str, category: str, notes: str
-) -> None:
+def add(config_dir: Path, pattern: str, pattern_type: str, category: str, notes: str) -> None:
     """Add term or pattern to blocklist.
 
     PATTERN: The term or regex pattern to block
@@ -133,21 +127,14 @@ def list(config_dir: Path, category: str | None) -> None:
     console = Console()
 
     # Filter by category if specified
-    if category:
-        entries = manager.get_entries_by_category(category)
-    else:
-        entries = manager.entries
+    entries = manager.get_entries_by_category(category) if category else manager.entries
 
     if not entries:
         if category:
-            console.print(
-                f"[yellow]No blocklist entries found for category '{category}'[/yellow]"
-            )
+            console.print(f"[yellow]No blocklist entries found for category '{category}'[/yellow]")
         else:
             console.print("[yellow]No blocklist entries found[/yellow]")
-        console.print(
-            "[dim]Use 'bloginator blocklist add' to create entries[/dim]"
-        )
+        console.print("[dim]Use 'bloginator blocklist add' to create entries[/dim]")
         return
 
     # Create table
@@ -268,9 +255,7 @@ def validate(config_dir: Path, text_file: Path, verbose: bool) -> None:
     result = manager.validate_text(text)
 
     if result["is_valid"]:
-        console.print(
-            f"[green]✓[/green] No blocklist violations found in {text_file.name}"
-        )
+        console.print(f"[green]✓[/green] No blocklist violations found in {text_file.name}")
         return
 
     # Report violations

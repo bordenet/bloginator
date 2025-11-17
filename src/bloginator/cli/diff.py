@@ -2,7 +2,6 @@
 
 import logging
 from pathlib import Path
-from typing import Optional
 
 import click
 from rich.console import Console
@@ -57,8 +56,8 @@ logger = logging.getLogger(__name__)
 def diff(
     draft_id: str,
     versions_dir: Path,
-    version1: Optional[int],
-    version2: Optional[int],
+    version1: int | None,
+    version2: int | None,
     list_versions: bool,
     show_content: bool,
     context_lines: int,
@@ -92,9 +91,7 @@ def diff(
         history = version_manager.load_history(draft_id)
 
         if history is None:
-            console.print(
-                f"[bold red]Error:[/bold red] No version history found for '{draft_id}'"
-            )
+            console.print(f"[bold red]Error:[/bold red] No version history found for '{draft_id}'")
             console.print(f"[dim]Searched in: {versions_dir}[/dim]")
             raise click.Abort()
 
