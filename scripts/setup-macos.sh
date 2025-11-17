@@ -270,7 +270,7 @@ setup_virtualenv() {
     fi
 
     log_info_verbose "Creating venv with $PYTHON_CMD..."
-    "$PYTHON_CMD" -m venv "$VENV_DIR"
+    "$PYTHON_CMD" -m venv --copies "$VENV_DIR"
     # shellcheck disable=SC1091
     source "$VENV_DIR/bin/activate"
     log_info_verbose "Upgrading pip..."

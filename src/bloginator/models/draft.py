@@ -1,7 +1,6 @@
 """Draft document data models with citations."""
 
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -92,7 +91,7 @@ class Draft(BaseModel):
     total_citations: int = Field(default=0, ge=0)
     total_words: int = Field(default=0, ge=0)
     has_blocklist_violations: bool = Field(default=False)
-    blocklist_validation_result: Optional[dict] = None
+    blocklist_validation_result: dict | None = None
 
     def calculate_stats(self) -> None:
         """Calculate draft statistics.
@@ -124,9 +123,7 @@ class Draft(BaseModel):
         self.total_words = sum(s.get_word_count() for s in all_sections)
 
         # Blocklist violations
-        self.has_blocklist_violations = any(
-            s.has_blocklist_violations for s in all_sections
-        )
+        self.has_blocklist_violations = any(s.has_blocklist_violations for s in all_sections)
 
     def get_all_sections(self) -> list[DraftSection]:
         """Get flattened list of all sections.
@@ -171,7 +168,9 @@ class Draft(BaseModel):
 
         # Sections
         for section in self.sections:
-            lines.extend(self._section_to_markdown(section, level=2, include_citations=include_citations))
+            lines.extend(
+                self._section_to_markdown(section, level=2, include_citations=include_citations)
+            )
 
         # Citations appendix (if requested)
         if include_citations:
@@ -192,11 +191,12 @@ class Draft(BaseModel):
                     if citation.chunk_id not in unique_citations:
                         unique_citations[citation.chunk_id] = citation
 
-                for i, citation in enumerate(sorted(unique_citations.values(),
-                                                   key=lambda c: c.filename), 1):
+                for i, citation in enumerate(
+                    sorted(unique_citations.values(), key=lambda c: c.filename), 1
+                ):
                     lines.append(f"{i}. {citation.filename}")
                     if citation.content_preview:
-                        lines.append(f"   *\"{citation.content_preview}...\"*")
+                        lines.append(f'   *"{citation.content_preview}..."*')
 
         return "\n".join(lines)
 
@@ -233,8 +233,6 @@ class Draft(BaseModel):
 
         # Subsections
         for subsection in section.subsections:
-            lines.extend(
-                self._section_to_markdown(subsection, level + 1, include_citations)
-            )
+            lines.extend(self._section_to_markdown(subsection, level + 1, include_citations))
 
         return lines

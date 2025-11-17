@@ -48,7 +48,7 @@ class TestVersionManager:
         """Test that create_history persists to disk."""
         draft = Draft(title="Test", keywords=["test"])
 
-        history = manager.create_history("my-draft", draft)
+        manager.create_history("my-draft", draft)
 
         # Check file exists
         history_path = temp_dir / "my-draft_history.json"
@@ -236,9 +236,7 @@ class TestVersionManager:
         draft = Draft(
             title="Test",
             keywords=["test"],
-            sections=[
-                DraftSection(title="S1", content="Content with five total words")
-            ],
+            sections=[DraftSection(title="S1", content="Content with five total words")],
         )
         draft.calculate_stats()
 
@@ -294,8 +292,8 @@ class TestVersionManager:
         draft1 = Draft(title="Draft 1", keywords=["a"])
         draft2 = Draft(title="Draft 2", keywords=["b"])
 
-        history1 = manager.create_history("draft-1", draft1)
-        history2 = manager.create_history("draft-2", draft2)
+        _history1 = manager.create_history("draft-1", draft1)
+        _history2 = manager.create_history("draft-2", draft2)
 
         # Both should be loadable
         loaded1 = manager.load_history("draft-1")

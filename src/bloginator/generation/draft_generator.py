@@ -1,6 +1,5 @@
 """Draft generation with RAG and citation tracking."""
 
-from typing import Optional
 
 from bloginator.generation.llm_client import LLMClient
 from bloginator.models.draft import Citation, Draft, DraftSection

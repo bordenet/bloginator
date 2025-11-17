@@ -2,7 +2,6 @@
 
 import re
 import uuid
-from typing import Optional
 
 from bloginator.models import Chunk
 
@@ -12,7 +11,7 @@ def chunk_text_fixed_size(
     document_id: str,
     chunk_size: int = 512,
     overlap: int = 50,
-    section_heading: Optional[str] = None,
+    section_heading: str | None = None,
 ) -> list[Chunk]:
     """Chunk text into fixed-size chunks with overlap.
 

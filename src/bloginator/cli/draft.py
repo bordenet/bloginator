@@ -8,12 +8,7 @@ from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 
-from bloginator.generation import (
-    DraftGenerator,
-    SafetyValidator,
-    VoiceScorer,
-    create_llm_client,
-)
+from bloginator.generation import DraftGenerator, SafetyValidator, VoiceScorer, create_llm_client
 from bloginator.models.outline import Outline
 from bloginator.search import CorpusSearcher
 
@@ -185,7 +180,9 @@ def draft(
                     f"[red]✗[/red] Input validation failed: {len(validation_result['violations'])} violation(s) found"
                 )
                 for v in validation_result["violations"]:
-                    console.print(f"  • Pattern '{v['pattern']}' matched: {', '.join(v['matches'])}")
+                    console.print(
+                        f"  • Pattern '{v['pattern']}' matched: {', '.join(v['matches'])}"
+                    )
                 console.print()
                 console.print("[dim]Fix these violations before generating content[/dim]")
                 return
@@ -218,9 +215,7 @@ def draft(
         # Validate safety if requested
         if validate_safety:
             task = progress.add_task("Validating against blocklist...", total=None)
-            validator = SafetyValidator(
-                config_dir / "blocklist.json", auto_reject=False
-            )
+            validator = SafetyValidator(config_dir / "blocklist.json", auto_reject=False)
             try:
                 validator.validate_draft(draft_obj)
             except Exception as e:
@@ -250,7 +245,13 @@ def draft(
     stats_table.add_row("Total Citations:", str(draft_obj.total_citations))
 
     if score_voice:
-        voice_color = "green" if draft_obj.voice_score >= 0.7 else "yellow" if draft_obj.voice_score >= 0.5 else "red"
+        voice_color = (
+            "green"
+            if draft_obj.voice_score >= 0.7
+            else "yellow"
+            if draft_obj.voice_score >= 0.5
+            else "red"
+        )
         stats_table.add_row(
             "Voice Score:",
             f"[{voice_color}]{draft_obj.voice_score:.2f}[/{voice_color}]",
@@ -276,7 +277,7 @@ def draft(
             console.print(
                 f"  • Pattern '{violation['pattern']}' in '{violation.get('section_title', 'Unknown')}'"
             )
-            matches_str = ", ".join(f"'{m}'" for m in violation['matches'][:3])
+            matches_str = ", ".join(f"'{m}'" for m in violation["matches"][:3])
             console.print(f"    Matched: {matches_str}")
             if violation.get("notes"):
                 console.print(f"    [dim]{violation['notes']}[/dim]")
@@ -296,9 +297,9 @@ def draft(
             f"  Authentic Sections: {insights['authentic_sections']}/{insights['total_sections']}"
         )
 
-        if insights['weak_sections'] > 0:
+        if insights["weak_sections"] > 0:
             console.print(f"  [yellow]Weak Sections ({insights['weak_sections']}):[/yellow]")
-            for title, score in insights['weak_section_details'][:5]:
+            for title, score in insights["weak_section_details"][:5]:
                 console.print(f"    • {title} ({score:.2f})")
 
         console.print()
@@ -306,20 +307,12 @@ def draft(
     # Save output
     try:
         if output_format in ["markdown", "both"]:
-            md_path = (
-                output_file.with_suffix(".md")
-                if output_format == "both"
-                else output_file
-            )
+            md_path = output_file.with_suffix(".md") if output_format == "both" else output_file
             md_path.write_text(draft_obj.to_markdown(include_citations=True))
             console.print(f"[green]✓[/green] Saved markdown to {md_path}")
 
         if output_format in ["json", "both"]:
-            json_path = (
-                output_file.with_suffix(".json")
-                if output_format == "both"
-                else output_file
-            )
+            json_path = output_file.with_suffix(".json") if output_format == "both" else output_file
             json_path.write_text(draft_obj.model_dump_json(indent=2))
             console.print(f"[green]✓[/green] Saved JSON to {json_path}")
 
@@ -336,6 +329,4 @@ def draft(
 
     if score_voice and draft_obj.voice_score < 0.6:
         console.print()
-        console.print(
-            "[yellow]⚠️[/yellow] Voice score is low - consider refining weak sections"
-        )
+        console.print("[yellow]⚠️[/yellow] Voice score is low - consider refining weak sections")

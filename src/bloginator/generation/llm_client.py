@@ -6,7 +6,7 @@ Supports local LLM via Ollama with optional future cloud provider support.
 import json
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 import requests
 
@@ -65,7 +65,7 @@ class LLMClient(ABC):
         prompt: str,
         temperature: float = 0.7,
         max_tokens: int = 2000,
-        system_prompt: Optional[str] = None,
+        system_prompt: str | None = None,
     ) -> LLMResponse:
         """Generate text from prompt.
 
@@ -128,7 +128,7 @@ class OllamaClient(LLMClient):
         prompt: str,
         temperature: float = 0.7,
         max_tokens: int = 2000,
-        system_prompt: Optional[str] = None,
+        system_prompt: str | None = None,
     ) -> LLMResponse:
         """Generate text using Ollama.
 
@@ -163,9 +163,7 @@ class OllamaClient(LLMClient):
         }
 
         try:
-            response = requests.post(
-                url, json=payload, timeout=self.timeout
-            )
+            response = requests.post(url, json=payload, timeout=self.timeout)
             response.raise_for_status()
 
             data = response.json()
@@ -192,9 +190,7 @@ class OllamaClient(LLMClient):
                 f"Is Ollama running? Start with: ollama serve"
             ) from e
         except requests.exceptions.Timeout as e:
-            raise ConnectionError(
-                f"Request to Ollama timed out after {self.timeout}s"
-            ) from e
+            raise ConnectionError(f"Request to Ollama timed out after {self.timeout}s") from e
         except requests.exceptions.HTTPError as e:
             raise ValueError(f"Ollama generation failed: {e}") from e
         except (KeyError, json.JSONDecodeError) as e:
@@ -260,8 +256,8 @@ class CustomLLMClient(LLMClient):
         self,
         model: str,
         base_url: str = "http://localhost:1234/v1",
-        api_key: Optional[str] = None,
-        headers: Optional[dict[str, str]] = None,
+        api_key: str | None = None,
+        headers: dict[str, str] | None = None,
         timeout: int = 120,
     ):
         """Initialize custom LLM client.
@@ -290,7 +286,7 @@ class CustomLLMClient(LLMClient):
         prompt: str,
         temperature: float = 0.7,
         max_tokens: int = 2000,
-        system_prompt: Optional[str] = None,
+        system_prompt: str | None = None,
     ) -> LLMResponse:
         """Generate text using custom endpoint.
 
@@ -326,9 +322,7 @@ class CustomLLMClient(LLMClient):
         }
 
         try:
-            response = requests.post(
-                url, json=payload, headers=self.headers, timeout=self.timeout
-            )
+            response = requests.post(url, json=payload, headers=self.headers, timeout=self.timeout)
             response.raise_for_status()
 
             data = response.json()
@@ -351,13 +345,10 @@ class CustomLLMClient(LLMClient):
 
         except requests.exceptions.ConnectionError as e:
             raise ConnectionError(
-                f"Unable to connect to custom LLM at {self.base_url}. "
-                f"Is the service running?"
+                f"Unable to connect to custom LLM at {self.base_url}. " f"Is the service running?"
             ) from e
         except requests.exceptions.Timeout as e:
-            raise ConnectionError(
-                f"Request to custom LLM timed out after {self.timeout}s"
-            ) from e
+            raise ConnectionError(f"Request to custom LLM timed out after {self.timeout}s") from e
         except requests.exceptions.HTTPError as e:
             raise ValueError(f"Custom LLM generation failed: {e}") from e
         except (KeyError, IndexError, json.JSONDecodeError) as e:
