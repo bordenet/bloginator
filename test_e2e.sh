@@ -1,14 +1,87 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+################################################################################
+# Script Name: test_e2e.sh
+################################################################################
+# PURPOSE: End-to-end test for Bloginator (search → outline → draft)
+# USAGE: ./test_e2e.sh [OPTIONS]
+# PLATFORM: Cross-platform (Linux/macOS)
+################################################################################
 
-# End-to-End Bloginator Test Script
-# Tests: search → outline → draft with full logging
+# Strict error handling
+set -euo pipefail
+
+################################################################################
+# Constants
+################################################################################
 
 # Colors for output
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+readonly GREEN='\033[0;32m'
+readonly BLUE='\033[0;34m'
+readonly YELLOW='\033[1;33m'
+readonly NC='\033[0m' # No Color
+
+################################################################################
+# Functions
+################################################################################
+
+# Function: show_help
+# Description: Display help information
+show_help() {
+    cat << EOF
+NAME
+    test_e2e.sh - End-to-end test for Bloginator
+
+SYNOPSIS
+    test_e2e.sh [OPTIONS]
+
+DESCRIPTION
+    Tests the complete Bloginator workflow: corpus search, outline generation,
+    and draft generation with full logging. Requires an indexed corpus.
+
+OPTIONS
+    -h, --help      Display this help message
+    -v, --verbose   Show LLM request/response interactions
+
+EXAMPLES
+    ./test_e2e.sh
+        Run test with standard output
+
+    ./test_e2e.sh --verbose
+        Run test with verbose LLM output
+
+EXIT STATUS
+    0   Success
+    1   Error
+
+AUTHOR
+    Bloginator Project
+
+EOF
+}
+
+################################################################################
+# Main Script
+################################################################################
+
+# Parse arguments
+VERBOSE=false
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -h|--help)
+            show_help
+            exit 0
+            ;;
+        -v|--verbose)
+            VERBOSE=true
+            shift
+            ;;
+        *)
+            echo "Unknown option: $1" >&2
+            echo "Use --help for usage information" >&2
+            exit 1
+            ;;
+    esac
+done
 
 # Setup logging
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
@@ -41,6 +114,12 @@ echo ""
 
 # Configuration
 INDEX_PATH=".bloginator/chroma"
+
+# Set verbose flag for commands
+VERBOSE_FLAG=""
+if [[ "$VERBOSE" == true ]]; then
+    VERBOSE_FLAG="--verbose"
+fi
 
 # Note: Assumes you've already run extraction and indexing:
 # bloginator extract -o output/extracted --config corpus/corpus.local.yaml
@@ -82,7 +161,8 @@ bloginator outline \
   --output "$OUTLINE_OUTPUT" \
   --format both \
   --min-coverage 2 \
-  --log-file "$OUTLINE_LOG"
+  --log-file "$OUTLINE_LOG" \
+  $VERBOSE_FLAG
 
 echo ""
 echo -e "${GREEN}✓ Outline generated${NC}"
@@ -110,7 +190,8 @@ bloginator draft \
   --temperature 0.7 \
   --sources-per-section 5 \
   --max-section-words 300 \
-  --log-file "$DRAFT_LOG"
+  --log-file "$DRAFT_LOG" \
+  $VERBOSE_FLAG
 
 echo ""
 echo -e "${GREEN}✓ Draft generated${NC}"
