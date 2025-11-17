@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Create Document - Bloginator{% endblock %}
+
+{% block content %}
+<div class="px-4 py-6 sm:px-0">
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">Create Document</h1>
+
+    <!-- Steps Progress -->
+    <div class="mb-8">
+        <div class="flex items-center">
+            <div id="step1-indicator" class="flex items-center text-indigo-600">
+                <span class="flex items-center justify-center w-8 h-8 border-2 border-indigo-600 rounded-full">1</span>
+                <span class="ml-2 text-sm font-medium">Generate Outline</span>
+            </div>
+            <div class="flex-1 border-t-2 border-gray-300 mx-4"></div>
+            <div id="step2-indicator" class="flex items-center text-gray-400">
+                <span class="flex items-center justify-center w-8 h-8 border-2 border-gray-300 rounded-full">2</span>
+                <span class="ml-2 text-sm font-medium">Generate Draft</span>
+            </div>
+            <div class="flex-1 border-t-2 border-gray-300 mx-4"></div>
+            <div id="step3-indicator" class="flex items-center text-gray-400">
+                <span class="flex items-center justify-center w-8 h-8 border-2 border-gray-300 rounded-full">3</span>
+                <span class="ml-2 text-sm font-medium">Refine & Export</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 1: Generate Outline -->
+    <div id="step1" class="step-content bg-white shadow sm:rounded-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Step 1: Generate Outline</h2>
+
+        <form id="outline-form" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Index Path</label>
+                <input type="text" name="index_path" placeholder="/path/to/index" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Document Title</label>
+                <input type="text" name="title" placeholder="Engineering Leadership Guide" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Keywords (comma-separated)</label>
+                <input type="text" name="keywords" placeholder="leadership, engineering, culture" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Thesis (Optional)</label>
+                <textarea name="thesis" rows="3" placeholder="Main argument or thesis statement..." class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+            </div>
+
+            <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                Generate Outline
+            </button>
+        </form>
+
+        <div id="outline-result" class="mt-6 hidden">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Generated Outline</h3>
+            <div id="outline-display" class="bg-gray-50 rounded-md p-4 text-sm"></div>
+            <button onclick="nextStep(2)" class="mt-4 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                Continue to Draft →
+            </button>
+        </div>
+    </div>
+
+    <!-- Step 2: Generate Draft -->
+    <div id="step2" class="step-content hidden bg-white shadow sm:rounded-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Step 2: Generate Draft</h2>
+
+        <form id="draft-form" class="space-y-4">
+            <div class="flex items-center space-x-4">
+                <label class="flex items-center">
+                    <input type="checkbox" name="validate_safety" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                    <span class="ml-2 text-sm text-gray-700">Validate against blocklist</span>
+                </label>
+                <label class="flex items-center">
+                    <input type="checkbox" name="score_voice" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                    <span class="ml-2 text-sm text-gray-700">Score voice similarity</span>
+                </label>
+            </div>
+
+            <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                Generate Draft
+            </button>
+        </form>
+
+        <div id="draft-result" class="mt-6 hidden">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Generated Draft</h3>
+            <div id="draft-display" class="bg-gray-50 rounded-md p-4 text-sm prose max-w-none"></div>
+            <button onclick="nextStep(3)" class="mt-4 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                Continue to Refine →
+            </button>
+        </div>
+    </div>
+
+    <!-- Step 3: Refine & Export -->
+    <div id="step3" class="step-content hidden bg-white shadow sm:rounded-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Step 3: Refine & Export</h2>
+
+        <form id="refine-form" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Feedback</label>
+                <textarea name="feedback" rows="3" placeholder="Make the introduction more engaging..." class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+            </div>
+
+            <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                Refine Draft
+            </button>
+        </form>
+
+        <div class="mt-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Export</h3>
+            <div class="flex space-x-4">
+                <button onclick="exportDraft('markdown')" class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    Export as Markdown
+                </button>
+                <button onclick="exportDraft('html')" class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    Export as HTML
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let currentOutline = null;
+let currentDraft = null;
+
+function nextStep(stepNum) {
+    document.querySelectorAll('.step-content').forEach(el => el.classList.add('hidden'));
+    document.getElementById('step' + stepNum).classList.remove('hidden');
+
+    // Update indicators
+    for(let i = 1; i <= 3; i++) {
+        const indicator = document.getElementById('step' + i + '-indicator');
+        if(i <= stepNum) {
+            indicator.classList.remove('text-gray-400');
+            indicator.classList.add('text-indigo-600');
+        }
+    }
+}
+
+function exportDraft(format) {
+    // Placeholder for export functionality
+    alert('Export to ' + format + ' coming soon!');
+}
+</script>
+{% endblock %}
