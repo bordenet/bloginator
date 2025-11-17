@@ -321,3 +321,46 @@ activate_venv() {
     source "$venv_path/bin/activate"
     log_success "Activated virtual environment: $venv_path"
 }
+
+#######################################
+# Prompt for confirmation
+# Globals:
+#   AUTO_CONFIRM (optional)
+# Arguments:
+#   $1 - Prompt message
+#   $2 - Default answer (y/n)
+# Returns:
+#   0 if yes, 1 if no
+#######################################
+confirm() {
+    local prompt=$1
+    local default=${2:-n}
+
+    if [[ "${AUTO_CONFIRM:-false}" == "true" ]]; then
+        log_info "$prompt [auto-confirmed]"
+        return 0
+    fi
+
+    local answer
+    read -r -p "$prompt [${default}]: " answer
+    answer=${answer:-$default}
+
+    [[ "$answer" =~ ^[Yy] ]]
+}
+
+#######################################
+# Run command with optional verbose output
+# Globals:
+#   VERBOSE (optional)
+# Arguments:
+#   $@ - Command to run
+# Returns:
+#   Exit code of command
+#######################################
+run_quiet() {
+    if [[ "${VERBOSE:-false}" == "true" ]]; then
+        "$@"
+    else
+        "$@" &>/dev/null
+    fi
+}
