@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}Corpus Management - Bloginator{% endblock %}
+
+{% block content %}
+<div class="px-4 py-6 sm:px-0">
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">Corpus Management</h1>
+
+    <!-- Tabs -->
+    <div class="border-b border-gray-200 mb-6">
+        <nav class="-mb-px flex space-x-8">
+            <button onclick="showTab('upload')" id="tab-upload" class="tab-button border-indigo-500 text-indigo-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                Upload Documents
+            </button>
+            <button onclick="showTab('index')" id="tab-index" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                Create Index
+            </button>
+            <button onclick="showTab('blocklist')" id="tab-blocklist" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                Blocklist
+            </button>
+        </nav>
+    </div>
+
+    <!-- Upload Tab -->
+    <div id="content-upload" class="tab-content">
+        <div class="bg-white shadow sm:rounded-lg p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Upload Documents</h2>
+            <p class="text-sm text-gray-500 mb-6">
+                Upload your historical writing (PDF, DOCX, Markdown, TXT). Documents will be extracted and prepared for indexing.
+            </p>
+
+            <form id="upload-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Select Files
+                    </label>
+                    <input type="file" name="files" multiple accept=".pdf,.docx,.md,.txt" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Quality Rating (Optional)
+                    </label>
+                    <select name="quality" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                        <option value="">No preference</option>
+                        <option value="preferred">Preferred (Best writing)</option>
+                        <option value="standard">Standard</option>
+                        <option value="reference">Reference only</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Tags (Optional, comma-separated)
+                    </label>
+                    <input type="text" name="tags" placeholder="engineering, leadership, agile" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+
+                <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Upload & Extract
+                </button>
+            </form>
+
+            <div id="upload-result" class="mt-6 hidden">
+                <div class="rounded-md bg-green-50 p-4">
+                    <div class="flex">
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-green-800">Upload Successful</h3>
+                            <div class="mt-2 text-sm text-green-700">
+                                <p id="upload-result-text"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Index Tab -->
+    <div id="content-index" class="tab-content hidden">
+        <div class="bg-white shadow sm:rounded-lg p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Create Vector Index</h2>
+            <p class="text-sm text-gray-500 mb-6">
+                Create a searchable vector index from your extracted documents. This enables semantic search and content generation.
+            </p>
+
+            <form id="index-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Corpus Path
+                    </label>
+                    <input type="text" name="corpus_path" placeholder="/path/to/extracted/corpus" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Index Output Path
+                    </label>
+                    <input type="text" name="index_path" placeholder="/path/to/index" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+
+                <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Create Index
+                </button>
+            </form>
+
+            <div id="index-result" class="mt-6 hidden">
+                <div class="rounded-md bg-green-50 p-4">
+                    <div class="flex">
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-green-800">Index Created</h3>
+                            <div class="mt-2 text-sm text-green-700">
+                                <p id="index-result-text"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Blocklist Tab -->
+    <div id="content-blocklist" class="tab-content hidden">
+        <div class="bg-white shadow sm:rounded-lg p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Blocklist Management</h2>
+            <p class="text-sm text-gray-500 mb-6">
+                Manage proprietary terms and sensitive information that should never appear in generated content.
+            </p>
+
+            <form id="blocklist-form" class="space-y-4 mb-6">
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Pattern
+                        </label>
+                        <input type="text" name="pattern" placeholder="Company Name" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Pattern Type
+                        </label>
+                        <select name="pattern_type" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                            <option value="exact">Exact Match</option>
+                            <option value="case_insensitive">Case Insensitive</option>
+                            <option value="regex">Regular Expression</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Category
+                        </label>
+                        <select name="category" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                            <option value="company_name">Company Name</option>
+                            <option value="product_name">Product Name</option>
+                            <option value="person_name">Person Name</option>
+                            <option value="project">Project/Code Name</option>
+                            <option value="methodology">Methodology</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Notes
+                        </label>
+                        <input type="text" name="notes" placeholder="Former employer NDA" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                </div>
+
+                <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Add to Blocklist
+                </button>
+            </form>
+
+            <div id="blocklist-items" class="mt-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Current Blocklist</h3>
+                <div class="space-y-2" id="blocklist-list">
+                    <!-- Blocklist items will be loaded here -->
+                    <p class="text-sm text-gray-500">No blocklist entries yet.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function showTab(tabName) {
+    // Hide all tab content
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+    // Remove active state from all tabs
+    document.querySelectorAll('.tab-button').forEach(el => {
+        el.classList.remove('border-indigo-500', 'text-indigo-600');
+        el.classList.add('border-transparent', 'text-gray-500');
+    });
+
+    // Show selected tab content
+    document.getElementById('content-' + tabName).classList.remove('hidden');
+    // Add active state to selected tab
+    const activeTab = document.getElementById('tab-' + tabName);
+    activeTab.classList.add('border-indigo-500', 'text-indigo-600');
+    activeTab.classList.remove('border-transparent', 'text-gray-500');
+}
+</script>
+{% endblock %}
