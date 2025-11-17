@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 ################################################################################
-# Script Name: test_e2e.sh
+# Script Name: test-e2e.sh
 ################################################################################
 # PURPOSE: End-to-end test for Bloginator (search → outline → draft)
-# USAGE: ./test_e2e.sh [OPTIONS]
+# USAGE: ./test-e2e.sh [OPTIONS]
 # PLATFORM: Cross-platform (Linux/macOS)
 ################################################################################
 
@@ -29,25 +29,33 @@ readonly NC='\033[0m' # No Color
 show_help() {
     cat << EOF
 NAME
-    test_e2e.sh - End-to-end test for Bloginator
+    test-e2e.sh - End-to-end test for Bloginator
 
 SYNOPSIS
-    test_e2e.sh [OPTIONS]
+    test-e2e.sh [OPTIONS]
 
 DESCRIPTION
     Tests the complete Bloginator workflow: corpus search, outline generation,
     and draft generation with full logging. Requires an indexed corpus.
 
 OPTIONS
-    -h, --help      Display this help message
-    -v, --verbose   Show LLM request/response interactions
+    -h, --help              Display this help message
+    -v, --verbose           Show LLM request/response interactions
+    -t, --title TITLE       Blog post title (default: "Building a DevOps Culture at Scale")
+    -k, --keywords KEYWORDS Comma-separated keywords (default: "devops,kubernetes,automation,culture,collaboration,ci-cd")
+    --thesis THESIS         Main thesis statement (default: "Effective DevOps culture requires both technical infrastructure AND organizational transformation")
 
 EXAMPLES
-    ./test_e2e.sh
-        Run test with standard output
+    ./test-e2e.sh
+        Run test with default title, keywords, and thesis
 
-    ./test_e2e.sh --verbose
+    ./test-e2e.sh --verbose
         Run test with verbose LLM output
+
+    ./test-e2e.sh --title "Building a DevOps Culture at Scale" \\
+        --keywords "devops,kubernetes,automation,culture,collaboration,ci-cd" \\
+        --thesis "Effective DevOps culture requires both technical infrastructure AND organizational transformation"
+        Run test with custom title, keywords, and thesis (these are the default values)
 
 EXIT STATUS
     0   Success
@@ -65,6 +73,10 @@ EOF
 
 # Parse arguments
 VERBOSE=false
+TITLE="Building a DevOps Culture at Scale"
+KEYWORDS="devops,kubernetes,automation,culture,collaboration,ci-cd"
+THESIS="Effective DevOps culture requires both technical infrastructure AND organizational transformation"
+
 while [[ $# -gt 0 ]]; do
     case "$1" in
         -h|--help)
@@ -74,6 +86,18 @@ while [[ $# -gt 0 ]]; do
         -v|--verbose)
             VERBOSE=true
             shift
+            ;;
+        -t|--title)
+            TITLE="$2"
+            shift 2
+            ;;
+        -k|--keywords)
+            KEYWORDS="$2"
+            shift 2
+            ;;
+        --thesis)
+            THESIS="$2"
+            shift 2
             ;;
         *)
             echo "Unknown option: $1" >&2
@@ -99,6 +123,7 @@ echo ""
 # Activate virtual environment
 echo -e "${YELLOW}⚙️  Activating virtual environment...${NC}"
 cd ~/GitHub/Personal/bloginator
+# shellcheck disable=SC1091
 source .venv/bin/activate
 
 # Verify Ollama connectivity
@@ -146,16 +171,18 @@ echo ""
 OUTLINE_LOG="${LOG_DIR}/outline.log"
 OUTLINE_OUTPUT="${LOG_DIR}/outline"
 
-echo -e "Title: Building a DevOps Culture at Scale"
+echo -e "Title: ${TITLE}"
+echo -e "Keywords: ${KEYWORDS}"
+echo -e "Thesis: ${THESIS}"
 echo -e "Log:   ${OUTLINE_LOG}"
 echo -e "Output: ${OUTLINE_OUTPUT}.json and ${OUTLINE_OUTPUT}.md"
 echo ""
 
 bloginator outline \
   --index "$INDEX_PATH" \
-  --title "Building a DevOps Culture at Scale" \
-  --keywords "devops,kubernetes,automation,culture,collaboration,ci-cd" \
-  --thesis "Effective DevOps culture requires both technical infrastructure AND organizational transformation" \
+  --title "$TITLE" \
+  --keywords "$KEYWORDS" \
+  --thesis "$THESIS" \
   --sections 5 \
   --temperature 0.7 \
   --output "$OUTLINE_OUTPUT" \
@@ -178,7 +205,7 @@ echo ""
 DRAFT_LOG="${LOG_DIR}/draft.log"
 DRAFT_OUTPUT="${LOG_DIR}/draft.md"
 
-echo -e "Title: Building a DevOps Culture at Scale (from outline)"
+echo -e "Title: ${TITLE} (from outline)"
 echo -e "Log:   ${DRAFT_LOG}"
 echo -e "Output: ${DRAFT_OUTPUT}"
 echo ""
@@ -213,7 +240,7 @@ echo -e "  • Draft:   ${DRAFT_LOG}"
 echo ""
 
 echo -e "${YELLOW}Generated Files:${NC}"
-ls -lh "${LOG_DIR}/" | tail -n +2 | while read line; do
+find "${LOG_DIR}" -maxdepth 1 -type f -exec ls -lh {} \; | while read -r line; do
     echo -e "  • $line"
 done
 echo ""

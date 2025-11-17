@@ -198,7 +198,7 @@ class TestSearchAndGenerationWorkflow:
 
         # Verify we found relevant content for sections
         assert len(section_contexts) > 0
-        for section_title, context in section_contexts.items():
+        for _section_title, context in section_contexts.items():
             assert context["num_results"] >= 0  # Some sections may have no matches
             assert isinstance(context["relevant_content"], list)
 

@@ -11,6 +11,7 @@ from rich.table import Table
 
 from bloginator.generation.version_manager import VersionManager
 
+
 console = Console()
 logger = logging.getLogger(__name__)
 
@@ -111,7 +112,7 @@ def revert(
         # Save reverted draft
         console.print(f"[dim]Saving reverted draft to: {output}[/dim]")
 
-        with open(output, "w") as f:
+        with output.open("w") as f:
             json.dump(
                 target_version.draft.model_dump(mode="json"),
                 f,

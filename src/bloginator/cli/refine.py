@@ -16,6 +16,7 @@ from bloginator.generation.voice_scorer import VoiceScorer
 from bloginator.models.draft import Draft
 from bloginator.search import Searcher
 
+
 console = Console()
 logger = logging.getLogger(__name__)
 
@@ -118,7 +119,7 @@ def refine(
     try:
         # Load draft
         console.print(f"[dim]Loading draft: {draft}[/dim]")
-        with open(draft) as f:
+        with draft.open() as f:
             draft_data = json.load(f)
 
         current_draft = Draft(**draft_data)
@@ -208,7 +209,7 @@ def refine(
         output_path = output or draft
         console.print(f"\n[dim]Saving refined draft to: {output_path}[/dim]")
 
-        with open(output_path, "w") as f:
+        with output_path.open("w") as f:
             json.dump(
                 refined_draft.model_dump(mode="json"),
                 f,

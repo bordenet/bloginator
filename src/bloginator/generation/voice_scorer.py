@@ -1,6 +1,5 @@
 """Voice similarity scoring for authentic content validation."""
 
-
 from sentence_transformers import SentenceTransformer
 
 from bloginator.models.draft import Draft, DraftSection

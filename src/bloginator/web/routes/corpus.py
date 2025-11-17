@@ -10,6 +10,7 @@ from bloginator.extraction.extractor import DocumentExtractor
 from bloginator.indexing.indexer import CorpusIndexer
 from bloginator.safety.blocklist_manager import BlocklistManager
 
+
 router = APIRouter()
 
 
@@ -69,7 +70,7 @@ async def upload_documents(
         for file in files:
             file_path = temp_path / file.filename
             content = await file.read()
-            with open(file_path, "wb") as f:
+            with file_path.open("wb") as f:
                 f.write(content)
             file_paths.append(file_path)
 

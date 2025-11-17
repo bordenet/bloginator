@@ -3,7 +3,7 @@
 __all__ = ["TEMPLATES", "get_template", "list_templates"]
 
 from pathlib import Path
-from typing import Dict, Optional
+
 
 # Get the directory containing template files
 TEMPLATES_DIR = Path(__file__).parent
@@ -105,7 +105,7 @@ def get_template(template_id: str) -> dict | None:
 
     import json
 
-    with open(template_file) as f:
+    with template_file.open() as f:
         data = json.load(f)
 
     # Add metadata

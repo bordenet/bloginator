@@ -207,7 +207,7 @@ class TestRevertCLI:
         assert output_path.exists()
 
         # Verify it's valid JSON
-        with open(output_path) as f:
+        with output_path.open() as f:
             data = json.load(f)
         assert "title" in data
 
