@@ -1,10 +1,31 @@
 #!/usr/bin/env bash
+
 ################################################################################
-# Script Name: setup-macos.sh
+# Bloginator macOS Development Setup
 ################################################################################
 # PURPOSE: Set up Bloginator development environment on macOS
-# USAGE: ./scripts/setup-macos.sh [OPTIONS]
-# PLATFORM: macOS (Apple Silicon)
+#   - Installs Homebrew and required system dependencies
+#   - Detects and installs compatible Python version (3.10-3.13)
+#   - Creates Python virtual environment with project dependencies
+#   - Configures pre-commit hooks for code quality
+#
+# USAGE:
+#   ./scripts/setup-macos.sh [OPTIONS]
+#   ./scripts/setup-macos.sh --help
+#
+# OPTIONS:
+#   -y, --yes       Auto-confirm all prompts
+#   -v, --verbose   Show detailed output
+#   -h, --help      Display help message
+#
+# EXAMPLES:
+#   ./scripts/setup-macos.sh            # Interactive setup
+#   ./scripts/setup-macos.sh -y         # Non-interactive
+#   ./scripts/setup-macos.sh -v -y      # Verbose non-interactive
+#
+# DEPENDENCIES:
+#   - macOS (tested on Apple Silicon)
+#   - curl (for Homebrew installation)
 ################################################################################
 
 set -euo pipefail
@@ -87,7 +108,8 @@ log_step_done() {
 }
 
 log_info_verbose() {
-    [[ "$VERBOSE" == "true" ]] && log_info "$@"
+    [[ "$VERBOSE" != "true" ]] && return 0
+    log_info "$@"
 }
 
 ################################################################################
@@ -188,7 +210,7 @@ install_python() {
 
         is_too_old=false; is_too_new=false
         [[ $(printf '%s\n' "${major_minor}" "${REQUIRED_PYTHON_MIN}" | sort -V | head -n1) != "${REQUIRED_PYTHON_MIN}" ]] && is_too_old=true
-        [[ $(printf '%s\n' "${major_minor}" "${REQUIRED_PYTHON_MAX}" | sort -V | tail -n1) == "${major_minor}" ]] || [[ "${major_minor}" == "${REQUIRED_PYTHON_MAX}" ]] && is_too_new=true
+        [[ $(printf '%s\n' "${major_minor}" "${REQUIRED_PYTHON_MAX}" | sort -V | tail -n1) == "${major_minor}" ]] && is_too_new=true
 
         if [[ "$is_too_old" == "false" ]] && [[ "$is_too_new" == "false" ]]; then
             PYTHON_CMD="python3"
