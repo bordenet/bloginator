@@ -6,6 +6,8 @@ from pathlib import Path
 import streamlit as st
 
 from bloginator.export.ui_utils import show_export_buttons
+from bloginator.models.template import TemplateType
+from bloginator.services.template_manager import TemplateManager
 from bloginator.ui.pages.generate_ui_utils import (
     AUDIENCE_MAP,
     CLASSIFICATION_MAP,
@@ -42,6 +44,43 @@ def show_outline_generation() -> None:
         help="The main argument or point of your blog post",
         height=100,
     )
+
+    # Template selector
+    st.markdown("---")
+    st.subheader("Template Style")
+
+    template_manager = TemplateManager()
+    outline_templates = template_manager.list_templates(type=TemplateType.OUTLINE, include_builtin=True)
+
+    if outline_templates:
+        template_options = ["Default (No Template)"] + [f"{t.name} - {t.description}" for t in outline_templates]
+        template_ids = [None] + [t.id for t in outline_templates]
+
+        selected_index = st.selectbox(
+            "Writing Style Template",
+            options=range(len(template_options)),
+            format_func=lambda i: template_options[i],
+            index=0,
+            help="""
+            Choose a template to customize the style and tone of your outline:
+            - **Technical Writing**: Formal, precise documentation style
+            - **Blog Post**: Conversational, engaging style
+            - **Executive Summary**: High-level strategic overview
+            - **Tutorial**: Step-by-step instructional format
+            - Or create your own using `bloginator template create`
+            """,
+        )
+        selected_template_id = template_ids[selected_index]
+
+        # Show template preview if not default
+        if selected_template_id:
+            selected_template = template_manager.get_template(selected_template_id)
+            if selected_template:
+                with st.expander("📋 View Template"):
+                    st.code(selected_template.template, language="text")
+    else:
+        st.info("No templates available. Using default outline generation.")
+        selected_template_id = None
 
     # Classification and Audience selectors
     st.markdown("---")
@@ -169,6 +208,10 @@ def show_outline_generation() -> None:
 
             if thesis:
                 cmd.extend(["--thesis", thesis])
+
+            # Add template if selected
+            if selected_template_id:
+                cmd.extend(["--template", selected_template_id])
 
             # Determine format flag
             if "JSON" in output_format and "Markdown" in output_format:
