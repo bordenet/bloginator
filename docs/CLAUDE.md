@@ -2,6 +2,36 @@
 
 This document contains important context for AI assistants (Claude) working on the Bloginator project.
 
+## 🚨 CRITICAL RULE #1: Test-First Development
+
+**WE WILL ALWAYS FIX BROKEN TESTS BEFORE WRITING MORE CODE.**
+
+This is non-negotiable. No exceptions. No shortcuts.
+
+**Workflow:**
+1. Before starting ANY new feature, run the test suite: `pytest tests/ -v`
+2. If ANY tests fail, STOP immediately
+3. Fix all failing tests until 100% pass
+4. ONLY THEN proceed with new feature development
+5. After implementing new features, verify tests still pass
+
+**Why This Rule Exists:**
+- Broken tests indicate broken functionality
+- New code on broken foundations creates cascading failures
+- Test failures compound exponentially if ignored
+- Production readiness requires 100% test pass rate
+- Technical debt must be paid immediately, not deferred
+
+**Current Test Status:**
+- ✅ **355 tests passing** (100% of runnable tests)
+- ⏭️ 6 tests skipped (optional fastapi dependency)
+- Last verified: 2025-11-18
+
+**When Starting a New Session:**
+1. Run `pytest tests/ --tb=no -q` to verify all tests pass
+2. If any failures exist, fix them FIRST before resuming work
+3. Update this section with current test count and date
+
 ## CRITICAL: Dual LLM Provider Support
 
 **Bloginator MUST support BOTH local and cloud LLM scenarios with equal priority:**
