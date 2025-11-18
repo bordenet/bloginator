@@ -153,7 +153,7 @@ class TestPerformanceBenchmarks:
 
     def test_search_performance(self, large_corpus: dict) -> None:
         """Benchmark search performance."""
-        searcher = CorpusSearcher(persist_directory=str(large_corpus["index_dir"]))
+        searcher = CorpusSearcher(index_dir=large_corpus["index_dir"])
 
         queries = [
             "leadership principles",
@@ -180,7 +180,7 @@ class TestPerformanceBenchmarks:
 
     def test_search_scaling_with_results(self, large_corpus: dict) -> None:
         """Benchmark search performance with varying result counts."""
-        searcher = CorpusSearcher(persist_directory=str(large_corpus["index_dir"]))
+        searcher = CorpusSearcher(index_dir=large_corpus["index_dir"])
 
         result_counts = [5, 10, 20, 50]
         timings = {}
@@ -224,7 +224,7 @@ class TestPerformanceBenchmarks:
 
     def test_concurrent_search_performance(self, large_corpus: dict) -> None:
         """Benchmark multiple concurrent searches."""
-        searcher = CorpusSearcher(persist_directory=str(large_corpus["index_dir"]))
+        searcher = CorpusSearcher(index_dir=large_corpus["index_dir"])
 
         queries = [
             "leadership",
