@@ -7,6 +7,7 @@ from bloginator.cli.blocklist import blocklist
 from bloginator.cli.diff import diff
 from bloginator.cli.draft import draft
 from bloginator.cli.extract import extract
+from bloginator.cli.history import history
 from bloginator.cli.index import index
 from bloginator.cli.outline import outline
 from bloginator.cli.refine import refine
@@ -64,6 +65,7 @@ cli.add_command(blocklist)
 cli.add_command(diff)
 cli.add_command(draft)
 cli.add_command(extract)
+cli.add_command(history)
 cli.add_command(index)
 cli.add_command(outline)
 cli.add_command(refine)

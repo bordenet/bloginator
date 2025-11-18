@@ -87,6 +87,7 @@ pages = {
     "📁 Corpus Management": "corpus",
     "🔍 Search Corpus": "search",
     "📝 Generate Content": "generate",
+    "📜 History": "history",
     "📊 Analytics": "analytics",
     "🚫 Blocklist": "blocklist",
     "⚙️ Settings": "settings",
@@ -156,6 +157,10 @@ elif current_page == "generate":
     from bloginator.ui.pages import generate
 
     generate.show()
+elif current_page == "history":
+    from bloginator.ui.pages import history
+
+    history.show()
 elif current_page == "analytics":
     from bloginator.ui.pages import analytics
 
