@@ -5,9 +5,11 @@ Main entry point for the Streamlit web interface.
 Provides interactive access to all Bloginator functionality.
 """
 
-import streamlit as st
-from pathlib import Path
 import sys
+from pathlib import Path
+
+import streamlit as st
+
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -107,12 +109,13 @@ index_dir = Path(".bloginator/chroma")
 if index_dir.exists():
     try:
         import chromadb
+
         client = chromadb.PersistentClient(path=str(index_dir))
         collections = client.list_collections()
         if collections:
             collection = collections[0]
             chunk_count = collection.count()
-            st.sidebar.success(f"✓ Index Ready")
+            st.sidebar.success("✓ Index Ready")
             st.sidebar.metric("Indexed Chunks", f"{chunk_count:,}")
         else:
             st.sidebar.warning("⚠ Index Empty")
@@ -138,19 +141,25 @@ current_page = st.session_state.current_page
 
 if current_page == "home":
     from bloginator.ui.pages import home
+
     home.show()
 elif current_page == "corpus":
     from bloginator.ui.pages import corpus
+
     corpus.show()
 elif current_page == "search":
     from bloginator.ui.pages import search
+
     search.show()
 elif current_page == "generate":
     from bloginator.ui.pages import generate
+
     generate.show()
 elif current_page == "analytics":
     from bloginator.ui.pages import analytics
+
     analytics.show()
 elif current_page == "settings":
     from bloginator.ui.pages import settings
+
     settings.show()

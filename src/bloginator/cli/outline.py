@@ -44,18 +44,20 @@ from bloginator.search import CorpusSearcher
 )
 @click.option(
     "--audience",
-    type=click.Choice([
-        "ic-engineers",
-        "senior-engineers",
-        "engineering-leaders",
-        "qa-engineers",
-        "devops-sre",
-        "product-managers",
-        "technical-leadership",
-        "all-disciplines",
-        "executives",
-        "general",
-    ]),
+    type=click.Choice(
+        [
+            "ic-engineers",
+            "senior-engineers",
+            "engineering-leaders",
+            "qa-engineers",
+            "devops-sre",
+            "product-managers",
+            "technical-leadership",
+            "all-disciplines",
+            "executives",
+            "general",
+        ]
+    ),
     default="all-disciplines",
     help="Target audience for content (default: all-disciplines)",
 )

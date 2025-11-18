@@ -52,7 +52,7 @@ class TestExtractAndIndexWorkflow:
             )
 
             # Chunk the text
-            paragraphs = chunk_text_by_paragraphs(text)
+            paragraphs = chunk_text_by_paragraphs(text, "test_doc")
             chunks = []
             for i, paragraph in enumerate(paragraphs):
                 if paragraph.strip():  # Skip empty paragraphs
@@ -97,13 +97,13 @@ class TestExtractAndIndexWorkflow:
             format="md",
             created_date=datetime(2023, 1, 1),
             modified_date=datetime(2023, 6, 1),
-            quality_rating=QualityRating.STANDARD,
+            quality_rating=QualityRating.REFERENCE,
             tags=[],
             word_count=len(text.split()),
         )
 
         # Chunk text
-        paragraphs = chunk_text_by_paragraphs(text)
+        paragraphs = chunk_text_by_paragraphs(text, "test_doc")
         chunks = [
             Chunk(
                 id=f"md_chunk_{i}",
@@ -149,7 +149,7 @@ class TestExtractAndIndexWorkflow:
         )
 
         # Chunk text
-        paragraphs = chunk_text_by_paragraphs(text)
+        paragraphs = chunk_text_by_paragraphs(text, "test_doc")
         chunks = [
             Chunk(
                 id=f"txt_chunk_{i}",
@@ -201,7 +201,7 @@ class TestExtractAndIndexWorkflow:
                 char_start=0,
                 char_end=len(p),
             )
-            for i, p in enumerate(chunk_text_by_paragraphs(text1))
+            for i, p in enumerate(chunk_text_by_paragraphs(text1, "test_doc"))
             if p.strip()
         ]
         indexer.index_document(document1, chunks1)
@@ -234,7 +234,7 @@ class TestExtractAndIndexWorkflow:
                 char_start=0,
                 char_end=len(p),
             )
-            for i, p in enumerate(chunk_text_by_paragraphs(text2))
+            for i, p in enumerate(chunk_text_by_paragraphs(text2, "test_doc"))
             if p.strip()
         ]
         indexer2.index_document(document2, chunks2)

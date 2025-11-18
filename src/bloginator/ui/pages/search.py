@@ -1,8 +1,9 @@
 """Search page for Bloginator Streamlit UI."""
 
-import streamlit as st
-from pathlib import Path
 import subprocess
+from pathlib import Path
+
+import streamlit as st
 
 
 def show():

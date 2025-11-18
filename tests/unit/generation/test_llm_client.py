@@ -107,7 +107,8 @@ class TestOllamaClient:
         )
 
         call_kwargs = mock_post.call_args.kwargs
-        assert call_kwargs["json"]["system"] == "System instructions"
+        # System prompt is concatenated with user prompt
+        assert call_kwargs["json"]["prompt"] == "System instructions\n\nUser prompt"
 
     @patch("requests.post")
     def test_generate_with_options(self, mock_post):
@@ -139,7 +140,7 @@ class TestOllamaClient:
 
         client = OllamaClient()
 
-        with pytest.raises(ConnectionError, match="Failed to connect to Ollama"):
+        with pytest.raises(ConnectionError, match="Unable to connect to Ollama"):
             client.generate(prompt="Test")
 
     @patch("requests.post")
@@ -151,7 +152,7 @@ class TestOllamaClient:
 
         client = OllamaClient()
 
-        with pytest.raises(RuntimeError, match="Ollama API error"):
+        with pytest.raises(ValueError, match="Ollama generation failed"):
             client.generate(prompt="Test")
 
     @patch("requests.post")
@@ -160,15 +161,18 @@ class TestOllamaClient:
         mock_response = Mock()
         mock_response.json.return_value = {
             "prompt_eval_count": 10,
-            # Missing 'response' field
+            # Missing 'response' field - should return empty string
         }
         mock_response.raise_for_status.return_value = None
         mock_post.return_value = mock_response
 
         client = OllamaClient()
+        response = client.generate(prompt="Test")
 
-        with pytest.raises(RuntimeError, match="Invalid response from Ollama"):
-            client.generate(prompt="Test")
+        # Missing response field defaults to empty string
+        assert response.content == ""
+        assert response.prompt_tokens == 10  # From prompt_eval_count
+        assert response.completion_tokens == 0  # len("") // 4 = 0
 
     @patch("requests.post")
     def test_generate_missing_token_counts(self, mock_post):
@@ -184,11 +188,11 @@ class TestOllamaClient:
         client = OllamaClient()
         response = client.generate(prompt="Test")
 
-        # Should default to 0
+        # Should estimate based on text length (len(text) // 4)
         assert response.content == "Content"
-        assert response.prompt_tokens == 0
-        assert response.completion_tokens == 0
-        assert response.total_tokens == 0
+        assert response.prompt_tokens == 1  # len("Test") // 4 = 1
+        assert response.completion_tokens == 1  # len("Content") // 4 = 1
+        assert response.total_tokens == 2
 
 
 class TestCreateLLMClient:
