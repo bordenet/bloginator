@@ -41,7 +41,7 @@ class TestSearchAndGenerationWorkflow:
                 word_count=len(text.split()),
             )
 
-            paragraphs = chunk_text_by_paragraphs(text)
+            paragraphs = chunk_text_by_paragraphs(text, "test_doc")
             chunks = [
                 Chunk(
                     id=f"{document.id}_chunk_{i}",
