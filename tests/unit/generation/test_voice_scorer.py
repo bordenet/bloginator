@@ -83,7 +83,7 @@ class TestVoiceScorer:
             SearchResult(
                 chunk_id=f"chunk{i}",
                 content=f"Corpus content {i}",
-                similarity_score=0.8,
+                distance=0.2,
                 metadata={},
             )
             for i in range(5)
@@ -124,7 +124,7 @@ class TestVoiceScorer:
             SearchResult(
                 chunk_id="chunk1",
                 content="Content",
-                similarity_score=0.8,
+                distance=0.2,
                 metadata={},
             )
         ]
@@ -191,7 +191,7 @@ class TestVoiceScorer:
             SearchResult(
                 chunk_id="chunk1",
                 content="Corpus content",
-                similarity_score=0.8,
+                distance=0.2,
                 metadata={},
             )
         ]
