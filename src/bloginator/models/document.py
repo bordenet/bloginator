@@ -95,6 +95,7 @@ class Document(BaseModel):
         chunk_ids: List of chunk IDs belonging to this document
         source_name: Name of corpus source (from corpus.yaml)
         voice_notes: Notes about writing voice/style characteristics
+        content_checksum: SHA256 checksum for incremental indexing
     """
 
     id: str = Field(..., description="Unique document identifier")
@@ -120,6 +121,9 @@ class Document(BaseModel):
     chunk_ids: list[str] = Field(default_factory=list, description="Chunk IDs in this document")
     source_name: str | None = Field(None, description="Name of corpus source (from corpus.yaml)")
     voice_notes: str | None = Field(None, description="Notes about writing voice/style")
+    content_checksum: str | None = Field(
+        None, description="SHA256 checksum of document content for incremental indexing"
+    )
 
     class Config:
         """Pydantic model configuration."""

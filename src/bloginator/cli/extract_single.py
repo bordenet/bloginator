@@ -21,6 +21,8 @@ from bloginator.extraction import (
     extract_yaml_frontmatter,
 )
 from bloginator.models import Document, QualityRating
+from bloginator.utils.checksum import calculate_content_checksum
+from bloginator.utils.parallel import parallel_map_with_progress
 
 
 def extract_single_source(
@@ -30,6 +32,7 @@ def extract_single_source(
     tag_list: list[str],
     console: Console,
     force: bool = False,
+    workers: int | None = None,
 ) -> None:
     """Extract from single source (legacy mode).
 
@@ -40,6 +43,7 @@ def extract_single_source(
         tag_list: List of tags to apply
         console: Rich console for output
         force: If True, re-extract all files
+        workers: Number of parallel workers (None = auto-detect)
     """
     # Initialize error tracker
     error_tracker = ErrorTracker()
@@ -66,6 +70,7 @@ def extract_single_source(
         force=force,
         error_tracker=error_tracker,
         console=console,
+        workers=workers,
     )
 
     # Print summary
@@ -120,8 +125,97 @@ def _process_files(
     force: bool,
     error_tracker: ErrorTracker,
     console: Console,
+    workers: int | None = None,
 ) -> tuple[int, int, int]:
-    """Process list of files for extraction.
+    """Process list of files for extraction (with optional parallel processing).
+
+    Args:
+        files: List of files to process
+        output: Output directory
+        quality: Quality rating
+        tag_list: Tags to apply
+        existing_docs: Dictionary of existing extractions
+        force: Force re-extraction flag
+        error_tracker: Error tracker instance
+        console: Rich console
+        workers: Number of parallel workers (None = auto, 1 = sequential)
+
+    Returns:
+        Tuple of (extracted_count, skipped_count, failed_count)
+    """
+    # Use sequential processing for single file or if workers=1
+    if len(files) == 1 or workers == 1:
+        return _process_files_sequential(
+            files, output, quality, tag_list, existing_docs, force, error_tracker, console
+        )
+
+    # Parallel processing
+    extracted_count = 0
+    skipped_count = 0
+    failed_count = 0
+
+    # Progress tracking
+    with Progress() as progress:
+        task = progress.add_task("[green]Processing...", total=len(files))
+
+        def progress_callback(completed: int) -> None:
+            progress.update(task, completed=completed)
+
+        # Create worker function that processes a single file
+        def process_file(file_path: Path) -> tuple[str, str | None, Exception | None]:
+            """Process single file, return (status, doc_id, error)."""
+            try:
+                # Check if we should skip this file
+                skip, doc_id = should_skip_file(file_path, existing_docs, force)
+
+                if skip:
+                    return ("skipped", doc_id, None)
+
+                # Extract and save document
+                _extract_and_save_document(
+                    file_path=file_path,
+                    output=output,
+                    quality=quality,
+                    tag_list=tag_list,
+                )
+
+                return ("extracted", None, None)
+
+            except Exception as e:
+                return ("failed", None, e)
+
+        # Process files in parallel
+        results = parallel_map_with_progress(
+            process_file, files, max_workers=workers, progress_callback=progress_callback
+        )
+
+    # Aggregate results
+    for file_path, (status, _doc_id, error) in zip(files, results, strict=True):
+        if status == "extracted":
+            extracted_count += 1
+        elif status == "skipped":
+            skipped_count += 1
+        elif status == "failed":
+            # Categorize and track error
+            category = error_tracker.categorize_exception(error, file_path)
+            error_tracker.record_error(category, file_path.name, error)
+            console.print(f"[red]✗ {file_path.name}: {type(error).__name__}[/red]")
+            failed_count += 1
+
+    return extracted_count, skipped_count, failed_count
+
+
+def _process_files_sequential(
+    files: list[Path],
+    output: Path,
+    quality: str,
+    tag_list: list[str],
+    existing_docs: dict,
+    force: bool,
+    error_tracker: ErrorTracker,
+    console: Console,
+) -> tuple[int, int, int]:
+    """Process files sequentially (original implementation).
 
     Args:
         files: List of files to process
@@ -201,6 +295,9 @@ def _extract_and_save_document(
         content = file_path.read_text(encoding="utf-8")
         frontmatter = extract_yaml_frontmatter(content)
 
+    # Calculate content checksum for incremental indexing
+    content_checksum = calculate_content_checksum(text)
+
     # Create document
     doc = Document(
         id=str(uuid.uuid4()),
@@ -212,6 +309,7 @@ def _extract_and_save_document(
         quality_rating=QualityRating(quality),
         tags=frontmatter.get("tags", tag_list) if frontmatter else tag_list,
         word_count=count_words(text),
+        content_checksum=content_checksum,
     )
 
     # Save extracted text
