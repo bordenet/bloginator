@@ -8,7 +8,7 @@ import pytest
 from bloginator.extraction import extract_text_from_file
 from bloginator.extraction.chunking import chunk_text_by_paragraphs
 from bloginator.indexing import CorpusIndexer
-from bloginator.models import Chunk, Document, QualityRating
+from bloginator.models import Document, QualityRating
 from bloginator.search import CorpusSearcher
 from bloginator.templates import get_template, list_templates
 
@@ -53,20 +53,10 @@ class TestCompleteWorkflows:
                 word_count=doc_data["word_count"],
             )
 
-            paragraphs = chunk_text_by_paragraphs(doc_data["text"], "test_doc")
-            chunks = [
-                Chunk(
-                    id=f"user_doc_{i}_chunk_{j}",
-                    document_id=document.id,
-                    content=p,
-                    chunk_index=j,
-                    section_heading=None,
-                    char_start=0,
-                    char_end=len(p),
-                )
-                for j, p in enumerate(paragraphs)
-                if p.strip()
-            ]
+            # chunk_text_by_paragraphs returns Chunk objects directly
+            chunks = chunk_text_by_paragraphs(doc_data["text"], document.id)
+            for j, chunk in enumerate(chunks):
+                chunk.id = f"user_doc_{i}_chunk_{j}"
 
             indexer.index_document(document, chunks)
 
@@ -81,7 +71,7 @@ class TestCompleteWorkflows:
         index_dir = user_corpus["index_dir"]
 
         # Step 1: User searches corpus for relevant content
-        searcher = CorpusSearcher(persist_directory=str(index_dir))
+        searcher = CorpusSearcher(index_dir=index_dir)
         search_results = searcher.search(query="leadership principles", n_results=5)
 
         assert len(search_results) > 0
@@ -137,7 +127,7 @@ class TestCompleteWorkflows:
     def test_corpus_search_and_refinement_workflow(self, user_corpus: dict) -> None:
         """Test workflow: build corpus → search → refine search → generate."""
         index_dir = user_corpus["index_dir"]
-        searcher = CorpusSearcher(persist_directory=str(index_dir))
+        searcher = CorpusSearcher(index_dir=index_dir)
 
         # Initial broad search
         initial_results = searcher.search(query="engineering", n_results=10)
@@ -155,7 +145,7 @@ class TestCompleteWorkflows:
     def test_template_based_document_creation(self, user_corpus: dict) -> None:
         """Test creating different document types using templates."""
         index_dir = user_corpus["index_dir"]
-        searcher = CorpusSearcher(persist_directory=str(index_dir))
+        searcher = CorpusSearcher(index_dir=index_dir)
 
         # Test multiple template types
         template_ids = ["blog_post", "team_charter", "career_ladder"]
@@ -193,7 +183,7 @@ class TestCompleteWorkflows:
     def test_multi_query_content_gathering(self, user_corpus: dict) -> None:
         """Test gathering content from multiple search queries for rich context."""
         index_dir = user_corpus["index_dir"]
-        searcher = CorpusSearcher(persist_directory=str(index_dir))
+        searcher = CorpusSearcher(index_dir=index_dir)
 
         # Multiple related queries to build comprehensive context
         queries = [
@@ -236,19 +226,10 @@ class TestCompleteWorkflows:
             word_count=len(text1.split()),
         )
 
-        chunks1 = [
-            Chunk(
-                id=f"day1_chunk_{i}",
-                document_id="day1_doc",
-                content=p,
-                chunk_index=i,
-                section_heading=None,
-                char_start=0,
-                char_end=len(p),
-            )
-            for i, p in enumerate(chunk_text_by_paragraphs(text1, "test_doc"))
-            if p.strip()
-        ]
+        # chunk_text_by_paragraphs returns Chunk objects directly
+        chunks1 = chunk_text_by_paragraphs(text1, "day1_doc")
+        for i, chunk in enumerate(chunks1):
+            chunk.id = f"day1_chunk_{i}"
 
         indexer1.index_document(document1, chunks1)
         day1_count = indexer1.get_total_chunks()
@@ -270,19 +251,10 @@ class TestCompleteWorkflows:
             word_count=len(text2.split()),
         )
 
-        chunks2 = [
-            Chunk(
-                id=f"day2_chunk_{i}",
-                document_id="day2_doc",
-                content=p,
-                chunk_index=i,
-                section_heading=None,
-                char_start=0,
-                char_end=len(p),
-            )
-            for i, p in enumerate(chunk_text_by_paragraphs(text2, "test_doc"))
-            if p.strip()
-        ]
+        # chunk_text_by_paragraphs returns Chunk objects directly
+        chunks2 = chunk_text_by_paragraphs(text2, "day2_doc")
+        for i, chunk in enumerate(chunks2):
+            chunk.id = f"day2_chunk_{i}"
 
         indexer2.index_document(document2, chunks2)
         day2_count = indexer2.get_total_chunks()
@@ -291,7 +263,7 @@ class TestCompleteWorkflows:
         assert day2_count > day1_count
 
         # Search should now return results from both documents
-        searcher = CorpusSearcher(persist_directory=str(index_dir))
+        searcher = CorpusSearcher(index_dir=index_dir)
         results = searcher.search(query="engineering leadership", n_results=10)
         assert len(results) > 0
 
