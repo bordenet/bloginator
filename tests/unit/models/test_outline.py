@@ -235,7 +235,7 @@ class TestOutline:
         markdown = outline.to_markdown()
 
         assert "# Test Document" in markdown
-        assert "**Thesis:** Main thesis" in markdown
+        assert "**Thesis**: Main thesis" in markdown
         assert "## Introduction" in markdown
         assert "Opening remarks" in markdown
 
@@ -280,8 +280,8 @@ class TestOutline:
 
         markdown = outline.to_markdown()
 
-        assert "Coverage: 75%" in markdown
-        assert "Sources: 5" in markdown
+        assert "Coverage: 76%" in markdown  # 75.5 rounds to 76
+        assert "from 5 document(s)" in markdown
 
     def test_to_markdown_no_thesis(self):
         """Test markdown without thesis."""
