@@ -32,6 +32,43 @@ This plan covers complete implementation of all remaining features, comprehensiv
 
 ---
 
+## Phase 0: Code Quality - 400-Line Rule Compliance (Pre-Implementation)
+
+**Priority:** CRITICAL (Foundational)
+**Status:** IN PROGRESS
+
+**Rationale:** No source file in any language shall exceed 400 lines including comments. This ensures maintainability, modularity, and sets excellent example for less experienced engineers.
+
+### Files Requiring Refactoring:
+
+**Completed:**
+- ✅ `src/bloginator/cli/extract.py` (515 lines → 91 lines)
+  - Split into: `extract.py` (91), `extract_utils.py` (113), `extract_single.py` (223), `extract_config.py` (420)
+  - Committed: refactor: Split extract.py into modular components
+- ✅ `src/bloginator/generation/llm_client.py` (456 lines → 68 lines)
+  - Split into: `llm_client.py` (68), `llm_base.py` (134), `llm_ollama.py` (167), `llm_custom.py` (165)
+  - Committed: refactor: Split llm_client.py into modular LLM provider components
+
+**In Progress:**
+- ⏳ `src/bloginator/web/pages/generate.py` (453 lines) - Streamlit UI needs modularization
+
+**Pending:**
+- 🔲 `run-e2e.sh` (711 lines) - Bash script needs modularization into smaller scripts
+
+**Maintenance:**
+- Monitor all files continuously during development
+- Refactor immediately when approaching 400-line limit
+
+### Refactoring Principles:
+
+1. **Logical Boundaries** - Split by responsibility (single responsibility principle)
+2. **Backward Compatibility** - Maintain existing import paths through wrapper modules
+3. **Lint Immediately** - Run black + ruff after each file creation
+4. **Test After Refactor** - Verify no breakage from refactoring
+5. **Commit Frequently** - Detailed commit messages explaining refactoring rationale
+
+---
+
 ## Phase 1: Foundation & Quality (Week 1)
 
 ### 1.1 Fix All Failing Tests
