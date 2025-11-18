@@ -97,7 +97,7 @@ class TestExtractAndIndexWorkflow:
             format="md",
             created_date=datetime(2023, 1, 1),
             modified_date=datetime(2023, 6, 1),
-            quality_rating=QualityRating.STANDARD,
+            quality_rating=QualityRating.REFERENCE,
             tags=[],
             word_count=len(text.split()),
         )

@@ -13,7 +13,7 @@ class TestQualityRating:
     def test_quality_rating_values(self) -> None:
         """Test that QualityRating has expected values."""
         assert QualityRating.PREFERRED == "preferred"
-        assert QualityRating.STANDARD == "standard"
+        assert QualityRating.REFERENCE == "standard"
         assert QualityRating.DEPRECATED == "deprecated"
 
     def test_quality_rating_from_string(self) -> None:
@@ -38,7 +38,7 @@ class TestDocument:
         assert doc.filename == "blog.md"
         assert doc.source_path == Path("/corpus/blog.md")
         assert doc.format == "markdown"
-        assert doc.quality_rating == QualityRating.STANDARD
+        assert doc.quality_rating == QualityRating.REFERENCE
         assert doc.indexed_date is not None
         assert doc.tags == []
         assert doc.is_external_source is False

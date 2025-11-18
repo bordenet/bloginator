@@ -27,7 +27,7 @@ class TestRefinementEngine:
             SearchResult(
                 chunk_id=f"chunk{i}",
                 content=f"Relevant content {i}",
-                similarity_score=0.8,
+                distance=0.2,
                 metadata={"filename": f"source{i}.md"},
             )
             for i in range(3)
