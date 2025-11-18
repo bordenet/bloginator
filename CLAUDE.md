@@ -403,6 +403,7 @@ OLLAMA_MODEL=llama3:8b bloginator outline "test topic"
 3. **Test locally first** - Use mixtral/llama3 for development before cloud
 4. **Both models work** - mixtral:8x7b (primary) and llama3:8b (alternative)
 5. **Multi-provider by design** - Any changes should work with local and cloud LLMs
+6. **LLM Mocking in Tests** - Claude AI (Sonnet 4.5) serves as the mock LLM during testing, generating realistic, contextually-appropriate responses that match expected formats. This enables comprehensive end-to-end testing without external dependencies or API costs
 
 ## Current Project State (Session 2025-11-16/17)
 
