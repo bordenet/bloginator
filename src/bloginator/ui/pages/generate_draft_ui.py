@@ -5,6 +5,7 @@ from pathlib import Path
 
 import streamlit as st
 
+from bloginator.export.ui_utils import show_export_buttons
 from bloginator.ui.pages.generate_ui_utils import (
     display_generation_error,
     run_bloginator_command,
@@ -153,3 +154,8 @@ def _display_draft_success(draft_path: Path) -> None:
             file_name=f"draft_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md",
             mime="text/markdown",
         )
+
+        # Check for JSON file for export functionality
+        json_path = draft_path.with_suffix(".json")
+        if json_path.exists():
+            show_export_buttons(json_path, "draft")
