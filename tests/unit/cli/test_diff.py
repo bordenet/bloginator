@@ -29,6 +29,8 @@ class TestDiffCLI:
     @pytest.fixture
     def mock_version_manager(self):
         """Create mock version manager."""
+        from datetime import datetime
+
         with patch("bloginator.cli.diff.VersionManager") as mock_vm_cls:
             mock_vm = Mock()
             mock_vm_cls.return_value = mock_vm
@@ -41,23 +43,35 @@ class TestDiffCLI:
 
             mock_vm.load_history.return_value = mock_history
 
-            # Mock versions
+            # Mock versions with all required attributes
             mock_v1 = Mock()
             mock_v1.version_number = 1
             mock_v1.draft = Draft(title="v1", keywords=[])
+            mock_v1.timestamp = datetime(2025, 1, 1, 10, 0, 0)
+            mock_v1.refinement_feedback = ""
 
             mock_v2 = Mock()
             mock_v2.version_number = 2
             mock_v2.draft = Draft(title="v2", keywords=[])
+            mock_v2.timestamp = datetime(2025, 1, 1, 11, 0, 0)
+            mock_v2.refinement_feedback = "Make more engaging"
 
-            def get_version_side_effect(n):
-                if n == 1:
-                    return mock_v1
-                elif n == 2:
-                    return mock_v2
-                return None
+            mock_v3 = Mock()
+            mock_v3.version_number = 3
+            mock_v3.draft = Draft(title="v3", keywords=[])
+            mock_v3.timestamp = datetime(2025, 1, 1, 12, 0, 0)
+            mock_v3.refinement_feedback = ""
 
-            mock_history.get_version.side_effect = get_version_side_effect
+            version_map = {1: mock_v1, 2: mock_v2, 3: mock_v3}
+            mock_history.get_version.side_effect = lambda n: version_map.get(n)
+
+            # Mock compute_diff and compute_diff_stats
+            mock_vm.compute_diff.return_value = "diff content"
+            mock_vm.compute_diff_stats.return_value = {
+                "additions": 10,
+                "deletions": 5,
+                "changes": 15,
+            }
 
             # Mock version summaries
             mock_vm.list_versions.return_value = [
