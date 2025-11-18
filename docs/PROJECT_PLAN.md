@@ -1171,3 +1171,36 @@ jobs:
 
 **Project test suite is production-ready.**
 
+
+---
+
+## Phase 2.1: Classification/Audience in Draft Generation - IN PROGRESS (2025-11-18)
+
+**Status:** Actively implementing  
+**Branch:** `claude/phase-2-1-draft-classification`
+
+### Objective
+Add classification and audience support to draft generation to match outline generation capabilities.
+
+### Current Analysis
+- ✅ Outline model has `classification` and `audience` fields
+- ❌ Draft model missing `classification` and `audience` fields
+- ❌ DraftGenerator doesn't use classification/audience from outline
+- ❌ Draft prompts don't include classification/audience context
+
+### Implementation Tasks
+- [ ] 2.1.1: Add classification/audience fields to Draft model
+- [ ] 2.1.2: Extract classification/audience from outline in DraftGenerator.generate()
+- [ ] 2.1.3: Include classification/audience in prompt context for appropriate tone
+- [ ] 2.1.4: Update Draft.to_markdown() to display classification/audience in metadata
+- [ ] 2.1.5: Add tests for all classification types (guidance, best-practice, mandate, principle, opinion)
+- [ ] 2.1.6: Add tests for all audience types (ic-engineers, engineering-leaders, all-disciplines, qa-engineers, etc.)
+- [ ] 2.1.7: Update CLI draft command if needed
+- [ ] 2.1.8: Run full test suite, lint, commit, push
+
+### Files to Modify
+- `src/bloginator/models/draft.py` - Add fields
+- `src/bloginator/generation/draft_generator.py` - Extract and use classification/audience
+- `tests/unit/generation/test_draft_generator.py` - Add tests
+- `tests/unit/models/test_draft.py` - Add model tests
+
