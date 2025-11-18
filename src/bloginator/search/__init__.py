@@ -9,7 +9,6 @@ This module handles:
 
 from bloginator.search.searcher import CorpusSearcher, SearchResult
 
-
 # Backward compatibility alias
 Searcher = CorpusSearcher
 

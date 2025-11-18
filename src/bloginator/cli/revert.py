@@ -11,7 +11,6 @@ from rich.table import Table
 
 from bloginator.generation.version_manager import VersionManager
 
-
 console = Console()
 logger = logging.getLogger(__name__)
 
