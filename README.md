@@ -118,7 +118,7 @@ cp .env.example .env
 - **vLLM** - High-performance self-hosted inference
 - **Custom endpoints** - Any OpenAI-compatible API
 
-See [CUSTOM_LLM_GUIDE.md](CUSTOM_LLM_GUIDE.md) for detailed configuration instructions.
+See [CUSTOM_LLM_GUIDE.md](docs/CUSTOM_LLM_GUIDE.md) for detailed configuration instructions.
 
 ### Basic Workflow
 
