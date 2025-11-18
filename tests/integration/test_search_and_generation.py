@@ -105,7 +105,7 @@ class TestSearchAndGenerationWorkflow:
             format="md",
             created_date=datetime(2020, 1, 1),
             modified_date=datetime(2020, 1, 1),
-            quality_rating=QualityRating.STANDARD,
+            quality_rating=QualityRating.REFERENCE,
             tags=[],
             word_count=50,
         )
@@ -256,7 +256,7 @@ class TestSearchAndGenerationWorkflow:
             format="md",
             created_date=datetime(2023, 1, 1),
             modified_date=datetime(2023, 1, 1),
-            quality_rating=QualityRating.STANDARD,
+            quality_rating=QualityRating.REFERENCE,
             tags=["technical", "architecture"],
             word_count=100,
         )
