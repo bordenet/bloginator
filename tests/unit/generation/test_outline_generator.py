@@ -124,7 +124,7 @@ Third line too.
             SearchResult(
                 chunk_id=f"chunk{i}",
                 content=f"Content {i}",
-                similarity_score=0.8,
+                distance=0.2,
                 metadata={"document_id": f"doc{i}"},
             )
             for i in range(10)
@@ -146,7 +146,7 @@ Third line too.
             SearchResult(
                 chunk_id="chunk1",
                 content="Content",
-                similarity_score=0.3,
+                distance=0.7,
                 metadata={"document_id": "doc1"},
             )
         ]
@@ -177,13 +177,13 @@ Third line too.
             SearchResult(
                 chunk_id="chunk1",
                 content="Content 1",
-                similarity_score=0.9,
+                distance=0.1,
                 metadata={"document_id": "doc1"},
             ),
             SearchResult(
                 chunk_id="chunk2",
                 content="Content 2",
-                similarity_score=0.9,
+                distance=0.1,
                 metadata={"document_id": "doc1"},  # Same doc
             ),
         ]
@@ -194,7 +194,7 @@ Third line too.
 
         # Only 1 unique source (below min_coverage_sources=3)
         assert section.source_count == 1
-        assert "Limited sources" in section.notes
+        assert "Low corpus coverage" in section.notes
 
     def test_analyze_section_coverage_recursive(self, generator, mock_searcher):
         """Test coverage analysis on nested sections."""
@@ -202,7 +202,7 @@ Third line too.
             SearchResult(
                 chunk_id="chunk1",
                 content="Content",
-                similarity_score=0.8,
+                distance=0.2,
                 metadata={"document_id": "doc1"},
             )
         ]
@@ -237,7 +237,7 @@ Closing section
             SearchResult(
                 chunk_id="chunk1",
                 content="Content",
-                similarity_score=0.8,
+                distance=0.2,
                 metadata={"document_id": "doc1"},
             )
         ]
@@ -312,7 +312,7 @@ Description 2
                     SearchResult(
                         chunk_id="c1",
                         content="Content",
-                        similarity_score=0.9,
+                        distance=0.1,
                         metadata={"document_id": "doc1"},
                     )
                 ] * 10
@@ -321,7 +321,7 @@ Description 2
                     SearchResult(
                         chunk_id="c2",
                         content="Content",
-                        similarity_score=0.3,
+                        distance=0.7,
                         metadata={"document_id": "doc2"},
                     )
                 ]
