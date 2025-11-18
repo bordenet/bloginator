@@ -405,6 +405,37 @@ OLLAMA_MODEL=llama3:8b bloginator outline "test topic"
 5. **Multi-provider by design** - Any changes should work with local and cloud LLMs
 6. **LLM Mocking in Tests** - Claude AI (Sonnet 4.5) serves as the mock LLM during testing, generating realistic, contextually-appropriate responses that match expected formats. This enables comprehensive end-to-end testing without external dependencies or API costs
 
+## Principal Engineer Standards (2025-11-18)
+
+**Code Quality Standards:**
+- **400-Line Maximum** - No source file (Python, shell script, Go, any language) shall exceed 400 lines including comments
+- **Continuous Refactoring** - Split files immediately when approaching limit, maintain modularity
+- **Set Example** - Code quality standards set example for less experienced engineers
+- **Quality > Speed** - Maintain highest standards even if it takes 3x longer
+
+**Test-Driven Development:**
+- **Test ALL flags** - Every CLI flag, option, and parameter must have comprehensive tests
+- **Prevent Regression** - Ensure no functionality breaks as codebase evolves
+- **Continuous Testing** - Run tests after every refactor, lint after every file edit
+- **Living Test Plan** - Update test plan as implementation evolves
+
+**Documentation as Code:**
+- **PROJECT_PLAN.md** - Living document, meticulously updated throughout each phase
+- **Resumable Work** - All work must be resumable from a new session at ANY time
+- **No Exceptions** - Update docs in same commit as code changes
+- **Phase Tracking** - Clear status of what's complete, in-progress, pending
+
+**Test Content Generation:**
+- **Persona** - Director of Software Engineering at Expedia Group
+- **Philosophy** - Deep connection to human condition and psychological patterns from neurobiology
+- **Hallucination Encouraged** - Generate realistic fake content for tests, don't use placeholders
+- **Contextual Realism** - Test content should feel authentic and appropriate
+
+**Migration Freedom:**
+- **Go Language** - Encouraged to migrate Python/shell to Go where beneficial
+- **Performance** - Prioritize performance and maintainability
+- **Best Tool** - Use best language for the job
+
 ## Current Project State (Session 2025-11-16/17)
 
 ### Corpus Configuration - COMPLETE ✅
