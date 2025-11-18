@@ -6,6 +6,7 @@ from pathlib import Path
 
 import streamlit as st
 
+
 # Classification mapping: UI labels → CLI values
 CLASSIFICATION_MAP = {
     "Guidance": "guidance",
