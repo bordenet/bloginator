@@ -1231,3 +1231,8 @@ Add classification and audience support to draft generation to match outline gen
 **Commit:** e3e2dfb
 **Branch:** claude/phase-2-1-draft-classification
 
+
+**PR URL:** https://github.com/bordenet/bloginator/compare/main...claude/phase-2-1-draft-classification-011r6RivoGzbqxC2cSGVMceH
+
+Ready for review and merge.
+
