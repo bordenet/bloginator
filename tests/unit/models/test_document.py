@@ -13,7 +13,8 @@ class TestQualityRating:
     def test_quality_rating_values(self) -> None:
         """Test that QualityRating has expected values."""
         assert QualityRating.PREFERRED == "preferred"
-        assert QualityRating.REFERENCE == "standard"
+        assert QualityRating.REFERENCE == "reference"
+        assert QualityRating.SUPPLEMENTAL == "supplemental"
         assert QualityRating.DEPRECATED == "deprecated"
 
     def test_quality_rating_from_string(self) -> None:
@@ -115,7 +116,7 @@ class TestDocument:
         doc_dict = doc.model_dump()
         assert isinstance(doc_dict, dict)
         assert doc_dict["id"] == "test_dict"
-        assert doc_dict["quality_rating"] == "standard"
+        assert doc_dict["quality_rating"] == "reference"
 
         # Create from dict
         doc2 = Document(**doc_dict)
