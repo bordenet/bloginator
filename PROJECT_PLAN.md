@@ -32,43 +32,17 @@ This plan covers complete implementation of all remaining features, comprehensiv
 
 ---
 
-## Phase 0: Code Quality - 400-Line Rule Compliance (Pre-Implementation)
+## Phase 0: Code Quality - 400-Line Rule Compliance ✅ COMPLETE
 
-**Priority:** CRITICAL (Foundational)
-**Status:** IN PROGRESS
+**All files now comply with 400-line maximum. Merged to origin main.**
 
-**Rationale:** No source file in any language shall exceed 400 lines including comments. This ensures maintainability, modularity, and sets excellent example for less experienced engineers.
+Refactored files:
+- extract.py: 515 → 91 lines (4 modules)
+- llm_client.py: 456 → 68 lines (4 modules)
+- generate.py UI: 453 → 53 lines (4 modules)
+- run-e2e.sh: 711 → 364 lines (with scripts/e2e-lib.sh library)
 
-### Files Requiring Refactoring:
-
-**Completed:**
-- ✅ `src/bloginator/cli/extract.py` (515 lines → 91 lines)
-  - Split into: `extract.py` (91), `extract_utils.py` (113), `extract_single.py` (223), `extract_config.py` (420)
-  - Committed: refactor: Split extract.py into modular components
-- ✅ `src/bloginator/generation/llm_client.py` (456 lines → 68 lines)
-  - Split into: `llm_client.py` (68), `llm_base.py` (134), `llm_ollama.py` (167), `llm_custom.py` (165)
-  - Committed: refactor: Split llm_client.py into modular LLM provider components
-- ✅ `src/bloginator/ui/pages/generate.py` (453 lines → 53 lines)
-  - Split into: `generate.py` (53), `generate_ui_utils.py` (127), `generate_outline_ui.py` (228), `generate_draft_ui.py` (158)
-  - Committed: refactor: Split generate.py UI into modular Streamlit components
-
-**In Progress:**
-- 🔲 None currently
-
-**Pending:**
-- 🔲 `run-e2e.sh` (711 lines) - Bash script needs modularization into smaller scripts
-
-**Maintenance:**
-- Monitor all files continuously during development
-- Refactor immediately when approaching 400-line limit
-
-### Refactoring Principles:
-
-1. **Logical Boundaries** - Split by responsibility (single responsibility principle)
-2. **Backward Compatibility** - Maintain existing import paths through wrapper modules
-3. **Lint Immediately** - Run black + ruff after each file creation
-4. **Test After Refactor** - Verify no breakage from refactoring
-5. **Commit Frequently** - Detailed commit messages explaining refactoring rationale
+**Ongoing:** Monitor all files during development, refactor immediately when approaching 400-line limit
 
 ---
 
