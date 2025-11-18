@@ -10,7 +10,9 @@ from rich.table import Table
 
 from bloginator.generation import OutlineGenerator
 from bloginator.generation.llm_factory import create_llm_from_config
+from bloginator.models.history import GenerationHistoryEntry, GenerationType
 from bloginator.search import CorpusSearcher
+from bloginator.services.history_manager import HistoryManager
 
 
 @click.command()
@@ -291,6 +293,36 @@ def outline(
                 md_path.write_text(outline_obj.to_markdown())
                 logger.info(f"Saved markdown to {md_path}")
                 console.print(f"[green]✓[/green] Saved markdown to {md_path}")
+
+            # Save to history
+            try:
+                history_manager = HistoryManager()
+                history_entry = GenerationHistoryEntry(
+                    generation_type=GenerationType.OUTLINE,
+                    title=title,
+                    classification=classification,
+                    audience=audience,
+                    input_params={
+                        "keywords": keyword_list,
+                        "thesis": thesis,
+                        "num_sections": num_sections,
+                        "temperature": temperature,
+                    },
+                    output_path=str(output_file),
+                    output_format=output_format,
+                    metadata={
+                        "total_sections": len(outline_obj.get_all_sections()),
+                        "avg_coverage": outline_obj.avg_coverage,
+                        "low_coverage_sections": outline_obj.low_coverage_sections,
+                        "total_sources": outline_obj.total_sources,
+                        "min_coverage": min_coverage,
+                    },
+                )
+                history_manager.save_entry(history_entry)
+                logger.info(f"Saved to history: {history_entry.id}")
+            except Exception as e:
+                # Don't fail the command if history save fails
+                logger.warning(f"Failed to save to history: {e}")
 
         except Exception as e:
             logger.error(f"Failed to save outline: {e}")

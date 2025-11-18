@@ -5,6 +5,7 @@ from pathlib import Path
 
 import streamlit as st
 
+from bloginator.export.ui_utils import show_export_buttons
 from bloginator.ui.pages.generate_ui_utils import (
     AUDIENCE_MAP,
     CLASSIFICATION_MAP,
@@ -212,6 +213,9 @@ def _display_outline_success(outline_path: Path) -> None:
 
         # Save to session state for draft generation
         st.session_state.latest_outline = str(json_path)
+
+        # Export buttons for outline
+        show_export_buttons(json_path, "outline")
 
     st.markdown("---")
     st.info(
