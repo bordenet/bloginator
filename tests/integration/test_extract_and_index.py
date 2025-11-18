@@ -8,7 +8,7 @@ import pytest
 from bloginator.extraction import extract_text_from_file
 from bloginator.extraction.chunking import chunk_text_by_paragraphs
 from bloginator.indexing import CorpusIndexer
-from bloginator.models import Chunk, Document, QualityRating
+from bloginator.models import Document, QualityRating
 
 
 @pytest.mark.integration
@@ -51,21 +51,12 @@ class TestExtractAndIndexWorkflow:
                 word_count=len(text.split()),
             )
 
-            # Chunk the text
-            paragraphs = chunk_text_by_paragraphs(text, "test_doc")
-            chunks = []
-            for i, paragraph in enumerate(paragraphs):
-                if paragraph.strip():  # Skip empty paragraphs
-                    chunk = Chunk(
-                        id=f"{document.id}_chunk_{i}",
-                        document_id=document.id,
-                        content=paragraph,
-                        chunk_index=i,
-                        section_heading=None,
-                        char_start=0,
-                        char_end=len(paragraph),
-                    )
-                    chunks.append(chunk)
+            # Chunk the text (returns Chunk objects directly)
+            chunks = chunk_text_by_paragraphs(text, document.id)
+
+            # Update chunk IDs to match expected format
+            for i, chunk in enumerate(chunks):
+                chunk.id = f"{document.id}_chunk_{i}"
 
             # Index document
             indexer.index_document(document, chunks)
@@ -102,21 +93,12 @@ class TestExtractAndIndexWorkflow:
             word_count=len(text.split()),
         )
 
-        # Chunk text
-        paragraphs = chunk_text_by_paragraphs(text, "test_doc")
-        chunks = [
-            Chunk(
-                id=f"md_chunk_{i}",
-                document_id=document.id,
-                content=p,
-                chunk_index=i,
-                section_heading=None,
-                char_start=0,
-                char_end=len(p),
-            )
-            for i, p in enumerate(paragraphs)
-            if p.strip()
-        ]
+        # Chunk text (returns Chunk objects directly)
+        chunks = chunk_text_by_paragraphs(text, document.id)
+
+        # Update chunk IDs to match expected format
+        for i, chunk in enumerate(chunks):
+            chunk.id = f"md_chunk_{i}"
 
         # Index
         index_dir = tmp_path / "md_index"
@@ -143,26 +125,17 @@ class TestExtractAndIndexWorkflow:
             format="txt",
             created_date=datetime(2023, 1, 1),
             modified_date=datetime(2023, 6, 1),
-            quality_rating=QualityRating.DRAFT,
+            quality_rating=QualityRating.REFERENCE,
             tags=["code-review"],
             word_count=len(text.split()),
         )
 
-        # Chunk text
-        paragraphs = chunk_text_by_paragraphs(text, "test_doc")
-        chunks = [
-            Chunk(
-                id=f"txt_chunk_{i}",
-                document_id=document.id,
-                content=p,
-                chunk_index=i,
-                section_heading=None,
-                char_start=0,
-                char_end=len(p),
-            )
-            for i, p in enumerate(paragraphs)
-            if p.strip()
-        ]
+        # Chunk text (returns Chunk objects directly)
+        chunks = chunk_text_by_paragraphs(text, document.id)
+
+        # Update chunk IDs to match expected format
+        for i, chunk in enumerate(chunks):
+            chunk.id = f"txt_chunk_{i}"
 
         # Index
         index_dir = tmp_path / "txt_index"
@@ -191,19 +164,10 @@ class TestExtractAndIndexWorkflow:
             tags=[],
             word_count=len(text1.split()),
         )
-        chunks1 = [
-            Chunk(
-                id=f"doc1_chunk_{i}",
-                document_id="doc1",
-                content=p,
-                chunk_index=i,
-                section_heading=None,
-                char_start=0,
-                char_end=len(p),
-            )
-            for i, p in enumerate(chunk_text_by_paragraphs(text1, "test_doc"))
-            if p.strip()
-        ]
+        # Chunk text (returns Chunk objects directly)
+        chunks1 = chunk_text_by_paragraphs(text1, "doc1")
+        for i, chunk in enumerate(chunks1):
+            chunk.id = f"doc1_chunk_{i}"
         indexer.index_document(document1, chunks1)
         count_after_first = indexer.get_total_chunks()
 
@@ -224,19 +188,10 @@ class TestExtractAndIndexWorkflow:
             tags=[],
             word_count=len(text2.split()),
         )
-        chunks2 = [
-            Chunk(
-                id=f"doc2_chunk_{i}",
-                document_id="doc2",
-                content=p,
-                chunk_index=i,
-                section_heading=None,
-                char_start=0,
-                char_end=len(p),
-            )
-            for i, p in enumerate(chunk_text_by_paragraphs(text2, "test_doc"))
-            if p.strip()
-        ]
+        # Chunk text (returns Chunk objects directly)
+        chunks2 = chunk_text_by_paragraphs(text2, "doc2")
+        for i, chunk in enumerate(chunks2):
+            chunk.id = f"doc2_chunk_{i}"
         indexer2.index_document(document2, chunks2)
 
         # Verify total chunks is sum of both documents

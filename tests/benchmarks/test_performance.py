@@ -9,7 +9,7 @@ import pytest
 from bloginator.extraction import extract_text_from_file
 from bloginator.extraction.chunking import chunk_text_by_paragraphs
 from bloginator.indexing import CorpusIndexer
-from bloginator.models import Chunk, Document, QualityRating
+from bloginator.models import Document, QualityRating
 from bloginator.search import CorpusSearcher
 from bloginator.templates import get_template, list_templates
 
@@ -56,20 +56,10 @@ class TestPerformanceBenchmarks:
                     word_count=len(text.split()),
                 )
 
-                paragraphs = chunk_text_by_paragraphs(text, "test_doc")
-                chunks = [
-                    Chunk(
-                        id=f"{document.id}_chunk_{j}",
-                        document_id=document.id,
-                        content=p,
-                        chunk_index=j,
-                        section_heading=None,
-                        char_start=0,
-                        char_end=len(p),
-                    )
-                    for j, p in enumerate(paragraphs)
-                    if p.strip()
-                ]
+                # chunk_text_by_paragraphs returns Chunk objects directly
+                chunks = chunk_text_by_paragraphs(text, document.id)
+                for j, chunk in enumerate(chunks):
+                    chunk.id = f"{document.id}_chunk_{j}"
 
                 indexer.index_document(document, chunks)
                 total_chunks += len(chunks)
@@ -143,20 +133,10 @@ class TestPerformanceBenchmarks:
                 word_count=len(text.split()),
             )
 
-            paragraphs = chunk_text_by_paragraphs(text, "test_doc")
-            chunks = [
-                Chunk(
-                    id=f"idx_chunk_{i}_{j}",
-                    document_id=document.id,
-                    content=p,
-                    chunk_index=j,
-                    section_heading=None,
-                    char_start=0,
-                    char_end=len(p),
-                )
-                for j, p in enumerate(paragraphs)
-                if p.strip()
-            ]
+            # chunk_text_by_paragraphs returns Chunk objects directly
+            chunks = chunk_text_by_paragraphs(text, document.id)
+            for j, chunk in enumerate(chunks):
+                chunk.id = f"idx_chunk_{i}_{j}"
 
             indexer.index_document(document, chunks)
 
@@ -173,7 +153,7 @@ class TestPerformanceBenchmarks:
 
     def test_search_performance(self, large_corpus: dict) -> None:
         """Benchmark search performance."""
-        searcher = CorpusSearcher(persist_directory=str(large_corpus["index_dir"]))
+        searcher = CorpusSearcher(index_dir=large_corpus["index_dir"])
 
         queries = [
             "leadership principles",
@@ -200,7 +180,7 @@ class TestPerformanceBenchmarks:
 
     def test_search_scaling_with_results(self, large_corpus: dict) -> None:
         """Benchmark search performance with varying result counts."""
-        searcher = CorpusSearcher(persist_directory=str(large_corpus["index_dir"]))
+        searcher = CorpusSearcher(index_dir=large_corpus["index_dir"])
 
         result_counts = [5, 10, 20, 50]
         timings = {}
@@ -244,7 +224,7 @@ class TestPerformanceBenchmarks:
 
     def test_concurrent_search_performance(self, large_corpus: dict) -> None:
         """Benchmark multiple concurrent searches."""
-        searcher = CorpusSearcher(persist_directory=str(large_corpus["index_dir"]))
+        searcher = CorpusSearcher(index_dir=large_corpus["index_dir"])
 
         queries = [
             "leadership",
