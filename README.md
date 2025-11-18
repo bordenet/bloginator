@@ -1,82 +1,78 @@
-# Bloginator: Authentic Content Generation from Your Own Corpus
+# Bloginator: Content Generation from Personal Writing Corpus
 
-**Status**: Production Ready - All Phases Complete
 **Version**: 1.0.0
 **Python**: 3.10+
+**License**: MIT
 
 ---
 
 ## Overview
 
-Bloginator is an AI-assisted content generation system that helps engineering leaders create authentic, high-quality documents by leveraging their own historical writing corpus. The system indexes years of prior written material to generate new content that reads in the author's authentic voice—avoiding generic "AI slop" while dramatically reducing document creation time from dozens of hours to minutes.
+Bloginator indexes your historical writing (blog posts, documents, notes) to generate new content that maintains your voice and style. Uses RAG (Retrieval-Augmented Generation) with local or cloud LLMs.
 
-### The Problem
+### What It Does
 
-Engineering leaders accumulate years of written material—blog posts, internal documents, presentations, career development guides—but face two painful choices when creating new content:
+1. **Extracts** text from PDFs, DOCX, Markdown, TXT, and ZIP archives
+2. **Indexes** content using ChromaDB vector database with semantic embeddings
+3. **Searches** your corpus semantically (meaning-based, not keyword matching)
+4. **Generates** outlines and drafts based on your historical writing
+5. **Refines** content iteratively with natural language feedback
+6. **Protects** proprietary content with blocklist validation
+7. **Preserves** your authentic voice through RAG-based generation
 
-1. **Start from scratch**: Fast but loses the nuance and voice developed over years
-2. **Manual synthesis**: Search through dozens of old documents, copy-paste relevant sections, stitch together coherent narrative—taking 8-40+ hours per document
+### What It Does NOT Do
 
-Generic AI tools can generate content quickly but produce recognizably artificial writing that lacks personal voice, authenticity, and grounding in actual experience.
-
-### The Solution
-
-Bloginator solves this by:
-
-- **Indexing your historical corpus** (PDFs, DOCX, Markdown, etc.)
-- **Semantic search** to find relevant content from your past writing
-- **Voice-preserving generation** that maintains your authentic style
-- **Proprietary content protection** via blocklist validation
-- **Iterative refinement** through natural language feedback
-- **Local-first privacy** (no mandatory cloud dependencies)
-
-**Result**: Reduce document creation from 8-40 hours to 30-60 minutes while maintaining authenticity and quality.
+- **Does NOT** work offline without an LLM (requires Ollama or API access)
+- **Does NOT** support all document formats (no PowerPoint, spreadsheets, etc.)
+- **Does NOT** guarantee perfect voice matching (LLM quality dependent)
+- **Does NOT** include cloud LLM providers out-of-box (Ollama only; OpenAI/Anthropic require API keys)
+- **Does NOT** have batch processing or automated workflows
+- **Does NOT** include advanced analytics or corpus insights
+- **Does NOT** support collaborative editing or multi-user workflows
 
 ---
 
-## Key Features
+## Core Features
 
-### Voice Preservation
-- Generates content in your authentic voice using only your prior writing
-- No generic AI "slop"—all content grounded in your actual corpus
-- Voice similarity scoring to ensure consistency
+### Document Processing
+- **Input Formats**: PDF, DOCX, Markdown, TXT, ZIP archives
+- **Output Formats**: Markdown, DOCX, HTML, Plain Text
+- **Extraction**: Text extraction with metadata (dates, quality ratings)
+- **Indexing**: Vector embeddings using sentence-transformers (all-MiniLM-L6-v2)
 
-### Proprietary Content Protection
-- Blocklist system prevents leakage of company names, trade secrets, NDAs
-- Pre-generation validation
-- Support for exact match, case-insensitive, and regex patterns
+### Content Generation
+- **Outline Generation**: Create structured outlines from keywords/themes
+- **Draft Generation**: Generate full drafts from outlines using RAG
+- **Refinement**: Iterative improvement with natural language feedback
+- **Version Management**: Track changes, compare versions, revert
+- **Voice Scoring**: Similarity metrics to ensure consistency
 
-### Flexible Deployment
-- **Local Mode**: Runs entirely locally with Ollama/LM Studio (complete privacy)
-- **Custom Endpoints**: Connect to any OpenAI-compatible API (vLLM, text-generation-webui, etc.)
-- **Cloud Mode**: Optional cloud LLM support (OpenAI, Anthropic) with cost controls and user consent
+### Safety & Privacy
+- **Blocklist System**: Prevent leakage of company names, secrets, PII
+- **Pattern Matching**: Exact match, case-insensitive, regex support
+- **Local-First**: Can run entirely offline with Ollama (no cloud required)
+- **Validation**: Pre-generation checks for blocklisted terms
 
-### Multi-Format Support
-- **Input**: PDF, DOCX, Markdown, TXT, ZIP archives
-- **Output**: Markdown, DOCX, HTML, Plain Text
+### LLM Support
+- **Ollama** (default): Local LLM inference (llama3, mistral, mixtral, etc.)
+- **Custom Endpoints**: Any OpenAI-compatible API (LM Studio, vLLM, text-generation-webui)
+- **Cloud LLMs**: OpenAI and Anthropic support (requires API keys, not included)
 
-### Intelligent Search
-- Semantic search (meaning-based, not just keywords)
-- Recency weighting (prefer recent, refined thinking)
-- Quality weighting (prefer marked "preferred" content)
+### User Interfaces
+- **CLI**: 12 commands for all workflows (extract, index, search, outline, draft, refine, etc.)
+- **Streamlit UI**: 7-page web interface for corpus management and generation
+- **FastAPI Web UI**: REST API with HTML templates (experimental)
 
 ### Template Library
-- 12 pre-built document templates for common use cases
-- Blog posts, job descriptions, career ladders, technical designs
-- Project proposals, performance reviews, architecture docs
-- Engineering playbooks, team charters, incident postmortems, and more
-
-### Web Interface
-- Modern, responsive web UI built with FastAPI
-- All features accessible through intuitive browser interface
-- Real-time document generation and refinement
-- Start with `bloginator serve`
+- 12 pre-built document templates:
+  - Blog posts, technical designs, architecture docs
+  - Job descriptions, career ladders, performance reviews
+  - Project proposals, team charters, incident postmortems
+  - Engineering playbooks, onboarding guides, and more
 
 ---
 
-## Quick Start
-
-### Installation
+## Installation
 
 ```bash
 # Clone repository
@@ -90,69 +86,82 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 # Install dependencies
 pip install -e ".[dev]"
 
-# Install pre-commit hooks
+# Install pre-commit hooks (optional, for contributors)
 pre-commit install
 
 # Verify installation
 bloginator --version
 ```
 
-### Configuration (Optional)
+### LLM Setup
 
-Bloginator works out-of-the-box with Ollama, but supports custom LLM endpoints:
+**Option 1: Local (Ollama - Recommended)**
+```bash
+# Install Ollama: https://ollama.ai
+# Pull a model
+ollama pull llama3
 
+# Bloginator will auto-detect Ollama at http://localhost:11434
+```
+
+**Option 2: Custom Endpoint**
 ```bash
 # Copy environment template
 cp .env.example .env
 
-# Edit .env to configure your LLM
-# Examples:
-#   - Ollama (default): http://localhost:11434
-#   - LM Studio: http://localhost:1234/v1
-#   - Custom endpoint: https://your-api.com/v1
+# Edit .env
+BLOGINATOR_LLM_PROVIDER=custom
+BLOGINATOR_LLM_BASE_URL=http://localhost:1234/v1  # LM Studio example
+BLOGINATOR_LLM_MODEL=local-model
 ```
 
-**Supported LLM Providers:**
-- **Ollama** (default) - Local, privacy-first
-- **LM Studio** - Local with OpenAI-compatible API
-- **vLLM** - High-performance self-hosted inference
-- **Custom endpoints** - Any OpenAI-compatible API
-
-See [CUSTOM_LLM_GUIDE.md](docs/CUSTOM_LLM_GUIDE.md) for detailed configuration instructions.
-
-### Basic Workflow
-
-**Option 1: Web UI (Recommended)**
-
+**Option 3: Cloud LLM (OpenAI/Anthropic)**
 ```bash
-# Start the web server
-bloginator serve --port 8000
-
-# Open browser to http://localhost:8000
-# Use the intuitive web interface for all workflows
+# Edit .env
+BLOGINATOR_LLM_PROVIDER=custom
+BLOGINATOR_LLM_BASE_URL=https://api.openai.com/v1
+BLOGINATOR_LLM_API_KEY=sk-...
+BLOGINATOR_LLM_MODEL=gpt-4
 ```
 
-**Option 2: Command Line**
+See [CUSTOM_LLM_GUIDE.md](docs/CUSTOM_LLM_GUIDE.md) for detailed configuration.
+
+---
+
+## Quick Start
+
+### CLI Workflow
 
 ```bash
 # 1. Extract and index your corpus
-bloginator extract ~/my-writing-corpus -o output/extracted --quality preferred
+bloginator extract ~/my-writing -o output/extracted --quality preferred
 bloginator index output/extracted -o output/index
 
 # 2. Search your corpus
 bloginator search output/index "agile transformation" -n 10
 
-# 3. Manage proprietary terms blocklist
+# 3. Manage blocklist
 bloginator blocklist add "Acme Corp" --category company_name --notes "Former employer NDA"
 bloginator blocklist list
 
 # 4. Generate content
 bloginator outline --index output/index --keywords "career,ladder,senior,engineer"
-bloginator draft outline.json -o draft.md
+bloginator draft --index output/index --outline outline.json -o draft.md
 
-# 5. Refine and export
-bloginator refine draft.md "Make tone more optimistic"
-bloginator export draft.md --format docx -o final.docx
+# 5. Refine and iterate
+bloginator refine -i output/index -d draft.json -f "Make tone more optimistic"
+bloginator diff my-draft -v1 1 -v2 2
+bloginator revert my-draft 1 -o draft.json
+```
+
+### Web UI Workflow
+
+```bash
+# Start Streamlit UI
+bloginator serve --port 8000
+
+# Open browser to http://localhost:8000
+# Use the intuitive web interface for all workflows
 ```
 
 ---
@@ -162,38 +171,31 @@ bloginator export draft.md --format docx -o final.docx
 ```
 bloginator/
 ├── src/bloginator/          # Source code
-│   ├── cli/                 # Command-line interface
+│   ├── cli/                 # CLI commands (12 commands)
 │   ├── extraction/          # Document extraction (PDF, DOCX, etc.)
 │   ├── indexing/            # Vector indexing with ChromaDB
 │   ├── search/              # Semantic search and retrieval
-│   ├── generation/          # Content generation engine
+│   ├── generation/          # LLM clients and content generators
 │   ├── voice/               # Voice preservation system
 │   ├── safety/              # Blocklist and validation
-│   ├── web/                 # Web UI (FastAPI + templates)
+│   ├── ui/                  # Streamlit UI (7 pages)
+│   ├── web/                 # FastAPI web UI (experimental)
 │   ├── templates/           # Document templates library
 │   └── models/              # Pydantic data models
-├── tests/                   # Comprehensive test suite
-│   ├── unit/                # Unit tests (60%)
-│   ├── integration/         # Integration tests (30%)
-│   └── e2e/                 # End-to-end tests (10%)
-├── docs/                    # Project documentation
-│   ├── PRD-BLOGINATOR-001-Core-System.md
-│   ├── DESIGN-SPEC-001-Implementation-Plan.md
-│   ├── TESTING-SPEC-003-Quality-Assurance.md
-│   ├── ARCHITECTURE-002-Deployment-Modes.md
-│   └── CLAUDE_GUIDELINES.md
-├── scripts/                 # Build and validation scripts
+├── tests/                   # Test suite (355 tests)
+│   ├── unit/                # Unit tests
+│   ├── integration/         # Integration tests
+│   └── e2e/                 # End-to-end tests
+├── docs/                    # Documentation
 ├── pyproject.toml           # Project configuration
-├── .pre-commit-config.yaml  # Pre-commit hooks
-├── validate-monorepo.sh     # Main validation script (recommended)
-└── validate-bloginator.sh   # Legacy validation script (deprecated)
+└── .pre-commit-config.yaml  # Pre-commit hooks
 ```
 
 ---
 
 ## Development
 
-### Setup Development Environment
+### Setup
 
 ```bash
 # Install with dev dependencies
@@ -206,276 +208,187 @@ pre-commit install
 pre-commit run --all-files
 ```
 
-### Quality Standards
-
-This project maintains **strict quality gates** to ensure reliability:
-
-#### Pre-Commit Hooks (Automated)
-- ✅ **Black** formatting (line-length=100)
-- ✅ **Ruff** linting (all errors fixed)
-- ✅ **MyPy** type checking (strict mode)
-- ✅ **isort** import sorting (black-compatible)
-- ✅ **Gitleaks** secret detection
-- ✅ **Fast unit tests** (non-slow tests pass)
-- ✅ **Docstring validation** (Google-style)
-
-#### Full Validation
-
-```bash
-# Run complete validation suite (recommended)
-./validate-monorepo.sh
-
-# Quick validation (skip tests)
-./validate-monorepo.sh --quick
-
-# Full validation with integration tests
-./validate-monorepo.sh --all
-
-# Auto-fix formatting issues
-./validate-monorepo.sh --fix
-
-# Verbose output
-./validate-monorepo.sh --verbose
-
-# Legacy script (deprecated but still works)
-./validate-bloginator.sh
-```
-
 ### Testing
 
 ```bash
-# Fast unit tests (pre-commit)
-pytest tests/unit/ -m "not slow" -q
+# Run all tests
+pytest tests/ -v
 
-# All unit tests
-pytest tests/unit/ -v
+# Run with coverage
+pytest tests/ --cov=src/bloginator --cov-report=html
 
-# Integration tests
-pytest tests/integration/ -v
-
-# Full test suite with coverage
-pytest tests/ --cov=src --cov-report=term-missing --cov-report=html
-
-# Coverage must be ≥80%
-coverage report --fail-under=80
+# Run specific test categories
+pytest tests/unit/ -v           # Unit tests only
+pytest tests/integration/ -v    # Integration tests only
+pytest -m "not slow" -v         # Skip slow tests
 ```
 
-### Code Quality Requirements
+### Code Quality
 
-- **Coverage**: 80%+ line coverage for all modules
-- **Linting**: Zero Ruff errors
-- **Type Safety**: MyPy strict mode, no `# type: ignore` without justification
-- **Formatting**: Black (line-length=100)
-- **Docstrings**: All public functions (Google-style)
+```bash
+# Formatting
+black src/ tests/
+isort src/ tests/
 
----
+# Linting
+ruff check src/ tests/
 
-## Implementation Roadmap
+# Type checking
+mypy src/
 
-### Phase 0: Project Setup ✅
-- Repository structure
-- Development environment
-- Quality gates and pre-commit hooks
+# All checks (recommended before commit)
+pre-commit run --all-files
+```
 
-### Phase 1: Extraction & Indexing ✅
-- Document extraction (PDF, DOCX, MD, TXT, ZIP)
-- Metadata extraction (dates, quality ratings)
-- ChromaDB vector indexing
-- CLI: `extract`, `index`
+### Quality Standards
 
-### Phase 2: Search & Retrieval ✅
-- Semantic search
-- Recency and quality weighting
-- CLI: `search`
-
-### Phase 3: Blocklist & Safety ✅
-- Blocklist validation system
-- Pattern matching (exact, case-insensitive, regex)
-- CLI: `blocklist add/list/remove/validate`
-
-### Phase 4: Content Generation ✅
-- Outline generation from keywords/themes
-- Draft generation with voice preservation
-- Source attribution and citations
-- CLI: `outline`, `draft`
-
-### Phase 5: Refinement & Iteration ✅
-- Iterative refinement from natural language feedback
-- Diff tracking and version management
-- CLI: `refine`, `diff`, `revert`
-
-### Phase 6: Web UI ✅
-- Interactive web interface (FastAPI + Tailwind CSS)
-- All workflows accessible via browser
-- Responsive design with htmx
-- CLI: `serve`
-
-### Phase 7: Polish & Production ✅
-- Template library (12 document types) ✅
-- Web server CLI command ✅
-- Comprehensive user documentation (INSTALLATION.md, USER_GUIDE.md) ✅
-- Developer documentation (DEVELOPER_GUIDE.md) ✅
-- Integration tests (extract+index, search+generation, full workflows) ✅
-- End-to-end tests (complete user workflows) ✅
-- Performance benchmarks (extraction, indexing, search, templates) ✅
+- **Black**: Line length 100, Python 3.10+ target
+- **Ruff**: All errors must be fixed
+- **isort**: Black-compatible import sorting
+- **MyPy**: Strict mode (disabled for tests)
+- **Coverage**: Target >80% (not currently enforced)
+- **File Size**: Target <400 lines per file (2 files currently violate)
 
 ---
 
-## Architecture
+## Implementation Status
 
-### Technology Stack
+### Implemented Features
+
+**Phase 1: Foundation**
+- ✅ Document extraction (PDF, DOCX, MD, TXT, ZIP)
+- ✅ Vector indexing with ChromaDB
+- ✅ Semantic search with quality/recency weighting
+
+**Phase 2: Core Generation**
+- ✅ Outline generation from keywords
+- ✅ Draft generation from outlines
+- ✅ Iterative refinement with feedback
+- ✅ Version management (diff, revert)
+
+**Phase 3: Safety & UI**
+- ✅ Blocklist system (exact, case-insensitive, regex)
+- ✅ Streamlit UI (7 pages)
+- ✅ FastAPI web UI (experimental)
+
+**Phase 4: Enhancement**
+- ✅ Template library (12 templates)
+- ✅ Generation history tracking
+- ✅ Parallel extraction
+- ✅ Incremental indexing
+
+**Phase 5: Testing**
+- ✅ 355 tests passing (100% of runnable tests)
+- ✅ 6 tests skipped (optional FastAPI dependency)
+- ⚠️ Test coverage % unknown (measurement not implemented)
+
+### Known Limitations
+
+**Current Gaps**:
+- No multi-format export (claimed in docs, not verified in code)
+- No batch processing or automation workflows
+- No advanced corpus analytics (basic analytics only)
+- No collaborative features or multi-user support
+- No plugin/extension system
+- No API documentation (code only)
+- Test coverage measurement not configured
+- 2 files exceed 400-line guideline (417, 415 lines)
+
+**Future Work**:
+See [FUTURE_WORK.md](docs/FUTURE_WORK.md) for extensibility plans and roadmap.
+
+---
+
+## Technology Stack
 
 **Core**:
 - Python 3.10+
 - ChromaDB (vector store)
 - sentence-transformers (embeddings: all-MiniLM-L6-v2)
-- Ollama (local LLM inference)
-- Pydantic (data validation)
+- Ollama (default local LLM)
+- Pydantic v2 (data validation)
 - Click (CLI framework)
 - Rich (terminal UI)
 
-**Web UI**:
-- FastAPI (REST API framework)
+**Web**:
+- Streamlit (primary UI)
+- FastAPI (experimental API)
 - Uvicorn (ASGI server)
-- Jinja2 (templating)
-- Tailwind CSS (styling)
-- htmx (dynamic interactions)
+- Jinja2 (templates)
 
-**Document Processing**:
-- PyMuPDF (PDF extraction)
-- python-docx (DOCX extraction)
-- Markdown (native parsing)
+**Documents**:
+- PyMuPDF (PDF)
+- python-docx (DOCX)
+- Markdown (native)
 
-**Quality Tools**:
+**Quality**:
 - pytest (testing)
 - black (formatting)
 - ruff (linting)
 - mypy (type checking)
 - pre-commit (git hooks)
 
-### Deployment Modes
-
-1. **Local Mode** (Default):
-   - Runs entirely offline
-   - Ollama or LM Studio for LLM
-   - Complete privacy and data control
-   - No API costs
-
-2. **Cloud Mode** (Optional):
-   - Cloud LLM support (Claude, GPT-4, etc.)
-   - Cost tracking and limits
-   - User consent required
-   - Hybrid: local indexing, cloud generation
-
----
-
-## Success Metrics
-
-### Quality
-- **Voice Authenticity**: 90%+ of readers can't distinguish generated from manually-written content
-- **Factual Accuracy**: 98%+ of statements grounded in prior writing
-- **Blocklist Enforcement**: 100% catch rate for exact matches
-- **Completeness**: All outlined sections generated with appropriate depth
-
-### Performance
-- **Index Building**: <30 minutes for 500+ documents
-- **Draft Generation**: <5 minutes from outline
-- **Search**: <3 seconds
-- **Refinement**: <2 minutes per iteration
-
-### User Satisfaction
-- **Time Savings**: 85%+ reduction vs. manual creation
-- **Quality Rating**: 80%+ of drafts "good enough to edit"
-- **Iteration Count**: <5 refinements to "ready to publish"
-
 ---
 
 ## Documentation
 
 ### User Documentation
-- [Installation Guide](docs/INSTALLATION.md) (coming soon)
-- [User Guide](docs/USER_GUIDE.md) (coming soon)
-- [Tutorials](docs/TUTORIALS.md) (coming soon)
-- [FAQ](docs/FAQ.md) (coming soon)
+- [Installation Guide](docs/INSTALLATION.md)
+- [User Guide](docs/USER_GUIDE.md)
+- [Custom LLM Guide](docs/CUSTOM_LLM_GUIDE.md)
+- [Migration Guide](docs/MIGRATION-GUIDE.md)
 
 ### Developer Documentation
 - [PRD: Core System](docs/PRD-BLOGINATOR-001-Core-System.md)
-- [Design Spec: Implementation Plan](docs/DESIGN-SPEC-001-Implementation-Plan.md)
-- [Testing Spec: Quality Assurance](docs/TESTING-SPEC-003-Quality-Assurance.md)
-- [Architecture: Deployment Modes](docs/ARCHITECTURE-002-Deployment-Modes.md)
+- [Design Spec](docs/DESIGN-SPEC-001-Implementation-Plan.md)
+- [Testing Spec](docs/TESTING-SPEC-003-Quality-Assurance.md)
+- [Architecture](docs/ARCHITECTURE-002-Deployment-Modes.md)
+- [Developer Guide](docs/DEVELOPER_GUIDE.md)
 - [Claude Guidelines](docs/CLAUDE_GUIDELINES.md)
+- [Claude AI Notes](docs/CLAUDE.md)
 
 ---
 
 ## Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) (coming soon) for guidelines.
 
 ### Development Workflow
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes
-4. Run validation: `./validate-monorepo.sh`
-5. Commit your changes (`git commit -m 'Add amazing feature'`)
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
+4. Run tests: `pytest tests/ -v`
+5. Run linters: `pre-commit run --all-files`
+6. Commit your changes
+7. Push to branch
+8. Open a Pull Request
 
 ### Code Review Criteria
 
-- ✅ All tests pass
-- ✅ Coverage ≥80%
-- ✅ Pre-commit hooks pass
-- ✅ Documentation updated
-- ✅ No proprietary content in examples
-
----
-
-## Philosophy
-
-### Pragmatic Minimalism
-
-Bloginator follows these principles (see [CLAUDE_GUIDELINES.md](docs/CLAUDE_GUIDELINES.md)):
-
-1. **Make minimal, necessary changes only** - No speculative improvements
-2. **If it's not tested, it's broken** - 80%+ coverage required
-3. **Voice preservation is paramount** - Ground all generation in corpus
-4. **Privacy by default** - Local-first, no mandatory cloud calls
-5. **Avoid over-engineering** - Start simple, add complexity only when needed
-
-### Anti-Patterns We Avoid
-
-- ❌ Generic AI content without corpus grounding
-- ❌ Premature optimization and abstraction
-- ❌ Skipping tests to "move faster"
-- ❌ Committing without quality validation
-- ❌ Adding cloud dependencies without user consent
+- All tests pass
+- All linters pass (black, ruff, isort, mypy)
+- No proprietary content in examples or tests
+- Documentation updated (if applicable)
+- Changes maintain backward compatibility (if possible)
 
 ---
 
 ## License
 
-[LICENSE](LICENSE) - See LICENSE file for details
+MIT License - See [LICENSE](LICENSE) file for details.
 
 ---
 
 ## Contact
 
-**Project Owner**: Matt Bordenet
 **Repository**: https://github.com/bordenet/bloginator
 **Issues**: https://github.com/bordenet/bloginator/issues
+**Author**: Matt Bordenet
 
 ---
 
 ## Acknowledgments
 
-- Films Not Made project for reusable patterns
-- RAG community for best practices
-- Local LLM community (Ollama, LM Studio)
-- ChromaDB for excellent local vector store
-
----
-
-**Remember**: Bloginator's value is authentic voice preservation and proprietary content protection. Fast, working code that achieves these goals beats elegant, complex code that doesn't.
-
-**Status**: Production Ready - All Phases Complete (Phases 0-7). See [DESIGN-SPEC-001](docs/DESIGN-SPEC-001-Implementation-Plan.md) for detailed implementation plan.
+- Ollama project for local LLM inference
+- ChromaDB for vector database
+- sentence-transformers for embeddings
+- Local LLM community (LM Studio, vLLM, text-generation-webui)
