@@ -1236,3 +1236,80 @@ Add classification and audience support to draft generation to match outline gen
 
 Ready for review and merge.
 
+## Phase 2.2: Blocklist Management UI - IN PROGRESS (2025-11-18)
+
+**Status:** Actively implementing  
+**Branch:** `claude/phase-2-2-blocklist-ui-011r6RivoGzbqxC2cSGVMceH`
+
+### Objective
+Create comprehensive Streamlit UI for managing blocklist entries, providing CRUD operations and content validation.
+
+### Current State
+✅ BlocklistEntry model exists (src/bloginator/models/blocklist.py)
+✅ BlocklistManager service exists (src/bloginator/safety/blocklist.py)
+✅ CLI commands exist (add, remove, list, check)
+❌ Streamlit UI missing
+
+### Implementation Plan
+
+**1. Create Blocklist UI Page** ✅ COMPLETE
+- File: `src/bloginator/ui/pages/blocklist.py`
+- Three tabs: View/Manage, Add New, Check Content
+- Summary metrics dashboard
+- Integration with existing BlocklistManager
+
+**2. View/Manage Tab**
+- Table display of all entries
+- Category filtering dropdown
+- Delete actions for each entry
+- Entry details in expandable sections
+
+**3. Add New Entry Tab**
+- Form with fields: pattern, pattern_type, category, notes
+- Pattern type selection (exact, case-insensitive, regex)
+- Regex validation
+- Test functionality for new entries
+
+**4. Check Content Tab**
+- Text area for content input
+- Validation button
+- Detailed violation results
+- Remediation suggestions
+
+**5. Integration**
+- Added blocklist page to main app navigation
+- Updated routing in app.py
+
+### Implementation Complete
+
+**Files Created:**
+- `src/bloginator/ui/pages/blocklist.py` (291 lines - under 400 limit)
+
+**Files Modified:**
+- `src/bloginator/ui/app.py` (added blocklist to navigation and routing)
+
+**Features Implemented:**
+- ✅ View/Manage entries with category filtering
+- ✅ Add new blocklist entries with all fields
+- ✅ Delete entries with confirmation
+- ✅ Check content for violations
+- ✅ Summary metrics (total, by category, by type)
+- ✅ Regex pattern validation
+- ✅ Test pattern matching
+- ✅ Detailed violation reporting
+
+**Quality Gates:**
+- ✅ Zero linting errors (black, ruff)
+- ✅ File size compliant (291 lines)
+- ✅ Follows Streamlit patterns from settings.py
+- ⏳ Tests pending (awaiting package installation completion)
+
+**Commit:** c6c9bd5
+**Branch:** claude/phase-2-2-blocklist-ui-011r6RivoGzbqxC2cSGVMceH
+
+**Next Steps:**
+1. Complete package installation (pip install -e .)
+2. Run test suite to verify no regressions
+3. Push to remote
+4. Create PR
+
