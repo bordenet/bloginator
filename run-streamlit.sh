@@ -117,6 +117,16 @@ fi
 echo -e "${GREEN}✓ Environment ready${NC}"
 echo ""
 
+# Kill any existing Streamlit instances
+EXISTING_PIDS=$(pgrep -f "streamlit run.*bloginator" || true)
+if [ -n "$EXISTING_PIDS" ]; then
+    echo -e "${YELLOW}ℹ${NC} Stopping existing Streamlit instances..."
+    echo "$EXISTING_PIDS" | xargs kill -9 2>/dev/null || true
+    sleep 1
+    echo -e "${GREEN}✓ Old instances stopped${NC}"
+    echo ""
+fi
+
 # Launch Streamlit
 echo -e "${BLUE}ℹ${NC} Starting Streamlit on port ${PORT}..."
 echo -e "${BLUE}ℹ${NC} URL: ${CYAN}http://localhost:${PORT}${NC}"
