@@ -96,10 +96,9 @@ class OllamaClient(LLMClient):
             # Extract content
             content = data.get("response", "")
 
-            # Ollama doesn't return token counts in non-streaming mode
-            # Rough estimate: ~4 chars per token
-            prompt_tokens = len(full_prompt) // 4
-            completion_tokens = len(content) // 4
+            # Extract token counts if available, otherwise estimate
+            prompt_tokens = data.get("prompt_eval_count", len(full_prompt) // 4)
+            completion_tokens = data.get("eval_count", len(content) // 4)
 
             # Display response if verbose
             if self.verbose:
