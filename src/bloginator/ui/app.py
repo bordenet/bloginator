@@ -88,6 +88,7 @@ pages = {
     "🔍 Search Corpus": "search",
     "📝 Generate Content": "generate",
     "📊 Analytics": "analytics",
+    "🚫 Blocklist": "blocklist",
     "⚙️ Settings": "settings",
 }
 
@@ -159,6 +160,10 @@ elif current_page == "analytics":
     from bloginator.ui.pages import analytics
 
     analytics.show()
+elif current_page == "blocklist":
+    from bloginator.ui.pages import blocklist
+
+    blocklist.show()
 elif current_page == "settings":
     from bloginator.ui.pages import settings
 
