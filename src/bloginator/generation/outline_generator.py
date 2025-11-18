@@ -45,6 +45,7 @@ class OutlineGenerator:
         audience: str = "all-disciplines",
         num_sections: int = 5,
         temperature: float = 0.7,
+        custom_prompt_template: str | None = None,
     ) -> Outline:
         """Generate outline with coverage analysis.
 
@@ -56,6 +57,7 @@ class OutlineGenerator:
             audience: Target audience (ic-engineers, engineering-leaders, all-disciplines, etc.)
             num_sections: Target number of top-level sections
             temperature: LLM sampling temperature
+            custom_prompt_template: Optional custom prompt template (rendered Jinja2 template with style/tone instructions)
 
         Returns:
             Outline with coverage statistics
@@ -113,7 +115,8 @@ Brief description
 
 Continue this pattern for all sections."""
 
-        user_prompt = f"""Create a detailed outline for a document with:
+        # Build base user prompt
+        base_prompt = f"""Create a detailed outline for a document with:
 
 Title: {title}
 Classification: {classification.replace('-', ' ').title()}
@@ -124,6 +127,16 @@ Keywords: {', '.join(keywords)}
 Create approximately {num_sections} main sections with relevant subsections.
 Each section should have a title and brief description of its content.
 Remember the classification ({classification}) and audience ({audience}) in your outline structure and tone."""
+
+        # Prepend custom template if provided
+        if custom_prompt_template:
+            user_prompt = f"""{custom_prompt_template}
+
+---
+
+{base_prompt}"""
+        else:
+            user_prompt = base_prompt
 
         # Generate outline structure with LLM
         response = self.llm_client.generate(
