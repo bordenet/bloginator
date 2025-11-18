@@ -58,13 +58,13 @@ class TestDraftGenerator:
             SearchResult(
                 chunk_id="chunk1",
                 content="First result content",
-                similarity_score=0.9,
+                distance=0.1,
                 metadata={},
             ),
             SearchResult(
                 chunk_id="chunk2",
                 content="Second result content",
-                similarity_score=0.8,
+                distance=0.2,
                 metadata={},
             ),
         ]
@@ -83,7 +83,7 @@ class TestDraftGenerator:
             SearchResult(
                 chunk_id=f"chunk{i}",
                 content=f"Source content {i}",
-                similarity_score=0.8,
+                distance=0.2,
                 metadata={
                     "document_id": f"doc{i}",
                     "filename": f"file{i}.md",
@@ -123,7 +123,7 @@ class TestDraftGenerator:
             SearchResult(
                 chunk_id="chunk1",
                 content="Content",
-                similarity_score=0.8,
+                distance=0.2,
                 metadata={"document_id": "doc1", "filename": "file.md"},
             )
         ]
@@ -159,7 +159,7 @@ class TestDraftGenerator:
             SearchResult(
                 chunk_id="chunk1",
                 content="Source material",
-                similarity_score=0.8,
+                distance=0.2,
                 metadata={"document_id": "doc1", "filename": "file.md"},
             )
         ]
@@ -199,7 +199,7 @@ class TestDraftGenerator:
             SearchResult(
                 chunk_id="chunk1",
                 content="Source",
-                similarity_score=0.8,
+                distance=0.2,
                 metadata={"document_id": "doc1", "filename": "file.md"},
             )
         ]
@@ -243,7 +243,7 @@ class TestDraftGenerator:
             SearchResult(
                 chunk_id="chunk1",
                 content="Source",
-                similarity_score=0.8,
+                distance=0.2,
                 metadata={"document_id": "doc1", "filename": "file.md"},
             )
         ]
@@ -277,7 +277,7 @@ class TestDraftGenerator:
             SearchResult(
                 chunk_id="new_chunk",
                 content="New source material",
-                similarity_score=0.85,
+                distance=0.15,
                 metadata={"document_id": "new_doc", "filename": "new.md"},
             )
         ]
@@ -349,7 +349,7 @@ class TestDraftGenerator:
             SearchResult(
                 chunk_id="existing_chunk",
                 content="Content",
-                similarity_score=0.8,
+                distance=0.2,
                 metadata={"document_id": "doc1", "filename": "file.md"},
             )
         ]
@@ -404,7 +404,7 @@ class TestDraftGenerator:
             SearchResult(
                 chunk_id=f"chunk{i}",
                 content=f"Content {i}",
-                similarity_score=0.9 - (i * 0.05),  # Decreasing scores
+                distance=0.1 + (i * 0.05),  # Decreasing scores
                 metadata={"document_id": f"doc{i}", "filename": f"file{i}.md"},
             )
             for i in range(10)
