@@ -14,6 +14,7 @@ from bloginator.cli.refine import refine
 from bloginator.cli.revert import revert
 from bloginator.cli.search import search
 from bloginator.cli.serve import serve
+from bloginator.cli.template import template
 
 
 @click.group()
@@ -72,6 +73,7 @@ cli.add_command(refine)
 cli.add_command(revert)
 cli.add_command(search)
 cli.add_command(serve)
+cli.add_command(template)
 
 
 @cli.command()
