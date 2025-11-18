@@ -1,836 +1,273 @@
 # Claude AI Development Notes
 
-This document contains important context for AI assistants (Claude) working on the Bloginator project.
+Essential guidance for AI assistants working on Bloginator.
 
-## 🚨 CRITICAL RULE #1: Test-First Development
+---
 
-**WE WILL ALWAYS FIX BROKEN TESTS BEFORE WRITING MORE CODE.**
+## Rule #1: Test-First Development
 
-This is non-negotiable. No exceptions. No shortcuts.
+**Fix all broken tests before writing new code.**
 
-**Workflow:**
-1. Before starting ANY new feature, run the test suite: `pytest tests/ -v`
-2. If ANY tests fail, STOP immediately
-3. Fix all failing tests until 100% pass
-4. ONLY THEN proceed with new feature development
-5. After implementing new features, verify tests still pass
+### Workflow
+1. Run `pytest tests/ -v` before starting work
+2. Fix any failures immediately
+3. Only then proceed with new features
+4. Verify tests still pass after changes
 
-**Why This Rule Exists:**
-- Broken tests indicate broken functionality
-- New code on broken foundations creates cascading failures
-- Test failures compound exponentially if ignored
-- Production readiness requires 100% test pass rate
-- Technical debt must be paid immediately, not deferred
-
-**Current Test Status:**
-- ✅ **355 tests passing** (100% of runnable tests)
-- ⏭️ 6 tests skipped (optional fastapi dependency)
+### Current Status
+- **355 tests passing** (100% of runnable tests)
+- **6 tests skipped** (optional fastapi dependency)
 - Last verified: 2025-11-18
 
-**When Starting a New Session:**
-1. Run `pytest tests/ --tb=no -q` to verify all tests pass
-2. If any failures exist, fix them FIRST before resuming work
-3. Update this section with current test count and date
+Update this section after running tests in new sessions.
 
-## CRITICAL: Dual LLM Provider Support
+---
 
-**Bloginator MUST support BOTH local and cloud LLM scenarios with equal priority:**
+## Rule #2: Professional Documentation
 
-1. **Local LLM (Ollama)** - Privacy-focused, offline, free
-   - Primary development/testing model: `mixtral:8x7b`
-   - Alternative: `llama3:8b`
-   - Server: `http://192.168.5.53:11434` (or localhost)
+**Be factual. No celebratory or marketing language.**
 
-2. **Cloud LLM (OpenAI/Anthropic)** - Production quality, API-based
-   - OpenAI: GPT-4, GPT-3.5-turbo
-   - Anthropic: Claude 3 (Opus, Sonnet, Haiku)
-   - Custom OpenAI-compatible endpoints
+### Avoid
+- "Production-ready" / "Production-grade" (naive)
+- "Amazing" / "Awesome" / "Incredible"
+- Excessive checkmarks/emojis
+- "All phases complete!"
+- Unsubstantiated quality claims
 
-**Testing Requirements:**
-- ALL test mocks must support BOTH Ollama and OpenAI response formats
-- Test LLM mocking should use Claude AI (Sonnet 4.5) to generate realistic responses
-- Never assume only one provider - code must be provider-agnostic
-- Factory pattern (`create_llm_client()`) ensures seamless provider switching
+### Use Instead
+- "Tests passing: 355/361"
+- "Feature implemented"
+- "Supports X, Y, Z"
+- Clear capability statements
+- Honest limitations
 
-## Local Development Environment
+---
 
-### LLM Models Available for Testing
+## Rule #3: Code Quality Standards
 
-**Primary Models (Local Ollama on 192.168.5.53:11434):**
-- `mixtral:8x7b` - Primary model for local testing, good balance of quality and performance
-- `llama3:8b` - Alternative local model, can be used if mixtral is unavailable or for testing
-
-**Configuration:**
+### Linting (Must Pass Before Commit)
 ```bash
-# In .env for local testing:
-OLLAMA_HOST=http://192.168.5.53:11434
-OLLAMA_MODEL=mixtral:8x7b  # or llama3:8b
+black src/ tests/              # Format (line-length=100)
+ruff check src/ tests/         # Lint (zero errors)
+isort src/ tests/              # Sort imports
+mypy src/                      # Type check (strict)
 ```
 
-### Multi-Provider Support
+### File Size
+- **Target**: <400 lines per file
+- **Current violations**: 2 files (417, 415 lines - acceptable)
+- Refactor when approaching limit
 
-Bloginator is designed to work equally well with:
+### Type Hints
+- Required for all public functions
+- Use `| None` not `Optional[]`
+- Use `list[str]` not `List[str]`
+- Strict mode except tests
 
-1. **Local Models (via Ollama)**
-   - Mixtral 8x7B - Best for local development
-   - Llama3 8B - Lighter alternative
-   - Any other Ollama-compatible model
+---
 
-2. **Cloud Models (Future)**
-   - OpenAI GPT-4, GPT-3.5-turbo
-   - Anthropic Claude 3 (Opus, Sonnet, Haiku)
-   - Custom OpenAI-compatible endpoints
+## Rule #4: Security Requirements
 
-3. **Self-Hosted Inference Servers**
-   - LM Studio (local)
-   - vLLM (production)
-   - text-generation-webui
+### Never Commit
+- .env files
+- API keys or credentials
+- Private keys
+- Personal data
 
-### Configuration System
-
-The config system (`src/bloginator/config.py`) supports **backward compatibility** with multiple variable naming conventions:
-
-| Purpose | Primary Variable | Fallback Variable |
-|---------|-----------------|-------------------|
-| LLM Provider | `BLOGINATOR_LLM_PROVIDER` | - |
-| Model Name | `BLOGINATOR_LLM_MODEL` | `OLLAMA_MODEL` |
-| Base URL | `BLOGINATOR_LLM_BASE_URL` | `OLLAMA_HOST` |
-| ChromaDB Path | `BLOGINATOR_CHROMA_DIR` | `CHROMA_DB_PATH` |
-
-**Why?** This allows using `.env` files from other projects (like films-not-made) without modification.
-
-### Corpus Configuration System
-
-Bloginator supports **two modes** for managing corpus sources:
-
-1. **Legacy Mode** - Direct path extraction
-   ```bash
-   bloginator extract corpus/ -o output/extracted --quality preferred
-   ```
-
-2. **Multi-Source Mode** - Configuration-driven (RECOMMENDED)
-   ```bash
-   bloginator extract -o output/extracted --config corpus.yaml
-   ```
-
-**Why Multi-Source Mode?**
-- Define multiple sources with rich metadata in one config file
-- Specify quality ratings, tags, and voice notes per source
-- Support mixed sources: OneDrive, local directories, symlinks
-- Better organization for large corpus collections
-- Automatic quality weighting during retrieval
-
-**Example corpus.yaml:**
-```yaml
-sources:
-  - name: "onedrive-blog-archive"
-    path: "/Users/you/OneDrive/Blog Archive"  # Absolute path
-    quality: "preferred"  # preferred | reference | supplemental | deprecated
-    voice_notes: "Authentic voice from 2019-2021"
-    tags: ["archive", "authentic-voice"]
-
-  - name: "recent-sanitized-posts"
-    path: "../../blogs/"  # Relative path (relative to corpus.yaml)
-    quality: "reference"
-    voice_notes: "Sanitized content - use sparingly for voice"
-    tags: ["recent", "ai-edited"]
-
-  - name: "films-blog"
-    path: "../films-not-made/blog"  # Symlink support!
-    quality: "preferred"
-    tags: ["film", "criticism"]
+### Dependency Security
+```toml
+cryptography>=43.0.1  # CVE fixes
+setuptools>=78.1.1    # RCE fix
+pip>=25.3             # Path traversal fix
 ```
 
-**Supported Path Types:**
-- Relative paths: `../../blogs/` (resolved relative to corpus.yaml location)
-- Absolute paths: `/Users/you/OneDrive/Blog`
-- Windows paths: `C:\Users\you\Documents\Blogs`
-- UNC paths: `\\server\share\blogs`
-- Symlinks: Fully supported, no data copying needed
-- URLs: `https://example.com/archive.zip` (future enhancement)
+### Before Public Release
+- Run `pip-audit` to scan for CVEs
+- Update vulnerable dependencies
+- Enable Dependabot on GitHub
+- Add SECURITY.md
 
-**Quality Ratings Impact:**
-- `preferred` (1.5x weight) - Authentic voice, high-quality content
-- `reference` (1.0x weight) - Standard quality, usable content
-- `supplemental` (0.7x weight) - Lower priority, use sparingly
-- `deprecated` (0.3x weight) - Outdated, avoid in generation
+---
 
-See `corpus.yaml.example` for complete schema with all options.
+## Rule #5: LLM Provider Support
 
-## Project Architecture
+**Support local and cloud LLMs equally.**
 
-### Vector Storage (ChromaDB)
+### Supported Providers
+1. **Ollama** - Local (default)
+   - Models: mixtral:8x7b, llama3:8b
+   - URL: http://localhost:11434
 
-Bloginator uses a **two-step indexing process**:
+2. **Custom/OpenAI-Compatible** - Cloud/self-hosted
+   - OpenAI, Anthropic, LM Studio, vLLM
 
-1. **Extract** - Convert documents to plain text
-   ```bash
-   bloginator extract corpus/ -o output/extracted
-   ```
-   - Supports: PDF, DOCX, Markdown, TXT
-   - Extracts metadata (dates, tags, quality ratings)
-   - Outputs: `.txt` (content) + `.json` (metadata)
+3. **Mock** - Testing only
 
-2. **Index** - Vectorize into ChromaDB
-   ```bash
-   bloginator index output/extracted/ -o chroma_db/
-   ```
-   - Uses `all-MiniLM-L6-v2` embeddings
-   - Chunks text by paragraphs (default: 1000 chars)
-   - Stores in persistent ChromaDB collection
-
-### LLM Client Architecture
-
-**Factory Pattern:**
-```python
-from bloginator.generation.llm_factory import create_llm_from_config
-
-# Automatically creates correct client based on .env
-client = create_llm_from_config()
-response = client.generate("prompt", temperature=0.7)
-```
-
-**Supported Providers:**
-- `OllamaClient` - For Ollama (local/remote)
-- `CustomLLMClient` - For OpenAI-compatible APIs
-- Future: `OpenAIClient`, `AnthropicClient`
-
-**Key Design Principle:** All LLM clients implement the same `LLMClient` interface, making it trivial to swap between local and cloud models.
-
-## Testing Scenarios
-
-### Local-First Development
-
-**Use Case:** Develop entirely on local hardware without cloud dependencies
-
-**Setup:**
+### Configuration
 ```bash
-# 1. Start Ollama server with mixtral or llama3
-ollama serve
-
-# 2. Configure .env
-OLLAMA_HOST=http://localhost:11434
-OLLAMA_MODEL=mixtral:8x7b
-
-# 3. Run tests
-pytest tests/
+# .env
+BLOGINATOR_LLM_PROVIDER=ollama
+BLOGINATOR_LLM_MODEL=mixtral:8x7b
+BLOGINATOR_LLM_BASE_URL=http://localhost:11434
 ```
 
-**Hardware Requirements:**
-- Mixtral 8x7B: ~45GB RAM, GPU recommended
-- Llama3 8B: ~8GB RAM, runs on CPU
+Factory pattern (`create_llm_client()`) ensures provider-agnostic code.
 
-### Cloud Testing
+---
 
-**Use Case:** Test with OpenAI or Anthropic for comparison
+## Rule #6: Commit Message Standards
 
-**Setup:**
-```bash
-# Configure .env for cloud provider
-BLOGINATOR_LLM_PROVIDER=custom
-BLOGINATOR_LLM_BASE_URL=https://api.openai.com/v1
-BLOGINATOR_LLM_MODEL=gpt-4-turbo
-BLOGINATOR_LLM_API_KEY=sk-...
+### Format
+```
+<type>: <description>
+
+[optional body]
 ```
 
-### Hybrid Workflow
+### Types
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation
+- `style`: Formatting
+- `refactor`: Restructuring
+- `test`: Tests
+- `chore`: Maintenance
 
-**Use Case:** Index locally, generate with cloud LLM for production
-
-**Setup:**
-```bash
-# Index with local resources
-bloginator extract corpus/ -o extracted/
-bloginator index extracted/ -o chroma_db/
-
-# Generate with cloud LLM (switch provider in .env)
-BLOGINATOR_LLM_PROVIDER=custom
-BLOGINATOR_LLM_BASE_URL=https://api.anthropic.com/v1
+### Examples
+```
+feat: Add parallel extraction with --workers flag
+style: Fix import sorting with isort across codebase
+fix: Update cryptography to 43.0.1 for CVE fixes
+docs: Remove celebratory language from README
 ```
 
-## Important Conventions
+---
 
-### Import Aliases
+## Rule #7: README.md Requirements
 
-**Backward Compatibility:**
-```python
-# Both work (CorpusSearcher is canonical)
-from bloginator.search import Searcher  # Alias
-from bloginator.search import CorpusSearcher  # Canonical
-```
+### Must Include
+- What it does (clear list)
+- What it does NOT do (limitations)
+- Installation steps
+- Quick start examples
+- Project structure
+- Technology stack
 
-The alias exists for backward compatibility with older code.
+### Must NOT Include
+- Celebratory language
+- "Production-ready" claims
+- Vague features
+- Marketing hype
 
-### Environment Variables
-
-**Priority Order:**
-1. `BLOGINATOR_*` variables (explicit)
-2. Legacy variables (`OLLAMA_*`, `CHROMA_DB_PATH`)
-3. Hard-coded defaults
-
-**Best Practice:** Use `BLOGINATOR_*` variables in new configurations for clarity.
-
-### Directory Structure
-
-**Standard Layout:**
-```
-bloginator/
-├── corpus/              # Raw input files (markdown, PDFs)
-│   ├── my_blog/        # Can be symlink to ~/blog/posts
-│   ├── archive/        # Can be symlink to large archive
-│   └── local_post.md   # Or real files
-├── output/
-│   └── extracted/       # Extracted text + metadata
-├── chroma_db/           # ChromaDB vector store
-│   └── (or .bloginator/chroma/)
-├── .env                 # Local configuration (gitignored)
-└── .env.example         # Template with documentation
-```
-
-**Symbolic Links Fully Supported:**
-- The extraction tool uses `os.walk(followlinks=True)` to traverse symlinked directories
-- No need to copy large blog archives - just link them!
-- Example: `ln -s ~/my-blogs/archive corpus/archive`
+---
 
 ## Common Tasks
 
-### Adding New LLM Provider
-
-1. Create client class in `src/bloginator/generation/llm_client.py`:
-   ```python
-   class NewProviderClient(LLMClient):
-       def generate(self, prompt, **kwargs) -> LLMResponse:
-           # Implementation
-
-       def is_available(self) -> bool:
-           # Check connectivity
-   ```
-
-2. Add to provider enum:
-   ```python
-   class LLMProvider(str, Enum):
-       OLLAMA = "ollama"
-       CUSTOM = "custom"
-       NEW_PROVIDER = "new_provider"
-   ```
-
-3. Update factory in `llm_factory.py`:
-   ```python
-   elif provider == LLMProvider.NEW_PROVIDER:
-       return NewProviderClient(model=model, **kwargs)
-   ```
-
-### Testing with Different Models
-
+### Run Tests
 ```bash
-# Test with mixtral
-OLLAMA_MODEL=mixtral:8x7b bloginator outline "topic"
-
-# Test with llama3
-OLLAMA_MODEL=llama3:8b bloginator outline "topic"
-
-# Test with cloud model
-BLOGINATOR_LLM_PROVIDER=custom \
-BLOGINATOR_LLM_BASE_URL=https://api.openai.com/v1 \
-BLOGINATOR_LLM_MODEL=gpt-4 \
-BLOGINATOR_LLM_API_KEY=$OPENAI_KEY \
-bloginator outline "topic"
+pytest tests/ -v                   # All tests
+pytest tests/unit/ -v              # Unit only
+pytest -m "not slow" -v            # Fast only
+pytest --cov=src --cov-report=html # Coverage
 ```
 
-### Debugging Configuration
-
-```python
-from bloginator.config import config
-
-print(f"Provider: {config.LLM_PROVIDER}")
-print(f"Model: {config.LLM_MODEL}")
-print(f"Base URL: {config.LLM_BASE_URL}")
-print(f"Chroma: {config.CHROMA_DIR}")
-```
-
-## Field Testing Guide (For VS Code Claude)
-
-This section is specifically for Claude Code running in VS Code to perform field testing of new features.
-
-### Testing Corpus Configuration System (NEW)
-
-**Feature:** Multi-source corpus configuration with quality ratings, metadata, and mixed path types.
-
-**What Changed:**
-1. New `corpus.yaml` config format (see `corpus.yaml.example`)
-2. Updated `Document` model with `source_name` and `voice_notes` fields
-3. New `QualityRating` values: `preferred`, `reference`, `supplemental`, `deprecated`
-4. `bloginator extract` now supports `--config corpus.yaml` flag
-5. Full support for: relative paths, absolute paths, Windows paths, UNC paths, symlinks
-
-**Test Plan:**
-
+### Check Quality
 ```bash
-# 1. Create test corpus.yaml
-cp corpus.yaml.example corpus.yaml
-
-# 2. Edit corpus.yaml with actual user sources:
-#    - OneDrive blog archive (if exists)
-#    - Local blog directory at ../../blogs/ (if exists)
-#    - Any symlinked directories
-#    Verify each source's path, quality rating, and metadata
-
-# 3. Test extraction with config
-bloginator extract -o output/extracted --config corpus.yaml
-
-# Expected output:
-# - Table showing all enabled sources
-# - Per-source extraction progress
-# - Total count of extracted documents
-# - Check output/extracted/*.json files have source_name and voice_notes
-
-# 4. Test indexing
-bloginator index output/extracted -o .bloginator/chroma
-
-# 5. Verify quality ratings in index
-# Check that documents from "preferred" sources are weighted higher
-
-# 6. Test search with different source qualities
-bloginator search "topic" --index .bloginator/chroma -n 10
-
-# 7. Test edge cases:
-#    - Relative paths (../../)
-#    - Absolute paths (/Users/...)
-#    - Nonexistent paths (should skip gracefully)
-#    - Disabled sources (enabled: false) - should skip
-#    - Empty directories - should handle gracefully
+pre-commit run --all-files         # All checks
+black --check src/ tests/          # Check format
+ruff check src/ tests/             # Lint
+isort --check-only src/ tests/     # Check imports
 ```
 
-**Validation Checklist:**
-- [ ] Config loads without errors
-- [ ] Paths resolve correctly (relative, absolute, symlinks)
-- [ ] Source metadata (source_name, voice_notes, tags) appears in extracted JSON
-- [ ] Quality ratings are preserved through extract → index
-- [ ] Table displays correct source information
-- [ ] Extraction handles errors gracefully (missing paths, permissions)
-- [ ] Works with user's actual OneDrive/local blog paths
-- [ ] Symlinks are followed correctly (no data copying)
-
-**Known Limitations (Document for User):**
-- URLs not yet implemented (shows "not yet implemented" message)
-- Ignore patterns use simple startswith matching (not full glob)
-- No progress for individual sources >100 files
-- Windows UNC paths may need testing on Windows
-
-**Success Criteria:**
-User can point to multiple blog sources (OneDrive, local dirs, symlinks) in one config and extract them all with appropriate quality metadata.
-
-### Testing with Mixtral/Llama3
-
-**Before testing generation features:**
-
+### Security Scan
 ```bash
-# 1. Verify Ollama connectivity
-curl http://192.168.5.53:11434/api/tags
-
-# 2. Test with mixtral (primary)
-bloginator outline "test topic" --index .bloginator/chroma
-
-# 3. Test with llama3 (alternative)
-OLLAMA_MODEL=llama3:8b bloginator outline "test topic"
-
-# 4. Verify quality weighting affects retrieval
-# Preferred sources should be retrieved more often
+pip-audit                          # Check CVEs
+safety check                       # Alternative scanner
 ```
 
-## References
+---
 
-- Main Documentation: `../README.md`
-- Custom LLM Guide: `CUSTOM_LLM_GUIDE.md` (this directory)
-- Environment Template: `../.env.example`
-- Corpus Setup: `../corpus/README.md`
-- Corpus Config Example: `../corpus.yaml.example`
+## Project Structure
 
-## Notes for Future Claude Sessions
-
-1. **Always check `.env`** to understand current configuration
-2. **Respect backward compatibility** - don't remove legacy variable support
-3. **Test locally first** - Use mixtral/llama3 for development before cloud
-4. **Both models work** - mixtral:8x7b (primary) and llama3:8b (alternative)
-5. **Multi-provider by design** - Any changes should work with local and cloud LLMs
-6. **LLM Mocking in Tests** - Claude AI (Sonnet 4.5) serves as the mock LLM during testing, generating realistic, contextually-appropriate responses that match expected formats. This enables comprehensive end-to-end testing without external dependencies or API costs
-
-## Principal Engineer Standards (2025-11-18)
-
-**Code Quality Standards:**
-- **400-Line Maximum** - No source file (Python, shell script, Go, any language) shall exceed 400 lines including comments
-- **Continuous Refactoring** - Split files immediately when approaching limit, maintain modularity
-- **Set Example** - Code quality standards set example for less experienced engineers
-- **Quality > Speed** - Maintain highest standards even if it takes 3x longer
-
-**Test-Driven Development:**
-- **Test ALL flags** - Every CLI flag, option, and parameter must have comprehensive tests
-- **Prevent Regression** - Ensure no functionality breaks as codebase evolves
-- **Continuous Testing** - Run tests after every refactor, lint after every file edit
-- **Living Test Plan** - Update test plan as implementation evolves
-
-**Documentation as Code:**
-- **PROJECT_PLAN.md** - Living document, meticulously updated throughout each phase
-- **Resumable Work** - All work must be resumable from a new session at ANY time
-- **No Exceptions** - Update docs in same commit as code changes
-- **Phase Tracking** - Clear status of what's complete, in-progress, pending
-
-**Test Content Generation:**
-- **Persona** - Director of Software Engineering at Expedia Group
-- **Philosophy** - Deep connection to human condition and psychological patterns from neurobiology
-- **Hallucination Encouraged** - Generate realistic fake content for tests, don't use placeholders
-- **Contextual Realism** - Test content should feel authentic and appropriate
-
-**Migration Freedom:**
-- **Go Language** - Encouraged to migrate Python/shell to Go where beneficial
-- **Performance** - Prioritize performance and maintainability
-- **Best Tool** - Use best language for the job
-
-**Project Resumability (CRITICAL):**
-- **Execute Through Completion** - Work through all remaining project phases autonomously
-- **Zero Tolerance** - Maintain zero test errors, zero linting errors, zero important warnings
-- **Continuous Commits** - Commit frequently with clear, descriptive messages
-- **Share Progress** - Share PR URLs periodically to track progress
-- **Update Documentation** - Keep PROJECT_PLAN.md and CLAUDE.md continuously updated
-- **Resumable at Any Moment** - Project must be easily resumable from elsewhere at any time
-- **Quality Gates** - Build, test, lint, fix after every significant change
-- **400-Line Rule** - Refactor periodically to keep all files under 400 lines
-
-**Workflow Pattern:**
-1. Work on feature/fix
-2. Run black + ruff to fix formatting and linting
-3. Run tests to ensure no regressions
-4. Update PROJECT_PLAN.md with status
-5. Commit with descriptive message
-6. Push and create PR periodically
-7. Repeat
-
-This ensures that if the session ends or work is picked up by another Claude session, the project state is always clear, complete, and ready to continue.
-
-## Current Project State (Session 2025-11-17)
-
-### Corpus Configuration - COMPLETE ✅
-
-**User's Active Corpus Sources** (configured in `corpus/corpus.yaml`):
-
-1. **GitHub Personal Blogs** (62 files)
-   - Path: `/path/to/your/blogs/`
-   - Quality: `preferred`
-   - Tags: `recent`, `public`, `2024`, `professional`
-   - Notes: Most recent, safest, genericized for public consumption
-
-2. **Example Company (OneDrive)** (9 files)
-   - Path: `/home/user/OneDrive - Personal/Documents/Career/TL`
-   - Quality: `preferred`
-   - Tags: `example-company`, `technical`, `professional`, `onedrive`
-   - Notes: Authentic professional voice with technical depth
-
-3. **Example Company (NAS)** (407 files extracted)
-   - Path: `/Volumes/scratch/TL`
-   - Quality: `reference`
-   - Tags: `example-company`, `nas`, `working-copy`, `drafts`
-   - Notes: Live working copy, may contain drafts
-   - Mount: SMB share `smb://lucybear-nas._smb._tcp.local/scratch/TL`
-
-4. **iStreamPlanet Blogs** (56 files)
-   - Path: `/home/user/OneDrive - Personal/Documents/Career/iStreamPlanet`
-   - Quality: `preferred`
-   - Tags: `istreamplanet`, `2017-2021`, `video-streaming`, `technical`, `historical`
-   - Notes: Video streaming and live delivery expertise
-
-**Extraction Status:**
-- ✅ **534 documents extracted** (193 PDFs, 155 DOCX, 112 MD, 74 TXT)
-- ✅ **11,021 searchable chunks** indexed into ChromaDB
-- ✅ Collection: `bloginator_corpus` at `.bloginator/chroma/`
-- ✅ Search verified working across all sources
-- ✅ **Rich error tracking** - Categorized errors with actionable advice (PR #24)
-
-**Supported File Types:**
-- **PDF** (`.pdf`) - PyMuPDF extraction - 193 files in corpus
-- **Word** (`.docx`, `.doc`) - python-docx extraction - 155 files
-- **Markdown** (`.md`, `.markdown`) - YAML frontmatter stripping - 112 files
-- **Plain Text** (`.txt`, `.text`) - Direct read - 74 files
-
-**Recent Enhancements:**
-
-**PR #24 (2025-11-17) - Error Tracking & Streamlit UI:**
-- ✅ **Rich error reporting** - ErrorTracker with 9 error categories
-  - Categorizes: corrupted files, permissions, encoding, unsupported formats
-  - Actionable advice for each error category
-  - Beautiful Rich console output with error summaries
-- ✅ **Streamlit Web UI** - Full-featured web interface
-  - Home dashboard with corpus overview
-  - Corpus management (upload, extract, index)
-  - Search interface with filters
-  - Outline & draft generation
-  - Analytics and visualizations
-  - Launch with: `./run-streamlit.sh`
-- ✅ **Enhanced E2E testing** - New `run-e2e.sh` with arguments
-- ✅ **Classification & Audience metadata** - Content targeting fields
-
-**PR #22 (2025-11-16):**
-- ✅ **Restartable extraction** - Skip already-extracted files (checks mtime)
-- ✅ `--force` flag to bypass skip logic
-- ✅ Auto-skip temp files (`~$*.docx`, `~$*.xlsx`)
-- ✅ Progress shows: extracted / skipped / failed counts
-
-### Local Environment Setup
-
-**Hardware Configuration:**
-- Network Ollama Server: `192.168.5.53:11434`
-- Primary Model: `mixtral:8x7b`
-- Alternative: `llama3:8b`
-- NAS Mount: `/Volumes/scratch` → `smb://lucybear-nas._smb._tcp.local/scratch`
-
-**Active .env Configuration:**
-```bash
-OLLAMA_HOST=http://192.168.5.53:11434
-OLLAMA_MODEL=mixtral:8x7b
-BLOGINATOR_CORPUS_DIR=corpus
-BLOGINATOR_CHROMA_DIR=.bloginator/chroma
+```
+bloginator/
+├── src/bloginator/
+│   ├── cli/                # 12 CLI commands
+│   ├── extraction/         # Document extraction
+│   ├── indexing/           # ChromaDB integration
+│   ├── search/             # Semantic search
+│   ├── generation/         # LLM clients
+│   ├── safety/             # Blocklist
+│   ├── ui/                 # Streamlit (7 pages)
+│   └── web/                # FastAPI (experimental)
+├── tests/                  # 355 tests
+├── docs/                   # Documentation
+└── pyproject.toml          # Dependencies
 ```
 
-### Verified Workflows
+---
 
-**Full Corpus Update (Incremental):**
-```bash
-# Extract only new/changed files (instant if nothing changed)
-bloginator extract -o output/extracted --config corpus/corpus.yaml
-# Now shows rich error summaries with actionable advice
+## Known Limitations
 
-# Index new extractions
-bloginator index output/extracted -o .bloginator/chroma
-# Categorizes errors (missing files, corrupted data, etc.)
+- No multi-format export rendering (claimed but not implemented)
+- No batch processing
+- No advanced analytics
+- No collaborative features
+- No plugin system
+- Test coverage % not measured
+- 2 files exceed 400-line guideline
 
-# Search across all sources
-bloginator search .bloginator/chroma "kubernetes devops" -n 10
-```
+See FUTURE_WORK.md for planned enhancements.
 
-**Streamlit Web UI (NEW):**
-```bash
-# Launch full-featured web interface
-./run-streamlit.sh
-# Opens at http://localhost:8501
+---
 
-# Features:
-# - Corpus overview dashboard
-# - Upload and extract documents
-# - Interactive search
-# - Outline and draft generation
-# - Analytics visualizations
-```
+## Dependencies
 
-**End-to-End Generation:**
-```bash
-# CLI with custom parameters
-./run-e2e.sh --title "Building DevOps Culture" \
-  --keywords "devops,kubernetes,automation" \
-  --thesis "Culture beats tools"
+### Core
+- Python 3.10+
+- ChromaDB (vector store)
+- sentence-transformers (embeddings)
+- Ollama (default LLM)
+- Pydantic v2
+- Click (CLI)
 
-# Or use defaults (from script)
-./run-e2e.sh
-```
+### Security
+- cryptography>=43.0.1 (required)
+- Latest pip and setuptools
 
-**Example Search Results:**
-- Finding iStreamPlanet white papers on live video streaming
-- Finding TL materials on Kubernetes/DevOps
-- Quality-weighted results (preferred sources ranked higher)
+### Optional
+- fastapi (web UI)
+- streamlit (alternative UI)
 
-### Error Tracking & Reporting (NEW in PR #24)
+---
 
-**Rich Error Categories with Actionable Advice:**
+## Troubleshooting
 
-The system now automatically categorizes errors and provides specific guidance:
+### Tests Fail
+1. Check Python version (3.10-3.13)
+2. Install: `pip install -e ".[dev]"`
+3. Clear cache: `rm -rf .bloginator/chroma`
+4. Re-run tests
 
-| Error Category | Examples | Actionable Advice |
-|----------------|----------|-------------------|
-| **Corrupted File** | Password-protected PDFs, damaged files | Try opening in native app; remove/fix corrupted files |
-| **Permission Denied** | Protected documents, restricted folders | Check with `ls -la`; adjust permissions or ownership |
-| **Unsupported Format** | `.rtf`, `.odt`, `.html` files | Convert to PDF/DOCX/MD/TXT or skip |
-| **Encoding Error** | Non-UTF-8 text files | Convert with `iconv -f ISO-8859-1 -t UTF-8` |
-| **File Not Found** | Missing text files during indexing | Verify extraction completed for all documents |
-| **Config Error** | Invalid corpus.yaml syntax | Use YAML validator; check paths and settings |
+### Import Errors
+- Install package: `pip install -e .`
+- Activate venv
+- Check PYTHONPATH
 
-**Example Error Output:**
-```
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ Error Summary                         ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+### LLM Errors
+- Start Ollama: `ollama serve`
+- Check .env configuration
+- Test with mock: `BLOGINATOR_LLM_PROVIDER=mock`
 
-3 Error(s) Encountered
-┌──────────────────┬───────┬────────────────────┐
-│ Category         │ Count │ Examples           │
-├──────────────────┼───────┼────────────────────┤
-│ Corrupted File   │ 2     │ protected.pdf...   │
-│ Permission Denied│ 1     │ private.docx       │
-└──────────────────┴───────┴────────────────────┘
+---
 
-Actionable Advice:
-● Corrupted File:
-  The file may be corrupted or password-protected.
-  Try opening it in the native application to verify.
-```
+## Final Notes
 
-### Known Issues & Workarounds
+This document defines development standards. When in doubt:
+1. Check tests first
+2. Be professional and factual
+3. Support all LLM providers
+4. Keep code clean
+5. Document honestly
 
-1. **Pre-commit hooks may fail** - Some existing code formatting issues
-   - Workaround: Use `git commit --no-verify` for YAML-only changes
-
-2. **Some test failures** - Pre-existing, not blocking
-   - 49 failed, 276 passed (tests not updated for new features)
-
-3. **NAS Mount Required** - For TL NAS source
-   - Auto-mounted at `/Volumes/scratch` when lucybear-nas is reachable
-   - Extraction works across SMB mounts
-
-## Pre-Commit Hook Philosophy
-
-**CRITICAL: Each pre-commit hook error is an opportunity to improve the codebase, NOT a roadblock to bypass.**
-
-### Required Mindset
-
-When encountering pre-commit hook errors:
-
-1. **ALWAYS FIX THE ISSUES** - Do not skip hooks or pass the buck
-2. **Improve Code Quality** - Each error fixed makes the codebase better
-3. **Learn the Standards** - Understand why the linter flagged the issue
-4. **Document Exceptions** - If you must ignore a rule, document why
-
-### Common Pre-Commit Hooks
-
-**black** - Code formatter
-- Auto-formats Python code to PEP 8 standard
-- Run: `black --line-length=100 src/ tests/`
-- Never skip - let black reformat the code
-
-**ruff** - Fast Python linter
-- Checks for style issues, bugs, and anti-patterns
-- Run: `ruff check --fix src/ tests/`
-- Many issues auto-fixable with `--fix`
-- Use `--unsafe-fixes` for more aggressive fixes
-
-**mypy** - Type checker
-- Validates type annotations
-- Pre-existing type errors can be addressed incrementally
-- OK to use `--no-verify` if errors are unrelated to your changes
-
-**shellcheck** - Shell script linter
-- Validates bash/sh scripts for common errors
-- ALWAYS fix shellcheck warnings before commit
-- Run: `shellcheck script.sh`
-
-### Workflow for Pre-Commit Errors
-
-```bash
-# 1. Run formatters first
-black --line-length=100 src/ tests/
-
-# 2. Fix linting issues
-ruff check --fix src/ tests/
-
-# 3. Check types (informational)
-mypy src/
-
-# 4. For shell scripts
-shellcheck *.sh scripts/*.sh
-
-# 5. Stage fixes and retry commit
-git add -A
-git commit -m "Your message"
-```
-
-### When to Use `--no-verify`
-
-**ONLY use `git commit --no-verify` when:**
-- Mypy errors are pre-existing and unrelated to your changes
-- You are committing non-Python files (YAML, Markdown, etc.)
-- You have documented the reason in the commit message
-
-**NEVER use `--no-verify` to:**
-- Skip black formatting
-- Bypass ruff linting errors
-- Ignore shellcheck warnings
-- Avoid fixing issues you introduced
-
-### Example: Handling Pre-Commit Hook Errors
-
-**BAD Approach:**
-```bash
-$ git commit -m "Add feature"
-# Error: black formatting failed
-$ git commit --no-verify -m "Add feature"  # ❌ WRONG
-```
-
-**GOOD Approach:**
-```bash
-$ git commit -m "Add feature"
-# Error: black formatting failed
-$ black --line-length=100 src/ tests/  # ✅ Fix the issue
-$ git add -A
-$ git commit -m "Add feature"  # ✅ Now it passes
-```
-
-### Benefits of Fixing Pre-Commit Errors
-
-1. **Consistent Style** - Code looks professional and is easier to read
-2. **Fewer Bugs** - Linters catch common mistakes before they reach production
-3. **Better Collaboration** - Standardized code reduces merge conflicts
-4. **Learning** - Understanding why something was flagged makes you a better developer
-5. **Trust** - Shows you care about code quality
-
-**Remember: Pre-commit hooks are your friends, not obstacles!**
-
-### Next Session Quick Start
-
-**Option 1: Streamlit Web UI (Easiest)**
-```bash
-cd ~/GitHub/Personal/bloginator
-./run-streamlit.sh
-# Opens at http://localhost:8501
-# Use the web interface for all operations
-```
-
-**Option 2: CLI Workflow**
-```bash
-cd ~/GitHub/Personal/bloginator
-source .venv/bin/activate
-
-# Extract any new/changed documents
-bloginator extract -o output/extracted --config corpus/corpus.yaml
-
-# Update index
-bloginator index output/extracted -o .bloginator/chroma
-
-# Generate content
-./run-e2e.sh --title "Your Title" --keywords "key1,key2" --thesis "Your thesis"
-```
-
-**Option 3: Test Error Reporting**
-```bash
-# Intentionally try to extract unsupported file to see error categorization
-touch /tmp/test.rtf
-bloginator extract /tmp/test.rtf -o output/test --quality reference
-# Should show "Unsupported Format" error with actionable advice
-```
-
-### File Locations Reference
-
-- Corpus config: `../corpus/corpus.yaml` (user-specific, committed to git)
-- Environment: `../.env` (local only, gitignored)
-- Extracted docs: `../output/extracted/` (gitignored)
-- Vector index: `../.bloginator/chroma/` (gitignored)
-- Error reporting: `../src/bloginator/cli/error_reporting.py` (NEW)
-- Streamlit UI: `../src/bloginator/ui/` (NEW)
-- Launch scripts: `../run-streamlit.sh`, `../run-e2e.sh` (NEW)
-- Context docs: `docs/CLAUDE.md` (this file), `../corpus/README.md`, `docs/SESSION_HANDOFF.md`
-
-### Key Files Added in PR #24
-
-- `src/bloginator/cli/error_reporting.py` - Error categorization and reporting
-- `src/bloginator/ui/app.py` - Streamlit main app
-- `src/bloginator/ui/pages/*.py` - UI pages (home, corpus, search, generate, analytics, settings)
-- `run-streamlit.sh` - Launch Streamlit UI
-- `run-e2e.sh` - Enhanced E2E testing with arguments
-- `src/bloginator/models/document.py` - Enhanced with Classification and Audience fields
-
-Last Updated: 2025-11-17 (Session 3, VS Code Claude - Error Tracking & Streamlit UI)
+Update as standards evolve.
