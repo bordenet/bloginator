@@ -13,6 +13,7 @@ from bloginator.generation.llm_factory import create_llm_from_config
 from bloginator.models.history import GenerationHistoryEntry, GenerationType
 from bloginator.search import CorpusSearcher
 from bloginator.services.history_manager import HistoryManager
+from bloginator.services.template_manager import TemplateManager
 
 
 @click.command()
@@ -102,6 +103,11 @@ from bloginator.services.history_manager import HistoryManager
     help="Minimum sources for good coverage (default: 3)",
 )
 @click.option(
+    "--template",
+    "template_id",
+    help="Template ID for custom prompt style (use 'bloginator template list' to see options)",
+)
+@click.option(
     "--log-file",
     type=click.Path(path_type=Path),
     help="Path to log file (logs to stdout if not specified)",
@@ -125,6 +131,7 @@ def outline(
     output_file: Path | None,
     output_format: str,
     min_coverage: int,
+    template_id: str | None,
     log_file: Path | None,
     verbose: bool,
 ) -> None:
@@ -228,6 +235,24 @@ def outline(
             min_coverage_sources=min_coverage,
         )
 
+        # Handle custom template if provided
+        custom_prompt = None
+        if template_id:
+            try:
+                template_manager = TemplateManager()
+                rendered = template_manager.render_template(
+                    template_id,
+                    title=title,
+                    keywords=", ".join(keyword_list),
+                    thesis=thesis,
+                    num_sections=str(num_sections),
+                )
+                custom_prompt = rendered
+                logger.info(f"Using template: {template_id}")
+            except Exception as e:
+                logger.warning(f"Failed to load template {template_id}: {e}")
+                console.print(f"[yellow]⚠️[/yellow] Failed to load template, using default: {e}")
+
         # Generate outline
         task = progress.add_task("Generating outline structure...", total=None)
         try:
@@ -243,6 +268,7 @@ def outline(
                 audience=audience,
                 num_sections=num_sections,
                 temperature=temperature,
+                custom_prompt_template=custom_prompt,
             )
             logger.info(f"Outline generated: {len(outline_obj.get_all_sections())} total sections")
         except Exception as e:
