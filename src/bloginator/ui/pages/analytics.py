@@ -1,10 +1,11 @@
 """Analytics page for Bloginator Streamlit UI."""
 
-import streamlit as st
-from pathlib import Path
 import json
 from collections import Counter
 from datetime import datetime
+from pathlib import Path
+
+import streamlit as st
 
 
 def show():
@@ -95,11 +96,11 @@ def show():
 
                 created_date = metadata.get("created_date")
                 if created_date:
-                    try:
+                    from contextlib import suppress
+
+                    with suppress(ValueError, TypeError):
                         dates.append(datetime.fromisoformat(created_date))
-                    except:
-                        pass
-            except:
+            except (FileNotFoundError, json.JSONDecodeError, KeyError):
                 pass
 
         # Source distribution chart
