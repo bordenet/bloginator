@@ -96,10 +96,9 @@ def extract(
         # Note: workers parameter available for future parallel implementation
         extract_from_config(config, output, console, force)
     elif source:
-        # MODE 1: Legacy single-source extraction
-        # Note: workers parameter available for future parallel implementation
+        # MODE 1: Legacy single-source extraction with parallel processing
         tag_list = [t.strip() for t in tags.split(",")] if tags else []
-        extract_single_source(source, output, quality, tag_list, console, force)
+        extract_single_source(source, output, quality, tag_list, console, force, workers)
     else:
         console.print("[red]Error: Must provide either SOURCE or --config[/red]")
         raise click.UsageError("Must provide either SOURCE argument or --config option")

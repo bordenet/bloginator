@@ -72,6 +72,7 @@ def index(source: Path, output: Path, chunk_size: int) -> None:
         raise
 
     indexed_count = 0
+    skipped_count = 0
     failed_count = 0
 
     with Progress() as progress:
@@ -82,6 +83,16 @@ def index(source: Path, output: Path, chunk_size: int) -> None:
                 # Load document metadata
                 doc_data = json.loads(meta_file.read_text())
                 document = Document(**doc_data)
+
+                # Check if document needs reindexing (incremental indexing with checksums)
+                if not indexer.document_needs_reindexing(document):
+                    skipped_count += 1
+                    progress.update(task, advance=1)
+                    continue
+
+                # Delete old version if it exists (for reindexing)
+                if indexer.get_document_checksum(document.id) is not None:
+                    indexer.delete_document(document.id)
 
                 # Load extracted text
                 text_file = source / f"{document.id}.txt"
@@ -122,6 +133,10 @@ def index(source: Path, output: Path, chunk_size: int) -> None:
     info = indexer.get_collection_info()
 
     console.print(f"\n[green]✓ Successfully indexed {indexed_count} document(s)[/green]")
+    if skipped_count > 0:
+        console.print(
+            f"[cyan]↻ Skipped {skipped_count} document(s) (unchanged since last index)[/cyan]"
+        )
     if failed_count > 0:
         console.print(f"[yellow]✗ Failed to index {failed_count} document(s)[/yellow]")
 
