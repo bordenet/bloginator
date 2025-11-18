@@ -56,7 +56,7 @@ class TestPerformanceBenchmarks:
                     word_count=len(text.split()),
                 )
 
-                paragraphs = chunk_text_by_paragraphs(text)
+                paragraphs = chunk_text_by_paragraphs(text, "test_doc")
                 chunks = [
                     Chunk(
                         id=f"{document.id}_chunk_{j}",
@@ -107,7 +107,7 @@ class TestPerformanceBenchmarks:
         start_time = time.time()
 
         for _ in range(100):  # Chunk the same text 100 times
-            chunks = chunk_text_by_paragraphs(text)
+            chunks = chunk_text_by_paragraphs(text, "test_doc")
             assert len(chunks) > 0
 
         elapsed = time.time() - start_time
@@ -143,7 +143,7 @@ class TestPerformanceBenchmarks:
                 word_count=len(text.split()),
             )
 
-            paragraphs = chunk_text_by_paragraphs(text)
+            paragraphs = chunk_text_by_paragraphs(text, "test_doc")
             chunks = [
                 Chunk(
                     id=f"idx_chunk_{i}_{j}",
@@ -299,7 +299,7 @@ class TestPerformanceBenchmarks:
         start_time = time.time()
 
         # Chunk the large text
-        chunks = chunk_text_by_paragraphs(large_text)
+        chunks = chunk_text_by_paragraphs(large_text, "test_doc")
 
         elapsed = time.time() - start_time
 
