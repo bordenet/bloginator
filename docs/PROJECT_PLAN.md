@@ -1313,3 +1313,54 @@ Create comprehensive Streamlit UI for managing blocklist entries, providing CRUD
 3. Push to remote
 4. Create PR
 
+## Phase 2.3: Multi-Format Export - COMPLETE (2025-11-18)
+
+**Status:** ✅ COMPLETE
+**Branch:** `claude/phase-2-3-export-functionality-011r6RivoGzbqxC2cSGVMceH`
+
+### Implementation Summary
+
+Created comprehensive export system supporting 5 formats: Markdown, PDF, DOCX, HTML, and Plain Text.
+
+**Core Export Module (`src/bloginator/export/`):**
+1. **base.py** (59 lines) - Abstract Exporter interface
+2. **markdown_exporter.py** (44 lines) - Reuses existing to_markdown()
+3. **pdf_exporter.py** (241 lines) - ReportLab with blue headers, metadata
+4. **docx_exporter.py** (177 lines) - python-docx with Word formatting
+5. **html_exporter.py** (278 lines) - Standalone with embedded CSS
+6. **text_exporter.py** (89 lines) - Markdown stripping utility
+7. **factory.py** (80 lines) - ExportFormat enum and factory
+8. **ui_utils.py** (115 lines) - Streamlit export widget
+
+**Streamlit Integration:**
+- Modified `generate_draft_ui.py` - Added export buttons post-generation
+- Modified `generate_outline_ui.py` - Added export buttons post-generation
+- Format selector dropdown (PDF, Word, HTML, Markdown, Text)
+- Download button with proper MIME types
+
+**Export Features:**
+- **Metadata Inclusion:** Classification, audience, dates in all formats
+- **Citation Tracking:** Draft citations preserved in PDF/DOCX/HTML
+- **Styling:** 
+  - PDF: ReportLab with blue headers (#1E88E5), gray metadata
+  - DOCX: Word styles with bullet lists
+  - HTML: Embedded CSS, print-friendly, max-width 800px
+  - Text: Clean markdown stripping
+- **File Naming:** `{document}_export.{ext}` pattern
+
+**Quality Gates:**
+- ✅ All files under 400 lines (largest: html_exporter at 278)
+- ✅ Zero linting errors (black, ruff)
+- ✅ Proper type hints throughout
+- ✅ Factory pattern for extensibility
+
+**Dependencies Used:**
+- `reportlab` - PDF generation (already available)
+- `python-docx` - DOCX generation (already in pyproject.toml)
+- Standard library for HTML/Text
+
+**Commit:** 427c8bb
+**Files Changed:** 11 files, 1117 insertions(+)
+
+**Next Steps:** Ready for testing, PR, and merge.
+
