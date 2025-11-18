@@ -86,7 +86,11 @@ Refactored files:
 - [x] Fix LLMResponse constructor tests (model param, auto-calculated total_tokens)
 - [x] Fix OllamaClient token extraction (use actual API counts)
 - [x] Migrate markdown docs to ./docs/ directory
-- [ ] Fix LLM client imports (blocks 11% of tests) - NEXT
+- [x] Fix all linting errors (black, ruff) - **ZERO errors remaining** ✅
+- [x] Add Project Resumability section to CLAUDE.md
+- [x] Push branch and create PR #30
+- [ ] Complete dependency installation (torch ~900MB downloading) - **IN PROGRESS**
+- [ ] Fix LLM client imports (blocks 11% of tests) - **NEXT**
 - [ ] Create Ollama + OpenAI mocks
 - [ ] Fix model validations
 - [ ] Fix integration tests
