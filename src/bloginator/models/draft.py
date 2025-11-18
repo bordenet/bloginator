@@ -72,6 +72,8 @@ class Draft(BaseModel):
     Attributes:
         title: Document title
         thesis: Main thesis/purpose
+        classification: Content classification (guidance, best-practice, mandate, principle, opinion)
+        audience: Target audience (ic-engineers, engineering-leaders, all-disciplines, etc.)
         keywords: Keywords used for generation
         sections: Top-level sections
         created_date: When draft was generated
@@ -84,6 +86,14 @@ class Draft(BaseModel):
 
     title: str = Field(..., description="Document title")
     thesis: str = Field(default="", description="Main thesis")
+    classification: str = Field(
+        default="guidance",
+        description="Content classification (tone and authority level)",
+    )
+    audience: str = Field(
+        default="all-disciplines",
+        description="Target audience for content",
+    )
     keywords: list[str] = Field(default_factory=list)
     sections: list[DraftSection] = Field(default_factory=list)
     created_date: datetime = Field(default_factory=datetime.now)
@@ -158,6 +168,8 @@ class Draft(BaseModel):
         # Stats in comment (won't render in final output)
         lines.append("<!--")
         lines.append(f"Generated: {self.created_date.strftime('%Y-%m-%d %H:%M')}")
+        lines.append(f"Classification: {self.classification}")
+        lines.append(f"Audience: {self.audience}")
         lines.append(f"Voice Score: {self.voice_score:.2f}")
         lines.append(f"Citations: {self.total_citations}")
         lines.append(f"Words: {self.total_words}")
