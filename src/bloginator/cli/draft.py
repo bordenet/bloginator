@@ -11,8 +11,10 @@ from rich.table import Table
 
 from bloginator.generation import DraftGenerator, SafetyValidator, VoiceScorer
 from bloginator.generation.llm_factory import create_llm_from_config
+from bloginator.models.history import GenerationHistoryEntry, GenerationType
 from bloginator.models.outline import Outline
 from bloginator.search import CorpusSearcher
+from bloginator.services.history_manager import HistoryManager
 
 
 @click.command()
@@ -363,6 +365,38 @@ def draft(
             json_path.write_text(draft_obj.model_dump_json(indent=2))
             logger.info(f"Saved JSON to {json_path}")
             console.print(f"[green]✓[/green] Saved JSON to {json_path}")
+
+        # Save to history
+        try:
+            history_manager = HistoryManager()
+            history_entry = GenerationHistoryEntry(
+                generation_type=GenerationType.DRAFT,
+                title=outline_obj.title,
+                classification=outline_obj.classification,
+                audience=outline_obj.audience,
+                input_params={
+                    "outline_file": str(outline_file),
+                    "temperature": temperature,
+                    "sources_per_section": sources_per_section,
+                    "max_section_words": max_section_words,
+                },
+                output_path=str(output_file),
+                output_format=output_format,
+                metadata={
+                    "total_sections": len(draft_obj.get_all_sections()),
+                    "total_words": draft_obj.total_words,
+                    "total_citations": draft_obj.total_citations,
+                    "voice_score": draft_obj.voice_score if score_voice else 0.0,
+                    "has_blocklist_violations": draft_obj.has_blocklist_violations,
+                    "validate_safety": validate_safety,
+                    "score_voice": score_voice,
+                },
+            )
+            history_manager.save_entry(history_entry)
+            logger.info(f"Saved to history: {history_entry.id}")
+        except Exception as e:
+            # Don't fail the command if history save fails
+            logger.warning(f"Failed to save to history: {e}")
 
     except Exception as e:
         logger.error(f"Failed to save draft: {e}")
