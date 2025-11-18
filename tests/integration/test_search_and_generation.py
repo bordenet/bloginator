@@ -41,20 +41,10 @@ class TestSearchAndGenerationWorkflow:
                 word_count=len(text.split()),
             )
 
-            paragraphs = chunk_text_by_paragraphs(text, "test_doc")
-            chunks = [
-                Chunk(
-                    id=f"{document.id}_chunk_{i}",
-                    document_id=document.id,
-                    content=p,
-                    chunk_index=i,
-                    section_heading=None,
-                    char_start=0,
-                    char_end=len(p),
-                )
-                for i, p in enumerate(paragraphs)
-                if p.strip()
-            ]
+            # chunk_text_by_paragraphs returns Chunk objects directly
+            chunks = chunk_text_by_paragraphs(text, document.id)
+            for i, chunk in enumerate(chunks):
+                chunk.id = f"{document.id}_chunk_{i}"
 
             indexer.index_document(document, chunks)
 
