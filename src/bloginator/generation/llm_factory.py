@@ -9,6 +9,7 @@ from bloginator.generation.llm_client import (
     CustomLLMClient,
     LLMClient,
     LLMProvider,
+    MockLLMClient,
     OllamaClient,
     create_llm_client,
 )
@@ -68,6 +69,10 @@ def create_llm_from_config(verbose: bool = False) -> LLMClient:
             kwargs["headers"] = custom_headers
 
         return CustomLLMClient(**kwargs)
+
+    elif provider == LLMProvider.MOCK:
+        # Mock provider for testing - no additional config needed
+        return MockLLMClient(**kwargs)
 
     else:
         # Use generic factory (will add more providers in future)

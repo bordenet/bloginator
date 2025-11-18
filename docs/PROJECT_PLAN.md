@@ -1454,3 +1454,133 @@ Each entry contains:
 
 **Next Steps:** Ready for review, testing, and merge.
 
+## Phase 2.5: End-to-End Validation & Testing - COMPLETE (2025-11-18)
+
+**Status:** ✅ COMPLETE
+**Branch:** `claude/phase-2-5-e2e-validation-011r6RivoGzbqxC2cSGVMceH`
+
+### Implementation Summary
+
+Created comprehensive end-to-end testing infrastructure with sample corpus, mock LLM provider, and automated validation script. This enables reliable testing of the entire Bloginator workflow without requiring external LLM services.
+
+**Core Components:**
+
+1. **Sample Corpus** (`tests/fixtures/sample_corpus/` - 7 files, 1012 lines)
+   - **6 Engineering Leadership Blog Posts:**
+     - `one_on_ones.md` - One-on-one meeting best practices (preferred quality, 72 lines)
+     - `technical_debt.md` - Technical debt management strategies (preferred quality, 105 lines)
+     - `code_review_culture.md` - Code review culture building (reference quality, 100 lines)
+     - `hiring_engineers.md` - Senior engineer hiring guide (preferred quality, 126 lines)
+     - `incident_response.md` - Incident response best practices (reference quality, 115 lines)
+     - `remote_work.md` - Remote team culture and async work (preferred quality, 125 lines)
+   - **README.md** - Corpus documentation with usage examples
+   - **Quality Distribution:** 4 preferred, 2 reference
+   - **Topic Coverage:** Leadership, management, technical practices, hiring, operations
+
+2. **Mock LLM Provider** (`src/bloginator/generation/llm_mock.py` - 219 lines)
+   - Implements full LLMClient interface for testing
+   - Detects request type (outline vs draft) from prompt content
+   - Returns realistic canned responses:
+     - **Outlines:** 6-section markdown structure with headings and descriptions
+     - **Drafts:** 5-paragraph realistic content about the topic
+   - Always succeeds (no network/auth failures)
+   - Calculates token counts for consistency
+   - Respects verbose flag for debugging
+
+3. **LLM Infrastructure Updates**
+   - Added `MOCK` to `LLMProvider` enum (llm_base.py)
+   - Registered MockLLMClient in factory (llm_factory.py)
+   - Exported MockLLMClient for reuse (llm_client.py)
+
+4. **E2E Test Script** (`tests/e2e/test_full_workflow.sh` - 183 lines)
+   - Automated workflow validation: extract → index → search → outline → draft
+   - Configures mock LLM via environment variables
+   - Validates each step with specific assertions:
+     - **Extract:** Verifies document count (7 expected)
+     - **Index:** Checks index directory creation
+     - **Search:** Confirms results returned
+     - **Outline:** Validates JSON and markdown output files
+     - **Draft:** Checks word count (>100 words minimum)
+     - **History:** Verifies entries created
+   - Color-coded output (green=success, red=error, yellow=warning)
+   - Cleans up test artifacts automatically
+   - Exit-on-error for CI/CD compatibility
+
+5. **Bug Fixes**
+   - **Similarity Score Clamping** (searcher.py)
+     - Fixed negative coverage percentages
+     - Clamped similarity_score to [0.0, 1.0] range
+     - Handles edge case where cosine distance > 1.0
+     - Prevents Pydantic validation errors
+   - **Environment Variables** (test script)
+     - Fixed to use `BLOGINATOR_LLM_PROVIDER` prefix
+     - Ensures mock provider is properly configured
+
+**Test Results:**
+
+```
+=== E2E Test Summary ===
+✓ Extraction: 7 documents
+✓ Indexing: 37 chunks
+✓ Search: Working (3 results for "one-on-one meetings")
+✓ Outline Generation: Success (mock LLM)
+✓ Draft Generation: 1916 words (mock LLM)
+✓ History: 3 entries tracked
+✓ All E2E tests passed!
+```
+
+**Key Insights:**
+
+- Mock LLM enables testing without Ollama/OpenAI
+- Sample corpus provides realistic engineering leadership content
+- Coverage analysis works correctly with similarity score clamping
+- Full workflow completes in <5 seconds with mock LLM
+- History tracking captures all generations automatically
+
+**Quality Gates:**
+
+- ✅ All files under 400 lines (largest: test_full_workflow.sh at 183)
+- ✅ Zero linting errors (ruff, black, isort)
+- ✅ E2E test passes all steps
+- ✅ No external dependencies for testing (mock LLM)
+- ✅ Realistic sample content (engineering leadership topics)
+
+**User Benefits:**
+
+- **Developers:** Fast local testing without LLM setup
+- **CI/CD:** Reliable automated testing in pipelines
+- **Contributors:** Sample corpus demonstrates expected content format
+- **Documentation:** E2E script serves as usage tutorial
+
+**File Changes:**
+
+**New Files (9):**
+- `tests/fixtures/sample_corpus/one_on_ones.md` (72 lines)
+- `tests/fixtures/sample_corpus/technical_debt.md` (105 lines)
+- `tests/fixtures/sample_corpus/code_review_culture.md` (100 lines)
+- `tests/fixtures/sample_corpus/hiring_engineers.md` (126 lines)
+- `tests/fixtures/sample_corpus/incident_response.md` (115 lines)
+- `tests/fixtures/sample_corpus/remote_work.md` (125 lines)
+- `tests/fixtures/sample_corpus/README.md` (93 lines)
+- `tests/e2e/test_full_workflow.sh` (183 lines, executable)
+- `src/bloginator/generation/llm_mock.py` (219 lines)
+
+**Modified Files (5):**
+- `src/bloginator/generation/llm_base.py` - Added MOCK provider
+- `src/bloginator/generation/llm_client.py` - Export MockLLMClient
+- `src/bloginator/generation/llm_factory.py` - Handle mock provider
+- `src/bloginator/search/searcher.py` - Clamp similarity scores
+- `tests/e2e/test_full_workflow.sh` - Fix env variable names
+
+**Commits:**
+1. `f7bd2fe` - feat: Add E2E validation with sample corpus (Phase 2.5)
+2. `d694de0` - feat: Add mock LLM provider for testing (Phase 2.5.3)
+3. `44708b8` - fix: Correct env vars and clamp similarity scores for E2E tests
+
+**PR URL:** https://github.com/bordenet/bloginator/pull/new/claude/phase-2-5-e2e-validation-011r6RivoGzbqxC2cSGVMceH
+
+**Next Steps:**
+- Phase 3.1: Quality-filtered search (ALREADY COMPLETE - discovered during audit)
+- Phase 3.2: Analytics and metrics dashboards
+- Ready for PR review and merge
+
