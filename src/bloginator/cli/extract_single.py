@@ -1,0 +1,223 @@
+"""Single-source extraction (legacy mode)."""
+
+import os
+import uuid
+from pathlib import Path
+
+from rich.console import Console
+from rich.progress import Progress
+
+from bloginator.cli.error_reporting import ErrorTracker
+from bloginator.cli.extract_utils import (
+    get_supported_extensions,
+    is_temp_file,
+    load_existing_extractions,
+    should_skip_file,
+)
+from bloginator.extraction import (
+    count_words,
+    extract_file_metadata,
+    extract_text_from_file,
+    extract_yaml_frontmatter,
+)
+from bloginator.models import Document, QualityRating
+
+
+def extract_single_source(
+    source: Path,
+    output: Path,
+    quality: str,
+    tag_list: list[str],
+    console: Console,
+    force: bool = False,
+) -> None:
+    """Extract from single source (legacy mode).
+
+    Args:
+        source: Source file or directory
+        output: Output directory for extracted documents
+        quality: Quality rating for documents
+        tag_list: List of tags to apply
+        console: Rich console for output
+        force: If True, re-extract all files
+    """
+    # Initialize error tracker
+    error_tracker = ErrorTracker()
+
+    # Load existing extractions for skip logic
+    existing_docs = load_existing_extractions(output)
+
+    # Get list of files to extract
+    files = _collect_files(source)
+
+    if not files:
+        console.print("[yellow]No supported files found.[/yellow]")
+        return
+
+    console.print(f"[cyan]Found {len(files)} file(s)...[/cyan]")
+
+    # Process files
+    extracted_count, skipped_count, failed_count = _process_files(
+        files=files,
+        output=output,
+        quality=quality,
+        tag_list=tag_list,
+        existing_docs=existing_docs,
+        force=force,
+        error_tracker=error_tracker,
+        console=console,
+    )
+
+    # Print summary
+    console.print(f"\n[green]✓ Successfully extracted {extracted_count} document(s)[/green]")
+    if skipped_count > 0:
+        console.print(f"[cyan]↻ Skipped {skipped_count} document(s) (already extracted)[/cyan]")
+    if failed_count > 0:
+        console.print(f"[yellow]✗ Failed to extract {failed_count} document(s)[/yellow]")
+    console.print(f"[cyan]Output directory: {output}[/cyan]")
+
+    # Print error summary if there were failures
+    if failed_count > 0:
+        error_tracker.print_summary(console)
+
+
+def _collect_files(source: Path) -> list[Path]:
+    """Collect all supported files from source.
+
+    Args:
+        source: Source file or directory
+
+    Returns:
+        List of file paths to extract
+    """
+    if source.is_file():
+        return [source]
+
+    files = []
+    supported_extensions = get_supported_extensions()
+
+    # Walk directory tree, following symlinks
+    for root, _dirs, filenames in os.walk(source, followlinks=True):
+        root_path = Path(root)
+        for filename in filenames:
+            # Skip temp files
+            if is_temp_file(filename):
+                continue
+
+            file_path = root_path / filename
+            if file_path.suffix.lower() in supported_extensions:
+                files.append(file_path)
+
+    return files
+
+
+def _process_files(
+    files: list[Path],
+    output: Path,
+    quality: str,
+    tag_list: list[str],
+    existing_docs: dict,
+    force: bool,
+    error_tracker: ErrorTracker,
+    console: Console,
+) -> tuple[int, int, int]:
+    """Process list of files for extraction.
+
+    Args:
+        files: List of files to process
+        output: Output directory
+        quality: Quality rating
+        tag_list: Tags to apply
+        existing_docs: Dictionary of existing extractions
+        force: Force re-extraction flag
+        error_tracker: Error tracker instance
+        console: Rich console
+
+    Returns:
+        Tuple of (extracted_count, skipped_count, failed_count)
+    """
+    extracted_count = 0
+    skipped_count = 0
+    failed_count = 0
+
+    with Progress() as progress:
+        task = progress.add_task("[green]Processing...", total=len(files))
+
+        for file_path in files:
+            try:
+                # Check if we should skip this file
+                skip, doc_id = should_skip_file(file_path, existing_docs, force)
+
+                if skip:
+                    skipped_count += 1
+                    progress.update(task, advance=1)
+                    continue
+
+                # Extract and save document
+                _extract_and_save_document(
+                    file_path=file_path,
+                    output=output,
+                    quality=quality,
+                    tag_list=tag_list,
+                )
+
+                extracted_count += 1
+
+            except Exception as e:
+                # Categorize and track error
+                category = error_tracker.categorize_exception(e, file_path)
+                error_tracker.record_error(category, file_path.name, e)
+                console.print(f"[red]✗ {file_path.name}: {type(e).__name__}[/red]")
+                failed_count += 1
+
+            progress.update(task, advance=1)
+
+    return extracted_count, skipped_count, failed_count
+
+
+def _extract_and_save_document(
+    file_path: Path,
+    output: Path,
+    quality: str,
+    tag_list: list[str],
+) -> None:
+    """Extract text and save document.
+
+    Args:
+        file_path: Path to file to extract
+        output: Output directory
+        quality: Quality rating
+        tag_list: Tags to apply
+    """
+    # Extract text
+    text = extract_text_from_file(file_path)
+
+    # Get file metadata
+    file_meta = extract_file_metadata(file_path)
+
+    # Try to extract frontmatter if Markdown
+    frontmatter = {}
+    if file_path.suffix.lower() in [".md", ".markdown"]:
+        content = file_path.read_text(encoding="utf-8")
+        frontmatter = extract_yaml_frontmatter(content)
+
+    # Create document
+    doc = Document(
+        id=str(uuid.uuid4()),
+        filename=file_path.name,
+        source_path=file_path.absolute(),
+        format=file_path.suffix.lstrip(".").lower(),
+        created_date=file_meta.get("created_date"),
+        modified_date=file_meta.get("modified_date"),
+        quality_rating=QualityRating(quality),
+        tags=frontmatter.get("tags", tag_list) if frontmatter else tag_list,
+        word_count=count_words(text),
+    )
+
+    # Save extracted text
+    text_file = output / f"{doc.id}.txt"
+    text_file.write_text(text, encoding="utf-8")
+
+    # Save metadata
+    meta_file = output / f"{doc.id}.json"
+    meta_file.write_text(doc.model_dump_json(indent=2), encoding="utf-8")
