@@ -1171,3 +1171,68 @@ jobs:
 
 **Project test suite is production-ready.**
 
+
+---
+
+## Phase 2.1: Classification/Audience in Draft Generation - IN PROGRESS (2025-11-18)
+
+**Status:** Actively implementing  
+**Branch:** `claude/phase-2-1-draft-classification`
+
+### Objective
+Add classification and audience support to draft generation to match outline generation capabilities.
+
+### Current Analysis
+- ✅ Outline model has `classification` and `audience` fields
+- ❌ Draft model missing `classification` and `audience` fields
+- ❌ DraftGenerator doesn't use classification/audience from outline
+- ❌ Draft prompts don't include classification/audience context
+
+### Implementation Tasks
+- [x] 2.1.1: Add classification/audience fields to Draft model
+- [x] 2.1.2: Extract classification/audience from outline in DraftGenerator.generate()
+- [x] 2.1.3: Include classification/audience in prompt context for appropriate tone
+- [x] 2.1.4: Update Draft.to_markdown() to display classification/audience in metadata
+- [x] 2.1.5: Tested - all 355 tests passing (guidance, best-practice, mandate, principle, opinion)
+- [x] 2.1.6: File sizes compliant (draft.py: 250, draft_generator.py: 294) (ic-engineers, engineering-leaders, all-disciplines, qa-engineers, etc.)
+- [x] 2.1.7: Zero linting errors
+- [x] 2.1.8: Committed to claude/phase-2-1-draft-classification
+
+### Files to Modify
+- `src/bloginator/models/draft.py` - Add fields
+- `src/bloginator/generation/draft_generator.py` - Extract and use classification/audience
+- `tests/unit/generation/test_draft_generator.py` - Add tests
+- `tests/unit/models/test_draft.py` - Add model tests
+
+
+### Phase 2.1 Complete - Summary
+
+**Status:** ✅ COMPLETE (2025-11-18)
+
+**Implementation Details:**
+- Draft model now includes `classification` and `audience` fields with defaults matching outline
+- DraftGenerator extracts classification/audience from outline and passes to sections
+- Prompt engineering updated with classification-specific guidance:
+  - guidance: "Provide helpful suggestions and recommendations"
+  - best-practice: "Present proven approaches and industry standards"
+  - mandate: "State required practices with clear authority"
+  - principle: "Explain fundamental concepts and reasoning"
+  - opinion: "Share personal perspectives backed by experience"
+- Audience-specific context added:
+  - ic-engineers, engineering-leaders, all-disciplines, qa-engineers, product-managers
+- Draft.to_markdown() now displays classification and audience in metadata comment
+
+**Quality Gates:**
+- ✅ All 355 tests passing (100% pass rate maintained)
+- ✅ Zero linting errors (black, ruff)
+- ✅ File sizes compliant (draft.py: 250 lines, draft_generator.py: 294 lines)
+- ✅ Feature complete - drafts now have parity with outlines
+
+**Commit:** e3e2dfb
+**Branch:** claude/phase-2-1-draft-classification
+
+
+**PR URL:** https://github.com/bordenet/bloginator/compare/main...claude/phase-2-1-draft-classification-011r6RivoGzbqxC2cSGVMceH
+
+Ready for review and merge.
+
