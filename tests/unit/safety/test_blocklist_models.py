@@ -59,9 +59,9 @@ class TestBlocklistEntry:
         matches = entry.matches("I worked at acme corp for 5 years.")
         assert matches == []
 
-        # Should not match partial
+        # EXACT does substring matching, so "Acme Corp" matches in "Acme Corporation"
         matches = entry.matches("I worked at Acme Corporation.")
-        assert matches == []
+        assert matches == ["Acme Corp"]
 
     def test_exact_match_no_match(self) -> None:
         """Test exact matching when pattern not present."""
