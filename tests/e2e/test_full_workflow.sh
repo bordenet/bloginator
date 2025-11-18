@@ -6,6 +6,10 @@
 
 set -e  # Exit on any error
 
+# Configure mock LLM for testing
+export LLM_PROVIDER=mock
+export LLM_MODEL=mock-model
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
