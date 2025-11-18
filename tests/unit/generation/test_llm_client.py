@@ -107,7 +107,8 @@ class TestOllamaClient:
         )
 
         call_kwargs = mock_post.call_args.kwargs
-        assert call_kwargs["json"]["system"] == "System instructions"
+        # System prompt is concatenated with user prompt
+        assert call_kwargs["json"]["prompt"] == "System instructions\n\nUser prompt"
 
     @patch("requests.post")
     def test_generate_with_options(self, mock_post):
