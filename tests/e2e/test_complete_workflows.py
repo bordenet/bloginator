@@ -53,7 +53,7 @@ class TestCompleteWorkflows:
                 word_count=doc_data["word_count"],
             )
 
-            paragraphs = chunk_text_by_paragraphs(doc_data["text"])
+            paragraphs = chunk_text_by_paragraphs(doc_data["text"], "test_doc")
             chunks = [
                 Chunk(
                     id=f"user_doc_{i}_chunk_{j}",
@@ -246,7 +246,7 @@ class TestCompleteWorkflows:
                 char_start=0,
                 char_end=len(p),
             )
-            for i, p in enumerate(chunk_text_by_paragraphs(text1))
+            for i, p in enumerate(chunk_text_by_paragraphs(text1, "test_doc"))
             if p.strip()
         ]
 
@@ -280,7 +280,7 @@ class TestCompleteWorkflows:
                 char_start=0,
                 char_end=len(p),
             )
-            for i, p in enumerate(chunk_text_by_paragraphs(text2))
+            for i, p in enumerate(chunk_text_by_paragraphs(text2, "test_doc"))
             if p.strip()
         ]
 

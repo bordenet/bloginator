@@ -1,9 +1,9 @@
 """Corpus management page for Bloginator Streamlit UI."""
 
-import streamlit as st
-from pathlib import Path
 import subprocess
-import tempfile
+from pathlib import Path
+
+import streamlit as st
 import yaml
 
 
@@ -66,7 +66,7 @@ def show_extraction_tab():
         return
 
     # Load and display corpus config
-    with open(corpus_config) as f:
+    with corpus_config.open() as f:
         config = yaml.safe_load(f)
 
     st.success(f"✓ Loaded configuration from {corpus_config}")
@@ -282,9 +282,7 @@ def show_status_tab():
         # Show recent extractions
         if json_files:
             st.subheader("Recent Extractions")
-            recent_files = sorted(json_files, key=lambda p: p.stat().st_mtime, reverse=True)[
-                :10
-            ]
+            recent_files = sorted(json_files, key=lambda p: p.stat().st_mtime, reverse=True)[:10]
 
             for json_file in recent_files:
                 with st.expander(f"📄 {json_file.stem}"):
@@ -293,7 +291,7 @@ def show_status_tab():
 
                         metadata = json.loads(json_file.read_text())
                         st.json(metadata)
-                    except:
+                    except (json.JSONDecodeError, FileNotFoundError, OSError):
                         st.error("Could not read metadata")
     else:
         st.info("No extracted files yet")
@@ -323,7 +321,9 @@ def show_status_tab():
 
                 st.subheader("Index Details")
                 st.text(f"Path: {index_dir}")
-                st.text(f"Size: {sum(f.stat().st_size for f in index_dir.rglob('*') if f.is_file()) / 1024 / 1024:.1f} MB")
+                st.text(
+                    f"Size: {sum(f.stat().st_size for f in index_dir.rglob('*') if f.is_file()) / 1024 / 1024:.1f} MB"
+                )
             else:
                 st.warning("Index directory exists but no collections found")
 

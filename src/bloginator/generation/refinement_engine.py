@@ -54,8 +54,6 @@ class RefinementEngine:
         self.draft_generator = DraftGenerator(
             llm_client=llm_client,
             searcher=searcher,
-            voice_scorer=voice_scorer,
-            safety_validator=safety_validator,
         )
 
     def parse_feedback(self, draft: Draft, feedback: str) -> dict[str, any]:

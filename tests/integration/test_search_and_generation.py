@@ -41,7 +41,7 @@ class TestSearchAndGenerationWorkflow:
                 word_count=len(text.split()),
             )
 
-            paragraphs = chunk_text_by_paragraphs(text)
+            paragraphs = chunk_text_by_paragraphs(text, "test_doc")
             chunks = [
                 Chunk(
                     id=f"{document.id}_chunk_{i}",
@@ -105,7 +105,7 @@ class TestSearchAndGenerationWorkflow:
             format="md",
             created_date=datetime(2020, 1, 1),
             modified_date=datetime(2020, 1, 1),
-            quality_rating=QualityRating.STANDARD,
+            quality_rating=QualityRating.REFERENCE,
             tags=[],
             word_count=50,
         )
@@ -256,7 +256,7 @@ class TestSearchAndGenerationWorkflow:
             format="md",
             created_date=datetime(2023, 1, 1),
             modified_date=datetime(2023, 1, 1),
-            quality_rating=QualityRating.STANDARD,
+            quality_rating=QualityRating.REFERENCE,
             tags=["technical", "architecture"],
             word_count=100,
         )

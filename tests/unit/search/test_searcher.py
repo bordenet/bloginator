@@ -57,7 +57,7 @@ class TestCorpusSearcher:
             source_path=Path("/test/doc2.md"),
             format="markdown",
             created_date=now - timedelta(days=730),  # 2 years old
-            quality_rating=QualityRating.STANDARD,
+            quality_rating=QualityRating.REFERENCE,
             tags=["agile"],
         )
         chunks2 = [

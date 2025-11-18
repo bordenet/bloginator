@@ -456,6 +456,27 @@ OLLAMA_MODEL=llama3:8b bloginator outline "test topic"
 - **Performance** - Prioritize performance and maintainability
 - **Best Tool** - Use best language for the job
 
+**Project Resumability (CRITICAL):**
+- **Execute Through Completion** - Work through all remaining project phases autonomously
+- **Zero Tolerance** - Maintain zero test errors, zero linting errors, zero important warnings
+- **Continuous Commits** - Commit frequently with clear, descriptive messages
+- **Share Progress** - Share PR URLs periodically to track progress
+- **Update Documentation** - Keep PROJECT_PLAN.md and CLAUDE.md continuously updated
+- **Resumable at Any Moment** - Project must be easily resumable from elsewhere at any time
+- **Quality Gates** - Build, test, lint, fix after every significant change
+- **400-Line Rule** - Refactor periodically to keep all files under 400 lines
+
+**Workflow Pattern:**
+1. Work on feature/fix
+2. Run black + ruff to fix formatting and linting
+3. Run tests to ensure no regressions
+4. Update PROJECT_PLAN.md with status
+5. Commit with descriptive message
+6. Push and create PR periodically
+7. Repeat
+
+This ensures that if the session ends or work is picked up by another Claude session, the project state is always clear, complete, and ready to continue.
+
 ## Current Project State (Session 2025-11-17)
 
 ### Corpus Configuration - COMPLETE ✅
