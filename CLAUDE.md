@@ -2,6 +2,26 @@
 
 This document contains important context for AI assistants (Claude) working on the Bloginator project.
 
+## CRITICAL: Dual LLM Provider Support
+
+**Bloginator MUST support BOTH local and cloud LLM scenarios with equal priority:**
+
+1. **Local LLM (Ollama)** - Privacy-focused, offline, free
+   - Primary development/testing model: `mixtral:8x7b`
+   - Alternative: `llama3:8b`
+   - Server: `http://192.168.5.53:11434` (or localhost)
+
+2. **Cloud LLM (OpenAI/Anthropic)** - Production quality, API-based
+   - OpenAI: GPT-4, GPT-3.5-turbo
+   - Anthropic: Claude 3 (Opus, Sonnet, Haiku)
+   - Custom OpenAI-compatible endpoints
+
+**Testing Requirements:**
+- ALL test mocks must support BOTH Ollama and OpenAI response formats
+- Test LLM mocking should use Claude AI (Sonnet 4.5) to generate realistic responses
+- Never assume only one provider - code must be provider-agnostic
+- Factory pattern (`create_llm_client()`) ensures seamless provider switching
+
 ## Local Development Environment
 
 ### LLM Models Available for Testing
