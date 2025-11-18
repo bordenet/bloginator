@@ -48,9 +48,12 @@ This plan covers complete implementation of all remaining features, comprehensiv
 - ✅ `src/bloginator/generation/llm_client.py` (456 lines → 68 lines)
   - Split into: `llm_client.py` (68), `llm_base.py` (134), `llm_ollama.py` (167), `llm_custom.py` (165)
   - Committed: refactor: Split llm_client.py into modular LLM provider components
+- ✅ `src/bloginator/ui/pages/generate.py` (453 lines → 53 lines)
+  - Split into: `generate.py` (53), `generate_ui_utils.py` (127), `generate_outline_ui.py` (228), `generate_draft_ui.py` (158)
+  - Committed: refactor: Split generate.py UI into modular Streamlit components
 
 **In Progress:**
-- ⏳ `src/bloginator/web/pages/generate.py` (453 lines) - Streamlit UI needs modularization
+- 🔲 None currently
 
 **Pending:**
 - 🔲 `run-e2e.sh` (711 lines) - Bash script needs modularization into smaller scripts
