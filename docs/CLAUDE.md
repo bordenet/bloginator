@@ -456,7 +456,7 @@ OLLAMA_MODEL=llama3:8b bloginator outline "test topic"
 - **Performance** - Prioritize performance and maintainability
 - **Best Tool** - Use best language for the job
 
-## Current Project State (Session 2025-11-16/17)
+## Current Project State (Session 2025-11-17)
 
 ### Corpus Configuration - COMPLETE ✅
 
@@ -488,17 +488,40 @@ OLLAMA_MODEL=llama3:8b bloginator outline "test topic"
    - Notes: Video streaming and live delivery expertise
 
 **Extraction Status:**
-- ✅ **534 documents extracted** (7 failures - temp files `~$*.docx` and corrupted PDFs)
+- ✅ **534 documents extracted** (193 PDFs, 155 DOCX, 112 MD, 74 TXT)
 - ✅ **11,021 searchable chunks** indexed into ChromaDB
 - ✅ Collection: `bloginator_corpus` at `.bloginator/chroma/`
 - ✅ Search verified working across all sources
+- ✅ **Rich error tracking** - Categorized errors with actionable advice (PR #24)
 
-**Recent Enhancement (PR #22):**
+**Supported File Types:**
+- **PDF** (`.pdf`) - PyMuPDF extraction - 193 files in corpus
+- **Word** (`.docx`, `.doc`) - python-docx extraction - 155 files
+- **Markdown** (`.md`, `.markdown`) - YAML frontmatter stripping - 112 files
+- **Plain Text** (`.txt`, `.text`) - Direct read - 74 files
+
+**Recent Enhancements:**
+
+**PR #24 (2025-11-17) - Error Tracking & Streamlit UI:**
+- ✅ **Rich error reporting** - ErrorTracker with 9 error categories
+  - Categorizes: corrupted files, permissions, encoding, unsupported formats
+  - Actionable advice for each error category
+  - Beautiful Rich console output with error summaries
+- ✅ **Streamlit Web UI** - Full-featured web interface
+  - Home dashboard with corpus overview
+  - Corpus management (upload, extract, index)
+  - Search interface with filters
+  - Outline & draft generation
+  - Analytics and visualizations
+  - Launch with: `./run-streamlit.sh`
+- ✅ **Enhanced E2E testing** - New `run-e2e.sh` with arguments
+- ✅ **Classification & Audience metadata** - Content targeting fields
+
+**PR #22 (2025-11-16):**
 - ✅ **Restartable extraction** - Skip already-extracted files (checks mtime)
 - ✅ `--force` flag to bypass skip logic
 - ✅ Auto-skip temp files (`~$*.docx`, `~$*.xlsx`)
 - ✅ Progress shows: extracted / skipped / failed counts
-- Second runs are now instant if no files changed
 
 ### Local Environment Setup
 
@@ -522,18 +545,80 @@ BLOGINATOR_CHROMA_DIR=.bloginator/chroma
 ```bash
 # Extract only new/changed files (instant if nothing changed)
 bloginator extract -o output/extracted --config corpus/corpus.yaml
+# Now shows rich error summaries with actionable advice
 
 # Index new extractions
 bloginator index output/extracted -o .bloginator/chroma
+# Categorizes errors (missing files, corrupted data, etc.)
 
 # Search across all sources
 bloginator search .bloginator/chroma "kubernetes devops" -n 10
+```
+
+**Streamlit Web UI (NEW):**
+```bash
+# Launch full-featured web interface
+./run-streamlit.sh
+# Opens at http://localhost:8501
+
+# Features:
+# - Corpus overview dashboard
+# - Upload and extract documents
+# - Interactive search
+# - Outline and draft generation
+# - Analytics visualizations
+```
+
+**End-to-End Generation:**
+```bash
+# CLI with custom parameters
+./run-e2e.sh --title "Building DevOps Culture" \
+  --keywords "devops,kubernetes,automation" \
+  --thesis "Culture beats tools"
+
+# Or use defaults (from script)
+./run-e2e.sh
 ```
 
 **Example Search Results:**
 - Finding iStreamPlanet white papers on live video streaming
 - Finding TL materials on Kubernetes/DevOps
 - Quality-weighted results (preferred sources ranked higher)
+
+### Error Tracking & Reporting (NEW in PR #24)
+
+**Rich Error Categories with Actionable Advice:**
+
+The system now automatically categorizes errors and provides specific guidance:
+
+| Error Category | Examples | Actionable Advice |
+|----------------|----------|-------------------|
+| **Corrupted File** | Password-protected PDFs, damaged files | Try opening in native app; remove/fix corrupted files |
+| **Permission Denied** | Protected documents, restricted folders | Check with `ls -la`; adjust permissions or ownership |
+| **Unsupported Format** | `.rtf`, `.odt`, `.html` files | Convert to PDF/DOCX/MD/TXT or skip |
+| **Encoding Error** | Non-UTF-8 text files | Convert with `iconv -f ISO-8859-1 -t UTF-8` |
+| **File Not Found** | Missing text files during indexing | Verify extraction completed for all documents |
+| **Config Error** | Invalid corpus.yaml syntax | Use YAML validator; check paths and settings |
+
+**Example Error Output:**
+```
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Error Summary                         ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+3 Error(s) Encountered
+┌──────────────────┬───────┬────────────────────┐
+│ Category         │ Count │ Examples           │
+├──────────────────┼───────┼────────────────────┤
+│ Corrupted File   │ 2     │ protected.pdf...   │
+│ Permission Denied│ 1     │ private.docx       │
+└──────────────────┴───────┴────────────────────┘
+
+Actionable Advice:
+● Corrupted File:
+  The file may be corrupted or password-protected.
+  Try opening it in the native application to verify.
+```
 
 ### Known Issues & Workarounds
 
@@ -644,24 +729,38 @@ $ git commit -m "Add feature"  # ✅ Now it passes
 
 **Remember: Pre-commit hooks are your friends, not obstacles!**
 
-### Next Session Recommendations
+### Next Session Quick Start
 
-1. **Test Generation Features**
-   ```bash
-   # Generate outline from corpus
-   bloginator outline "Building a DevOps culture"
+**Option 1: Streamlit Web UI (Easiest)**
+```bash
+cd ~/GitHub/Personal/bloginator
+./run-streamlit.sh
+# Opens at http://localhost:8501
+# Use the web interface for all operations
+```
 
-   # Generate full draft
-   bloginator draft "Best practices for live video streaming"
-   ```
+**Option 2: CLI Workflow**
+```bash
+cd ~/GitHub/Personal/bloginator
+source .venv/bin/activate
 
-2. **Voice Calibration**
-   - Compare outputs with different source weights
-   - Test quality filtering: `--quality-filter preferred`
+# Extract any new/changed documents
+bloginator extract -o output/extracted --config corpus/corpus.yaml
 
-3. **Production Workflow**
-   - Set up automated corpus refresh (cron job?)
-   - Document voice preservation best practices
+# Update index
+bloginator index output/extracted -o .bloginator/chroma
+
+# Generate content
+./run-e2e.sh --title "Your Title" --keywords "key1,key2" --thesis "Your thesis"
+```
+
+**Option 3: Test Error Reporting**
+```bash
+# Intentionally try to extract unsupported file to see error categorization
+touch /tmp/test.rtf
+bloginator extract /tmp/test.rtf -o output/test --quality reference
+# Should show "Unsupported Format" error with actionable advice
+```
 
 ### File Locations Reference
 
@@ -669,6 +768,18 @@ $ git commit -m "Add feature"  # ✅ Now it passes
 - Environment: `../.env` (local only, gitignored)
 - Extracted docs: `../output/extracted/` (gitignored)
 - Vector index: `../.bloginator/chroma/` (gitignored)
-- Context docs: `docs/CLAUDE.md` (this file), `../corpus/README.md`
+- Error reporting: `../src/bloginator/cli/error_reporting.py` (NEW)
+- Streamlit UI: `../src/bloginator/ui/` (NEW)
+- Launch scripts: `../run-streamlit.sh`, `../run-e2e.sh` (NEW)
+- Context docs: `docs/CLAUDE.md` (this file), `../corpus/README.md`, `docs/SESSION_HANDOFF.md`
 
-Last Updated: 2025-11-17 (Session 2, VS Code Claude)
+### Key Files Added in PR #24
+
+- `src/bloginator/cli/error_reporting.py` - Error categorization and reporting
+- `src/bloginator/ui/app.py` - Streamlit main app
+- `src/bloginator/ui/pages/*.py` - UI pages (home, corpus, search, generate, analytics, settings)
+- `run-streamlit.sh` - Launch Streamlit UI
+- `run-e2e.sh` - Enhanced E2E testing with arguments
+- `src/bloginator/models/document.py` - Enhanced with Classification and Audience fields
+
+Last Updated: 2025-11-17 (Session 3, VS Code Claude - Error Tracking & Streamlit UI)
