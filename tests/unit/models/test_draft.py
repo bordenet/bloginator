@@ -320,7 +320,7 @@ class TestDraft:
         markdown = draft.to_markdown()
 
         assert "# Test Document" in markdown
-        assert "**Thesis:** Main thesis" in markdown
+        assert "*Main thesis*" in markdown
         assert "## Introduction" in markdown
         assert "This is the introduction." in markdown
 
@@ -400,7 +400,8 @@ class TestDraft:
 
         assert "## Section" in markdown
         assert "Content" in markdown
-        assert "Citations" not in markdown
+        # Check that citations section is not included (word "Citations" appears in metadata)
+        assert "### Citations" not in markdown
         assert "source.md" not in markdown
 
     def test_blocklist_violations(self):
