@@ -410,11 +410,11 @@ OLLAMA_MODEL=llama3:8b bloginator outline "test topic"
 
 ## References
 
-- Main Documentation: `README.md`
-- Custom LLM Guide: `CUSTOM_LLM_GUIDE.md`
-- Environment Template: `.env.example`
-- Corpus Setup: `corpus/README.md`
-- Corpus Config Example: `corpus.yaml.example`
+- Main Documentation: `../README.md`
+- Custom LLM Guide: `CUSTOM_LLM_GUIDE.md` (this directory)
+- Environment Template: `../.env.example`
+- Corpus Setup: `../corpus/README.md`
+- Corpus Config Example: `../corpus.yaml.example`
 
 ## Notes for Future Claude Sessions
 
@@ -665,10 +665,10 @@ $ git commit -m "Add feature"  # ✅ Now it passes
 
 ### File Locations Reference
 
-- Corpus config: `corpus/corpus.yaml` (user-specific, committed to git)
-- Environment: `.env` (local only, gitignored)
-- Extracted docs: `output/extracted/` (gitignored)
-- Vector index: `.bloginator/chroma/` (gitignored)
-- Context docs: `CLAUDE.md` (this file), `corpus/README.md`
+- Corpus config: `../corpus/corpus.yaml` (user-specific, committed to git)
+- Environment: `../.env` (local only, gitignored)
+- Extracted docs: `../output/extracted/` (gitignored)
+- Vector index: `../.bloginator/chroma/` (gitignored)
+- Context docs: `docs/CLAUDE.md` (this file), `../corpus/README.md`
 
 Last Updated: 2025-11-17 (Session 2, VS Code Claude)
