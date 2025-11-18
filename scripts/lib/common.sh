@@ -337,7 +337,7 @@ confirm() {
     local default=${2:-n}
 
     if [[ "${AUTO_CONFIRM:-false}" == "true" ]]; then
-        log_info "$prompt [auto-confirmed]"
+        [[ "${VERBOSE:-false}" == "true" ]] && log_info "$prompt [auto-confirmed]"
         return 0
     fi
 
