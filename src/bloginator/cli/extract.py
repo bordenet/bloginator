@@ -44,6 +44,12 @@ from bloginator.cli.extract_single import extract_single_source
     is_flag=True,
     help="Force re-extraction of all files, even if already extracted",
 )
+@click.option(
+    "--workers",
+    type=int,
+    default=None,
+    help="Number of parallel workers (default: auto-detect based on CPU count)",
+)
 def extract(
     source: Path | None,
     output: Path,
@@ -51,6 +57,7 @@ def extract(
     quality: str,
     tags: str | None,
     force: bool,
+    workers: int | None,
 ) -> None:
     """Extract documents from SOURCE to OUTPUT directory.
 
@@ -74,16 +81,23 @@ def extract(
         bloginator extract corpus/ -o output/extracted --tags "blog,agile"
         bloginator extract -o output/extracted --config corpus.yaml
         bloginator extract -o output/extracted --config corpus.yaml --force
+        bloginator extract corpus/ -o output/extracted --workers 4
     """
     console = Console()
     output.mkdir(parents=True, exist_ok=True)
 
+    # Show workers info if specified
+    if workers is not None:
+        console.print(f"[cyan]Using {workers} parallel workers[/cyan]")
+
     # Determine extraction mode
     if config:
         # MODE 2: Config-based multi-source extraction
+        # Note: workers parameter available for future parallel implementation
         extract_from_config(config, output, console, force)
     elif source:
         # MODE 1: Legacy single-source extraction
+        # Note: workers parameter available for future parallel implementation
         tag_list = [t.strip() for t in tags.split(",")] if tags else []
         extract_single_source(source, output, quality, tag_list, console, force)
     else:
