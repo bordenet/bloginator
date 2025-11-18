@@ -50,6 +50,42 @@ class CorpusIndexer:
         # Initialize embedding model
         self.embedding_model = SentenceTransformer(embedding_model_name)
 
+    def get_document_checksum(self, document_id: str) -> str | None:
+        """Get the content checksum for an indexed document.
+
+        Args:
+            document_id: ID of document to check
+
+        Returns:
+            Content checksum if document exists in index, None otherwise
+        """
+        results = self.collection.get(
+            where={"document_id": document_id}, limit=1, include=["metadatas"]
+        )
+
+        if results and results["metadatas"]:
+            return results["metadatas"][0].get("content_checksum")
+
+        return None
+
+    def document_needs_reindexing(self, document: Document) -> bool:
+        """Check if document needs to be reindexed based on checksum.
+
+        Args:
+            document: Document to check
+
+        Returns:
+            True if document needs reindexing (new or content changed)
+        """
+        if not document.content_checksum:
+            # No checksum, reindex to be safe
+            return True
+
+        existing_checksum = self.get_document_checksum(document.id)
+
+        # New document or checksum changed
+        return existing_checksum is None or existing_checksum != document.content_checksum
+
     def index_document(self, document: Document, chunks: list[Chunk]) -> None:
         """Add document chunks to vector store with metadata.
 
@@ -90,6 +126,10 @@ class CorpusIndexer:
                 metadata["created_date"] = document.created_date.isoformat()
             if document.modified_date:
                 metadata["modified_date"] = document.modified_date.isoformat()
+
+            # Add content checksum for incremental indexing
+            if document.content_checksum:
+                metadata["content_checksum"] = document.content_checksum
 
             metadatas.append(metadata)
 
