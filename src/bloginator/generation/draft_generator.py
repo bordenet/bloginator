@@ -64,6 +64,8 @@ class DraftGenerator:
             draft_section = self._generate_section(
                 outline_section=outline_section,
                 keywords=outline.keywords,
+                classification=outline.classification,
+                audience=outline.audience,
                 temperature=temperature,
                 max_words=max_section_words,
             )
@@ -73,6 +75,8 @@ class DraftGenerator:
         draft = Draft(
             title=outline.title,
             thesis=outline.thesis,
+            classification=outline.classification,
+            audience=outline.audience,
             keywords=outline.keywords,
             sections=sections,
         )
@@ -86,6 +90,8 @@ class DraftGenerator:
         self,
         outline_section: OutlineSection,
         keywords: list[str],
+        classification: str = "guidance",
+        audience: str = "all-disciplines",
         temperature: float = 0.7,
         max_words: int = 300,
     ) -> DraftSection:
@@ -94,6 +100,8 @@ class DraftGenerator:
         Args:
             outline_section: Section from outline
             keywords: Document keywords for context
+            classification: Content classification for tone
+            audience: Target audience
             temperature: LLM temperature
             max_words: Target word count
 
@@ -111,9 +119,28 @@ class DraftGenerator:
         # Build context from search results
         source_context = self._build_source_context(search_results)
 
+        # Build classification and audience context
+        classification_guidance = {
+            "guidance": "Provide helpful suggestions and recommendations",
+            "best-practice": "Present proven approaches and industry standards",
+            "mandate": "State required practices with clear authority",
+            "principle": "Explain fundamental concepts and reasoning",
+            "opinion": "Share personal perspectives backed by experience",
+        }.get(classification, "Provide helpful guidance")
+
+        audience_context = {
+            "ic-engineers": "individual contributor engineers",
+            "engineering-leaders": "engineering leaders and managers",
+            "all-disciplines": "professionals across all disciplines",
+            "qa-engineers": "quality assurance and testing engineers",
+            "product-managers": "product managers and stakeholders",
+        }.get(audience, "general professional audience")
+
         # Generate content with LLM
-        system_prompt = """You are a skilled technical writer creating authentic content.
+        system_prompt = f"""You are a skilled technical writer creating authentic content.
 Write in a clear, professional voice based ONLY on the provided source material.
+{classification_guidance}.
+Write for {audience_context}.
 Do not invent facts or examples not present in the sources.
 Write naturally without explicitly citing sources in the text."""
 
@@ -154,6 +181,8 @@ Focus on the key insights and examples from the sources."""
             draft_subsection = self._generate_section(
                 outline_subsection,
                 keywords,
+                classification,
+                audience,
                 temperature,
                 max_words // 2,  # Subsections get less content
             )
