@@ -41,7 +41,8 @@ class SearchResult:
         self.content = content
         self.metadata = metadata
         self.distance = distance
-        self.similarity_score = 1.0 - distance
+        # Clamp similarity to [0.0, 1.0] to handle edge cases where distance > 1.0
+        self.similarity_score = max(0.0, min(1.0, 1.0 - distance))
 
         # Initialize scoring attributes
         self.recency_score: float = 0.5
