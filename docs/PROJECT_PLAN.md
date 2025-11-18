@@ -1364,3 +1364,93 @@ Created comprehensive export system supporting 5 formats: Markdown, PDF, DOCX, H
 
 **Next Steps:** Ready for testing, PR, and merge.
 
+## Phase 2.4: Generation History Tracking - COMPLETE (2025-11-18)
+
+**Status:** ✅ COMPLETE
+**Branch:** `claude/phase-2-4-generation-history-011r6RivoGzbqxC2cSGVMceH`
+
+### Implementation Summary
+
+Created comprehensive generation history tracking system with CLI commands, service layer, and Streamlit UI integration.
+
+**Core Components:**
+
+1. **Data Models** (`src/bloginator/models/history.py` - 146 lines)
+   - GenerationType enum (OUTLINE, DRAFT)
+   - GenerationHistoryEntry: Complete metadata for each generation
+   - GenerationHistory: Collection with filtering/querying methods
+
+2. **Service Layer** (`src/bloginator/services/history_manager.py` - 165 lines)
+   - JSON-based persistence to `~/.bloginator/history/`
+   - CRUD operations (save, load, delete, clear)
+   - Advanced querying (filter by type, classification, audience, limit)
+   - Index file for fast access
+
+3. **CLI Commands** (`src/bloginator/cli/history.py` - 231 lines)
+   - `history list`: Display entries with filters and table view
+   - `history show <id>`: Show detailed entry information
+   - `history delete <id>`: Remove specific entry
+   - `history clear`: Clear all history
+   - `history export <id>`: Export entry metadata
+
+4. **Streamlit UI** (`src/bloginator/ui/pages/history.py` - 315 lines)
+   - Summary metrics dashboard (total, outlines, drafts, last generation)
+   - Interactive filters (type, classification, audience, limit)
+   - Expandable entry cards with full details
+   - View file content inline
+   - Re-export in different formats (PDF, DOCX, HTML, etc.)
+   - Delete entries with confirmation
+
+**Integration Points:**
+
+- **CLI outline command** (`src/bloginator/cli/outline.py`)
+  - Auto-saves history entry after successful generation
+  - Captures: keywords, thesis, sections, coverage stats, sources
+
+- **CLI draft command** (`src/bloginator/cli/draft.py`)
+  - Auto-saves history entry after successful generation
+  - Captures: outline source, temperature, word count, citations, voice score
+
+- **Streamlit UI** (`src/bloginator/ui/app.py`)
+  - Added History page to navigation
+  - History automatically tracked via CLI calls
+
+**Storage Format:**
+
+```
+~/.bloginator/history/
+├── index.json              # Fast lookup index
+└── <uuid>.json            # Individual entry files
+```
+
+Each entry contains:
+- Generation type (outline/draft)
+- Title, classification, audience
+- Input parameters (keywords, thesis, settings)
+- Output path and format
+- Quality metrics (coverage, voice score, citations, violations)
+- Timestamp and unique ID
+
+**Quality Gates:**
+- ✅ All files under 400 lines (largest: history.py at 315)
+- ✅ Zero linting errors (ruff)
+- ✅ Proper type hints throughout
+- ✅ Graceful error handling (history save failures don't break generation)
+- ✅ Factory pattern for extensibility
+
+**User Benefits:**
+- Track all generations chronologically
+- Filter and search past work
+- Re-export previous generations in different formats
+- Review what parameters produced good results
+- Analyze patterns and improvements over time
+
+**Commit:** 5c75596
+**Files Changed:** 8 files, 990 insertions(+)
+- 4 new files (history.py models/services/cli/ui)
+- 4 modified files (main.py, outline.py, draft.py, app.py)
+
+**PR URL:** https://github.com/bordenet/bloginator/pull/new/claude/phase-2-4-generation-history-011r6RivoGzbqxC2cSGVMceH
+
+**Next Steps:** Ready for review, testing, and merge.
+
