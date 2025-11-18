@@ -56,7 +56,8 @@ Content here.
         metadata = extract_yaml_frontmatter(content)
 
         assert metadata["title"] == "My Blog Post"
-        assert metadata["date"] == "2020-01-15"
+        # YAML parser converts date strings to date objects
+        assert metadata["date"] == datetime(2020, 1, 15).date()
         assert metadata["tags"] == ["agile", "culture"]
 
     def test_extract_yaml_frontmatter_no_frontmatter(self) -> None:
