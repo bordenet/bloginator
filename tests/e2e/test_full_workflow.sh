@@ -6,6 +6,10 @@
 
 set -e  # Exit on any error
 
+# Configure mock LLM for testing
+export BLOGINATOR_LLM_PROVIDER=mock
+export BLOGINATOR_LLM_MODEL=mock-model
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
