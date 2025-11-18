@@ -9,5 +9,4 @@ This module handles:
 
 from bloginator.safety.blocklist import BlocklistManager
 
-
 __all__ = ["BlocklistManager"]

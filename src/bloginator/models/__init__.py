@@ -12,7 +12,6 @@ from bloginator.models.document import Chunk, Document, QualityRating
 from bloginator.models.draft import Citation, Draft, DraftSection
 from bloginator.models.outline import Outline, OutlineSection
 
-
 __all__ = [
     # Document models
     "Document",
