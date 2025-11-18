@@ -188,7 +188,7 @@ class TestSafetyValidator:
             id="test1",
             pattern="Secret",
             pattern_type=BlocklistPatternType.EXACT,
-            category=BlocklistCategory.PROJECT,
+            category=BlocklistCategory.PROJECT_CODENAME,
         )
         validator.blocklist_manager.add_entry(entry)
 

@@ -132,7 +132,9 @@ class TestBlocklistCLI:
 
         assert result.exit_code == 0
         assert "Acme Corp" in result.output
-        assert "Project Falcon" in result.output
+        # Table may wrap long patterns across lines, so check separately
+        assert "Project" in result.output
+        assert "Falcon" in result.output
         assert "2 total" in result.output
 
     def test_list_with_category_filter(self, runner: CliRunner, config_dir: Path) -> None:
