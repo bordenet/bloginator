@@ -18,6 +18,7 @@ from bloginator.generation.llm_base import (
 
 # Re-export client implementations
 from bloginator.generation.llm_custom import CustomLLMClient
+from bloginator.generation.llm_mock import MockLLMClient
 from bloginator.generation.llm_ollama import OllamaClient
 
 
@@ -48,6 +49,8 @@ def create_llm_client(
         return OllamaClient(model=model, **kwargs)
     elif provider == LLMProvider.CUSTOM:
         return CustomLLMClient(model=model, **kwargs)
+    elif provider == LLMProvider.MOCK:
+        return MockLLMClient(model=model, **kwargs)
     else:
         raise ValueError(f"Unsupported LLM provider: {provider}")
 
@@ -58,6 +61,7 @@ __all__ = [
     "LLMResponse",
     "OllamaClient",
     "CustomLLMClient",
+    "MockLLMClient",
     "create_llm_client",
     "print_llm_request",
     "print_llm_response",
