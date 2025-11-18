@@ -89,8 +89,11 @@ Refactored files:
 - [x] Fix all linting errors (black, ruff) - **ZERO errors remaining** ✅
 - [x] Add Project Resumability section to CLAUDE.md
 - [x] Push branch and create PR #30
-- [ ] Complete dependency installation (torch ~900MB downloading) - **IN PROGRESS**
-- [ ] Fix LLM client imports (blocks 11% of tests) - **NEXT**
+- [x] Complete dependency installation (torch, scipy, scikit-learn, all CUDA libs) - **COMPLETE** ✅
+- [x] Fix chunk_text_by_paragraphs signature (added document_id parameter) - **COMPLETE** ✅
+- [x] Fix OllamaClient system_prompt test (concatenation vs separate field) - **COMPLETE** ✅
+- [ ] Fix remaining **46 test failures** (from 51 initial) - **IN PROGRESS** 🔄
+- [ ] Fix remaining **41 test errors** - **PENDING**
 - [ ] Create Ollama + OpenAI mocks
 - [ ] Fix model validations
 - [ ] Fix integration tests
@@ -975,3 +978,31 @@ jobs:
 ---
 
 **End of Project Plan - Ready for Review**
+
+## Session Progress (2025-11-18)
+
+**Current Test Status:** 268/361 passed (74.2%), 46 failed, 41 errors, 6 skipped
+
+**Completed This Session:**
+- ✅ Fixed all linting errors (black, ruff) - zero errors remaining
+- ✅ Migrated 4 markdown docs (CUSTOM_LLM_GUIDE, PROJECT_PLAN, SESSION_HANDOFF, VERBOSE_LOGGING_PLAN) to docs/
+- ✅ Added comprehensive Project Resumability section to CLAUDE.md
+- ✅ Installed all dependencies (torch 900MB, scipy, scikit-learn, CUDA libs)
+- ✅ Fixed chunk_text_by_paragraphs() signature across all test files (+document_id parameter)
+- ✅ Fixed OllamaClient system_prompt test (concatenation behavior)
+- ✅ Merged changes from origin/main successfully
+- ✅ Created and pushed PR #30
+
+**Remaining Work:**
+- 46 test failures to fix (categories: LLM client, models, generation, search)
+- 41 test errors to resolve (mostly import/fixture issues)
+- Achieve 85%+ code coverage target
+- Complete all Phase 1 items from project plan
+
+**Next Steps:**
+1. Systematically fix remaining 46 test failures
+2. Resolve 41 test errors (likely fixture/mock issues)
+3. Run coverage report and fill gaps
+4. Final lint and format check
+5. Push final changes and update PR
+
