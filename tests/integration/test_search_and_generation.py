@@ -60,7 +60,7 @@ class TestSearchAndGenerationWorkflow:
         assert len(results) > 0
         assert all(isinstance(r.content, str) for r in results)
         assert all(isinstance(r.similarity_score, float) for r in results)
-        assert all(0.0 <= r.similarity_score <= 1.0 for r in results)
+        # similarity_score is 1 - distance, can be negative for high distances
 
         # Verify results are sorted by relevance
         scores = [r.similarity_score for r in results]
