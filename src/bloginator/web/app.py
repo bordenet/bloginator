@@ -9,7 +9,6 @@ from fastapi.templating import Jinja2Templates
 
 from bloginator import __version__
 
-
 logger = logging.getLogger(__name__)
 
 # Get the directory containing this file
