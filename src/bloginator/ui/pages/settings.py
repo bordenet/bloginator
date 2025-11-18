@@ -247,7 +247,7 @@ def show_about():
 
         - **User Guide**: `docs/USER_GUIDE.md`
         - **Developer Guide**: `docs/DEVELOPER_GUIDE.md`
-        - **Claude Guidelines**: `CLAUDE.md`
+        - **Claude Guidelines**: `docs/CLAUDE.md`
 
         ### Support
 
