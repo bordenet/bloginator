@@ -78,7 +78,7 @@ class OutlineGenerator:
             "best-practice": "This is a BEST PRACTICE - established patterns with proven value. Use language like 'should', 'recommended', 'proven approach'. Include evidence from experience.",
             "mandate": "This is a MANDATE - required standards or policies. Use language like 'must', 'required', 'shall'. Be clear about consequences of non-compliance.",
             "principle": "This is a PRINCIPLE - fundamental truth or value. Use language that explores 'why' and underlying philosophy. Focus on timeless concepts.",
-            "opinion": "This is a PERSONAL OPINION - subjective perspective. Use first-person language, acknowledge other viewpoints exist. Be authentic."
+            "opinion": "This is a PERSONAL OPINION - subjective perspective. Use first-person language, acknowledge other viewpoints exist. Be authentic.",
         }.get(classification, "This is guidance.")
 
         audience_context = {
@@ -91,7 +91,7 @@ class OutlineGenerator:
             "technical-leadership": "TARGET AUDIENCE: Technical Leads and Architects. Focus on technical strategy, architecture decisions, and technical vision.",
             "all-disciplines": "TARGET AUDIENCE: All Technical Roles. Use broadly accessible language, avoid role-specific jargon, include diverse examples.",
             "executives": "TARGET AUDIENCE: C-level and Senior Leadership. Focus on business impact, strategic value, ROI, and organizational outcomes.",
-            "general": "TARGET AUDIENCE: General/Non-Technical. Minimize jargon, explain technical concepts simply, use analogies."
+            "general": "TARGET AUDIENCE: General/Non-Technical. Minimize jargon, explain technical concepts simply, use analogies.",
         }.get(audience, "TARGET AUDIENCE: General technical audience.")
 
         # Build prompt for outline generation

@@ -1,8 +1,9 @@
 """Settings page for Bloginator Streamlit UI."""
 
-import streamlit as st
-from pathlib import Path
 import os
+from pathlib import Path
+
+import streamlit as st
 
 
 def show():
@@ -290,7 +291,7 @@ def show_about():
                 try:
                     version = pkg_resources.get_distribution(package).version
                     st.text(f"{package}: {version}")
-                except:
+                except pkg_resources.DistributionNotFound:
                     st.text(f"{package}: Not installed")
-        except:
+        except ImportError:
             st.text("Cannot determine package versions")

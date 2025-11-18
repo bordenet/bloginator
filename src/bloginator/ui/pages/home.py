@@ -1,7 +1,8 @@
 """Home page for Bloginator Streamlit UI."""
 
-import streamlit as st
 from pathlib import Path
+
+import streamlit as st
 
 
 def show():
@@ -35,17 +36,18 @@ def show():
             st.success("✓ Index Ready")
             try:
                 import chromadb
+
                 client = chromadb.PersistentClient(path=str(index_dir))
                 collections = client.list_collections()
                 if collections:
                     chunk_count = collections[0].count()
                     st.metric("Indexed Chunks", f"{chunk_count:,}")
-            except:
+            except Exception:
                 st.warning("Index exists but unreadable")
         else:
             st.info("ℹ No Index")
             st.caption("Run extraction and indexing")
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
 
     with col2:
         st.markdown('<div class="metric-card">', unsafe_allow_html=True)
@@ -59,13 +61,14 @@ def show():
         else:
             st.info("ℹ No Extractions")
             st.caption("Start with corpus extraction")
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
 
     with col3:
         st.markdown('<div class="metric-card">', unsafe_allow_html=True)
         # Check Ollama status
         try:
             import requests
+
             ollama_host = st.session_state.get("ollama_host", "http://localhost:11434")
             response = requests.get(f"{ollama_host}/api/tags", timeout=2)
             if response.status_code == 200:
@@ -73,10 +76,10 @@ def show():
                 st.caption(ollama_host)
             else:
                 st.warning("⚠ LLM Unreachable")
-        except:
+        except (requests.RequestException, OSError):
             st.warning("⚠ LLM Offline")
             st.caption("Start Ollama server")
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("---")
 
@@ -168,6 +171,4 @@ def show():
         st.caption("No activity yet. Start by extracting and indexing your corpus.")
 
     st.markdown("---")
-    st.caption(
-        "💡 Tip: Use the sidebar to navigate between different sections of the application."
-    )
+    st.caption("💡 Tip: Use the sidebar to navigate between different sections of the application.")
