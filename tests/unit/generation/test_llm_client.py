@@ -21,24 +21,26 @@ class TestLLMResponse:
         """Test creating an LLM response."""
         response = LLMResponse(
             content="Test response",
+            model="llama3",
             prompt_tokens=10,
             completion_tokens=20,
-            total_tokens=30,
         )
 
         assert response.content == "Test response"
+        assert response.model == "llama3"
         assert response.prompt_tokens == 10
         assert response.completion_tokens == 20
-        assert response.total_tokens == 30
+        assert response.total_tokens == 30  # Auto-calculated
 
     def test_response_defaults(self):
         """Test response with default token values."""
-        response = LLMResponse(content="Test")
+        response = LLMResponse(content="Test", model="llama3")
 
         assert response.content == "Test"
+        assert response.model == "llama3"
         assert response.prompt_tokens == 0
         assert response.completion_tokens == 0
-        assert response.total_tokens == 0
+        assert response.total_tokens == 0  # Auto-calculated
 
 
 class TestOllamaClient:

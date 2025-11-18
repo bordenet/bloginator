@@ -82,7 +82,11 @@ Refactored files:
 - [x] Phase 0: Code quality (400-line rule) - COMPLETE
 - [x] Install dependencies and run test suite
 - [x] Categorize all failures
-- [ ] Fix LLM client imports (blocks 11% of tests)
+- [x] Update docs: Emphasize BOTH local and cloud LLM support
+- [x] Fix LLMResponse constructor tests (model param, auto-calculated total_tokens)
+- [x] Fix OllamaClient token extraction (use actual API counts)
+- [x] Migrate markdown docs to ./docs/ directory
+- [ ] Fix LLM client imports (blocks 11% of tests) - NEXT
 - [ ] Create Ollama + OpenAI mocks
 - [ ] Fix model validations
 - [ ] Fix integration tests
