@@ -90,7 +90,8 @@ def show():
                     if recency_weight > 0:
                         cmd.extend(["--recency-weight", str(recency_weight)])
 
-                    result = subprocess.run(
+                    # nosec B603 - subprocess without shell=True is safe, cmd is controlled
+                    result = subprocess.run(  # nosec B603
                         cmd,
                         capture_output=True,
                         text=True,
