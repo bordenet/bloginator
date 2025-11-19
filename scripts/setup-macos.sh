@@ -259,8 +259,14 @@ install_python_dependencies() {
     else
         log_info_verbose "Installing bloginator[dev]..."
         if python -m pip install -e ".[dev]" > /dev/null 2>&1; then
-            touch "$dev_marker"
-            log_info_verbose "bloginator[dev] installed successfully"
+            # Verify critical packages are importable
+            log_info_verbose "Verifying package installation..."
+            if python -c "import bloginator, pytest, black, ruff, mypy, bandit" 2>/dev/null; then
+                touch "$dev_marker"
+                log_info_verbose "bloginator[dev] installed and verified"
+            else
+                die "Package installation succeeded but imports failed - installation may be corrupted"
+            fi
         else
             die "Failed to install bloginator[dev] dependencies"
         fi
@@ -272,8 +278,14 @@ install_python_dependencies() {
     else
         log_info_verbose "Installing Streamlit UI dependencies..."
         if python -m pip install streamlit requests pyyaml > /dev/null 2>&1; then
-            touch "$streamlit_marker"
-            log_info_verbose "Streamlit dependencies installed successfully"
+            # Verify Streamlit packages are importable
+            log_info_verbose "Verifying Streamlit installation..."
+            if python -c "import streamlit, requests, yaml" 2>/dev/null; then
+                touch "$streamlit_marker"
+                log_info_verbose "Streamlit dependencies installed and verified"
+            else
+                die "Streamlit installation succeeded but imports failed - installation may be corrupted"
+            fi
         else
             die "Failed to install Streamlit dependencies"
         fi
