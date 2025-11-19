@@ -50,41 +50,7 @@ AUTO_CONFIRM=false
 VERBOSE=false
 PYTHON_CMD=""
 
-# Timer variables
-SCRIPT_START_TIME=$(date +%s)
-TIMER_PID=""
-
-################################################################################
-# Timer Functions
-################################################################################
-
-update_timer() {
-    local start_time="$1"
-    while true; do
-        local cols elapsed hours minutes seconds timer_text timer_col
-        cols=$(tput cols 2>/dev/null || echo 80)
-        elapsed=$(($(date +%s) - start_time))
-        hours=$((elapsed / 3600))
-        minutes=$(((elapsed % 3600) / 60))
-        seconds=$((elapsed % 60))
-
-        printf -v timer_text "[%02d:%02d:%02d]" "$hours" "$minutes" "$seconds"
-        timer_col=$((cols - ${#timer_text}))
-
-        echo -ne "\033[s\033[1;${timer_col}H\033[33;40m${timer_text}\033[0m\033[u"
-        sleep 1
-    done
-}
-
-start_timer() {
-    update_timer "$SCRIPT_START_TIME" &
-    TIMER_PID=$!
-}
-
-stop_timer() {
-    [[ -n "$TIMER_PID" ]] && { kill "$TIMER_PID" 2>/dev/null || true; wait "$TIMER_PID" 2>/dev/null || true; }
-}
-
+# Setup timer cleanup on exit
 trap stop_timer EXIT
 
 ################################################################################
@@ -312,7 +278,6 @@ main() {
         echo "========================================"
         echo "  Bloginator macOS Setup"
         echo "========================================"
-        [[ "$AUTO_CONFIRM" == "true" ]] && echo "[INFO] Auto-confirm mode"
         echo ""
     fi
 

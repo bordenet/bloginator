@@ -63,6 +63,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=scripts/e2e-lib.sh
 source "$SCRIPT_DIR/scripts/e2e-lib.sh"
 
+# Setup timer cleanup on exit
+trap stop_timer EXIT
+
 ################################################################################
 # Script-Specific Configuration
 ################################################################################
@@ -180,7 +183,8 @@ done
 # Main Workflow
 ################################################################################
 
-START_TIME=$(date +%s)
+# Start timer
+start_timer
 
 # Handle restart flag
 if $RESTART; then
@@ -345,7 +349,7 @@ fi
 
 # Summary
 END_TIME=$(date +%s)
-ELAPSED=$((END_TIME - START_TIME))
+ELAPSED=$((END_TIME - SCRIPT_START_TIME))
 
 print_header "E2E Workflow Complete!"
 
