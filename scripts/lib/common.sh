@@ -27,6 +27,68 @@ readonly COLOR_BOLD='\033[1m'
 SCRIPT_START_TIME=$(date +%s)
 ERROR_COUNT=0
 WARNING_COUNT=0
+TIMER_PID=""
+
+#######################################
+# Timer Functions - Display running timer in top-right corner
+#######################################
+
+#######################################
+# Update timer display in top-right corner (yellow on black)
+# Globals:
+#   None
+# Arguments:
+#   $1 - Start time in seconds since epoch
+# Returns:
+#   Never returns (runs in infinite loop)
+#######################################
+update_timer() {
+    local start_time="$1"
+    while true; do
+        local cols elapsed hours minutes seconds timer_text timer_col
+        cols=$(tput cols 2>/dev/null || echo 80)
+        elapsed=$(($(date +%s) - start_time))
+        hours=$((elapsed / 3600))
+        minutes=$(((elapsed % 3600) / 60))
+        seconds=$((elapsed % 60))
+
+        printf -v timer_text "[%02d:%02d:%02d]" "$hours" "$minutes" "$seconds"
+        timer_col=$((cols - ${#timer_text}))
+
+        # Yellow text on black background (33;40) in top-right corner
+        echo -ne "\033[s\033[1;${timer_col}H\033[33;40m${timer_text}\033[0m\033[u"
+        sleep 1
+    done
+}
+
+#######################################
+# Start background timer display
+# Globals:
+#   SCRIPT_START_TIME
+#   TIMER_PID
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
+start_timer() {
+    update_timer "$SCRIPT_START_TIME" &
+    TIMER_PID=$!
+}
+
+#######################################
+# Stop background timer display
+# Globals:
+#   TIMER_PID
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
+stop_timer() {
+    [[ -n "$TIMER_PID" ]] && { kill "$TIMER_PID" 2>/dev/null || true; wait "$TIMER_PID" 2>/dev/null || true; }
+    TIMER_PID=""
+}
 
 #######################################
 # Initialize script with error handling
@@ -337,7 +399,7 @@ confirm() {
     local default=${2:-n}
 
     if [[ "${AUTO_CONFIRM:-false}" == "true" ]]; then
-        log_info "$prompt [auto-confirmed]"
+        [[ "${VERBOSE:-false}" == "true" ]] && log_info "$prompt [auto-confirmed]"
         return 0
     fi
 
