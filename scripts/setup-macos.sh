@@ -249,45 +249,25 @@ install_python_dependencies() {
     # shellcheck disable=SC1091
     source "$VENV_DIR/bin/activate"
 
-    # Marker files to track installation state (enables resumability)
-    local dev_marker="${VENV_DIR}/.bloginator-dev-installed"
-    local streamlit_marker="${VENV_DIR}/.streamlit-deps-installed"
+    # Marker file to track installation state (enables resumability)
+    local all_marker="${VENV_DIR}/.bloginator-all-installed"
 
-    # Install bloginator[dev] if not already done
-    if [[ -f "$dev_marker" ]]; then
-        log_info_verbose "bloginator[dev] already installed (skipping)"
+    # Install bloginator[all] if not already done (includes dev, web, and all optional deps)
+    if [[ -f "$all_marker" ]]; then
+        log_info_verbose "bloginator[all] already installed (skipping)"
     else
-        log_info_verbose "Installing bloginator[dev]..."
-        if python -m pip install -e ".[dev]" > /dev/null 2>&1; then
+        log_info_verbose "Installing bloginator[all]..."
+        if python -m pip install -e ".[all]" > /dev/null 2>&1; then
             # Verify critical packages are importable
             log_info_verbose "Verifying package installation..."
-            if python -c "import bloginator, pytest, black, ruff, mypy, bandit" 2>/dev/null; then
-                touch "$dev_marker"
-                log_info_verbose "bloginator[dev] installed and verified"
+            if python -c "import bloginator, pytest, black, ruff, mypy, bandit, streamlit" 2>/dev/null; then
+                touch "$all_marker"
+                log_info_verbose "bloginator[all] installed and verified"
             else
                 die "Package installation succeeded but imports failed - installation may be corrupted"
             fi
         else
-            die "Failed to install bloginator[dev] dependencies"
-        fi
-    fi
-
-    # Install Streamlit dependencies if not already done
-    if [[ -f "$streamlit_marker" ]]; then
-        log_info_verbose "Streamlit dependencies already installed (skipping)"
-    else
-        log_info_verbose "Installing Streamlit UI dependencies..."
-        if python -m pip install streamlit requests pyyaml > /dev/null 2>&1; then
-            # Verify Streamlit packages are importable
-            log_info_verbose "Verifying Streamlit installation..."
-            if python -c "import streamlit, requests, yaml" 2>/dev/null; then
-                touch "$streamlit_marker"
-                log_info_verbose "Streamlit dependencies installed and verified"
-            else
-                die "Streamlit installation succeeded but imports failed - installation may be corrupted"
-            fi
-        else
-            die "Failed to install Streamlit dependencies"
+            die "Failed to install bloginator[all] dependencies"
         fi
     fi
 
