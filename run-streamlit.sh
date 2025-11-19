@@ -114,10 +114,10 @@ if ! command -v streamlit &> /dev/null; then
     echo -e "${RED}✗ Streamlit not found${NC}"
     echo ""
     echo "Install it with:"
-    echo "  pip install streamlit"
+    echo "  pip install -e '.[web]'"
     echo ""
     echo "Or install all dependencies:"
-    echo "  pip install -e '.[dev]'"
+    echo "  pip install -e '.[all]'"
     exit 1
 fi
 
@@ -139,7 +139,7 @@ if [ -z "${VIRTUAL_ENV:-}" ]; then
         echo "Create and activate with:"
         echo "  python3 -m venv .venv"
         echo "  source .venv/bin/activate"
-        echo "  pip install -e '.[dev]'"
+        echo "  pip install -e '.[all]'"
         exit 1
     fi
 fi
