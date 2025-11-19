@@ -331,6 +331,7 @@ run_slow_tests() {
 # Main validation workflow
 #######################################
 main() {
+    start_timer
     log_header "Bloginator Monorepo Validation"
 
     parse_args "$@"
@@ -373,6 +374,9 @@ main() {
         exit 1
     fi
 }
+
+# Setup timer cleanup on exit
+trap stop_timer EXIT
 
 # Run main function
 main "$@"
