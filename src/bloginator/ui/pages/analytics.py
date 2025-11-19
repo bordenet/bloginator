@@ -221,7 +221,8 @@ def show():
             try:
                 import subprocess
 
-                result = subprocess.run(
+                # nosec B603 - subprocess without shell=True is safe, cmd is controlled
+                result = subprocess.run(  # nosec B603
                     [
                         "bloginator",
                         "search",
