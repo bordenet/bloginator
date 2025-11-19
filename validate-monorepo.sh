@@ -184,9 +184,9 @@ run_security_scans() {
         log_info_verbose "Installing bandit..."
         python3 -m pip install bandit &>/dev/null
         if [[ "$VERBOSE" == "true" ]]; then
-            python3 -m bandit -r "$SRC_DIR" -ll
+            python3 -m bandit -r "$SRC_DIR" -ll && log_success "Bandit: No security issues found" || log_warning "Bandit: Potential security issues found"
         else
-            python3 -m bandit -r "$SRC_DIR" -ll &>/dev/null
+            python3 -m bandit -r "$SRC_DIR" -ll &>/dev/null && log_success "Bandit: No security issues found" || log_warning "Bandit: Potential security issues found"
         fi
     fi
 
