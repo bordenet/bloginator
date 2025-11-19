@@ -91,6 +91,14 @@ parse_args() {
 }
 
 #######################################
+# Output Functions
+#######################################
+log_info_verbose() {
+    [[ "$VERBOSE" != "true" ]] && return 0
+    log_info "$@"
+}
+
+#######################################
 # Check prerequisites
 #######################################
 check_prerequisites() {
@@ -102,7 +110,7 @@ check_prerequisites() {
     # Check Python version
     local python_version
     python_version=$(python3 --version 2>&1 | awk '{print $2}')
-    log_info "Python version: $python_version"
+    log_info_verbose "Python version: $python_version"
 
     # Check for virtual environment
     if [[ ! -d "$VENV_DIR" ]]; then
@@ -121,10 +129,16 @@ setup_environment() {
     log_section "Setting Up Environment"
 
     if ! is_venv_active; then
-        log_info "Activating virtual environment..."
-        activate_venv "$VENV_DIR"
+        log_info_verbose "Activating virtual environment..."
+        if [[ "$VERBOSE" == "true" ]]; then
+            activate_venv "$VENV_DIR"
+        else
+            # Activate without the log_success output
+            # shellcheck disable=SC1091
+            source "$VENV_DIR/bin/activate"
+        fi
     else
-        log_info "Virtual environment already active"
+        log_info_verbose "Virtual environment already active"
     fi
 
     # Verify key packages are installed
@@ -148,12 +162,11 @@ run_security_scans() {
 
     # Gitleaks - check for secrets
     if command -v gitleaks &>/dev/null; then
-        log_info "Running gitleaks..."
-        if gitleaks detect --source="$REPO_ROOT" --verbose --no-git 2>&1 | tee /dev/null; then
-            log_success "Gitleaks: No secrets detected"
+        log_info_verbose "Running gitleaks..."
+        if [[ "$VERBOSE" == "true" ]]; then
+            gitleaks detect --source="$REPO_ROOT" --verbose --no-git && log_success "Gitleaks: No secrets detected" || { log_error "Gitleaks: Potential secrets found!"; return 1; }
         else
-            log_error "Gitleaks: Potential secrets found!"
-            return 1
+            gitleaks detect --source="$REPO_ROOT" --no-git &>/dev/null && log_success "Gitleaks: No secrets detected" || { log_error "Gitleaks: Potential secrets found!"; return 1; }
         fi
     else
         log_warning "Gitleaks not installed, skipping secrets scan"
@@ -161,16 +174,20 @@ run_security_scans() {
 
     # Bandit - Python security linter
     if python3 -m pip show bandit &>/dev/null; then
-        log_info "Running bandit..."
-        if python3 -m bandit -r "$SRC_DIR" -ll 2>&1 | tee /dev/null; then
-            log_success "Bandit: No security issues found"
+        log_info_verbose "Running bandit..."
+        if [[ "$VERBOSE" == "true" ]]; then
+            python3 -m bandit -r "$SRC_DIR" -ll && log_success "Bandit: No security issues found" || log_warning "Bandit: Potential security issues found"
         else
-            log_warning "Bandit: Potential security issues found"
+            python3 -m bandit -r "$SRC_DIR" -ll &>/dev/null && log_success "Bandit: No security issues found" || log_warning "Bandit: Potential security issues found"
         fi
     else
-        log_info "Installing bandit..."
-        python3 -m pip install bandit
-        python3 -m bandit -r "$SRC_DIR" -ll
+        log_info_verbose "Installing bandit..."
+        python3 -m pip install bandit &>/dev/null
+        if [[ "$VERBOSE" == "true" ]]; then
+            python3 -m bandit -r "$SRC_DIR" -ll
+        else
+            python3 -m bandit -r "$SRC_DIR" -ll &>/dev/null
+        fi
     fi
 
     log_success "Security scans completed"
@@ -183,30 +200,36 @@ run_formatting_checks() {
     log_section "Running Code Formatting Checks"
 
     # Black
-    log_info "Checking formatting with black..."
+    log_info_verbose "Checking formatting with black..."
     if [[ "$AUTO_FIX" == "true" ]]; then
-        python3 -m black "$SRC_DIR" "$TESTS_DIR" || die "Black formatting failed"
+        if [[ "$VERBOSE" == "true" ]]; then
+            python3 -m black "$SRC_DIR" "$TESTS_DIR" || die "Black formatting failed"
+        else
+            python3 -m black "$SRC_DIR" "$TESTS_DIR" &>/dev/null || die "Black formatting failed"
+        fi
         log_success "Black: Code formatted"
     else
-        if python3 -m black --check "$SRC_DIR" "$TESTS_DIR"; then
-            log_success "Black: All files formatted correctly"
+        if [[ "$VERBOSE" == "true" ]]; then
+            python3 -m black --check "$SRC_DIR" "$TESTS_DIR" && log_success "Black: All files formatted correctly" || { log_error "Black: Formatting issues found. Run with --fix to auto-format"; return 1; }
         else
-            log_error "Black: Formatting issues found. Run with --fix to auto-format"
-            return 1
+            python3 -m black --check "$SRC_DIR" "$TESTS_DIR" &>/dev/null && log_success "Black: All files formatted correctly" || { log_error "Black: Formatting issues found. Run with --fix to auto-format"; return 1; }
         fi
     fi
 
     # isort
-    log_info "Checking import sorting with isort..."
+    log_info_verbose "Checking import sorting with isort..."
     if [[ "$AUTO_FIX" == "true" ]]; then
-        python3 -m isort "$SRC_DIR" "$TESTS_DIR" || die "isort failed"
+        if [[ "$VERBOSE" == "true" ]]; then
+            python3 -m isort "$SRC_DIR" "$TESTS_DIR" || die "isort failed"
+        else
+            python3 -m isort "$SRC_DIR" "$TESTS_DIR" &>/dev/null || die "isort failed"
+        fi
         log_success "isort: Imports sorted"
     else
-        if python3 -m isort --check "$SRC_DIR" "$TESTS_DIR"; then
-            log_success "isort: All imports sorted correctly"
+        if [[ "$VERBOSE" == "true" ]]; then
+            python3 -m isort --check "$SRC_DIR" "$TESTS_DIR" && log_success "isort: All imports sorted correctly" || { log_error "isort: Import sorting issues found. Run with --fix to auto-sort"; return 1; }
         else
-            log_error "isort: Import sorting issues found. Run with --fix to auto-sort"
-            return 1
+            python3 -m isort --check "$SRC_DIR" "$TESTS_DIR" &>/dev/null && log_success "isort: All imports sorted correctly" || { log_error "isort: Import sorting issues found. Run with --fix to auto-sort"; return 1; }
         fi
     fi
 
@@ -220,24 +243,27 @@ run_linting() {
     log_section "Running Linting"
 
     # Ruff
-    log_info "Running ruff..."
+    log_info_verbose "Running ruff..."
     if [[ "$AUTO_FIX" == "true" ]]; then
-        python3 -m ruff check --fix "$SRC_DIR" "$TESTS_DIR" || log_warning "Ruff found issues"
-    else
-        if python3 -m ruff check "$SRC_DIR" "$TESTS_DIR"; then
-            log_success "Ruff: No issues found"
+        if [[ "$VERBOSE" == "true" ]]; then
+            python3 -m ruff check --fix "$SRC_DIR" "$TESTS_DIR" || log_warning "Ruff found issues"
         else
-            log_error "Ruff: Linting issues found. Run with --fix to auto-fix"
-            return 1
+            python3 -m ruff check --fix "$SRC_DIR" "$TESTS_DIR" &>/dev/null || log_warning "Ruff found issues"
+        fi
+    else
+        if [[ "$VERBOSE" == "true" ]]; then
+            python3 -m ruff check "$SRC_DIR" "$TESTS_DIR" && log_success "Ruff: No issues found" || { log_error "Ruff: Linting issues found. Run with --fix to auto-fix"; return 1; }
+        else
+            python3 -m ruff check "$SRC_DIR" "$TESTS_DIR" &>/dev/null && log_success "Ruff: No issues found" || { log_error "Ruff: Linting issues found. Run with --fix to auto-fix"; return 1; }
         fi
     fi
 
     # Pydocstyle
-    log_info "Running pydocstyle..."
-    if python3 -m pydocstyle "$SRC_DIR"; then
-        log_success "Pydocstyle: All docstrings valid"
+    log_info_verbose "Running pydocstyle..."
+    if [[ "$VERBOSE" == "true" ]]; then
+        python3 -m pydocstyle "$SRC_DIR" && log_success "Pydocstyle: All docstrings valid" || log_warning "Pydocstyle: Docstring issues found"
     else
-        log_warning "Pydocstyle: Docstring issues found"
+        python3 -m pydocstyle "$SRC_DIR" &>/dev/null && log_success "Pydocstyle: All docstrings valid" || log_warning "Pydocstyle: Docstring issues found"
     fi
 
     log_success "Linting completed"
@@ -249,11 +275,11 @@ run_linting() {
 run_type_checking() {
     log_section "Running Type Checking"
 
-    log_info "Running mypy..."
+    log_info_verbose "Running mypy..."
     if [[ "$VERBOSE" == "true" ]]; then
-        python3 -m mypy "$SRC_DIR" || log_error "MyPy: Type errors found"
+        python3 -m mypy "$SRC_DIR" && log_success "MyPy: Type checking passed" || { log_error "MyPy: Type errors found"; return 1; }
     else
-        if python3 -m mypy "$SRC_DIR" --no-error-summary 2>&1 | grep -E "(error|Success)"; then
+        if python3 -m mypy "$SRC_DIR" &>/dev/null; then
             log_success "MyPy: Type checking passed"
         else
             log_error "MyPy: Type errors found"
@@ -284,7 +310,7 @@ run_unit_tests() {
         pytest_args+=("-vv")
     fi
 
-    log_info "Running pytest with coverage..."
+    log_info_verbose "Running pytest with coverage..."
     if python3 -m pytest "${pytest_args[@]}"; then
         log_success "Unit tests passed with coverage >= ${COVERAGE_THRESHOLD}%"
     else
@@ -301,7 +327,7 @@ run_unit_tests() {
 run_integration_tests() {
     log_section "Running Integration Tests"
 
-    log_info "Running integration tests..."
+    log_info_verbose "Running integration tests..."
     if python3 -m pytest "$TESTS_DIR" -v -m "integration"; then
         log_success "Integration tests passed"
     else
@@ -317,7 +343,7 @@ run_integration_tests() {
 run_slow_tests() {
     log_section "Running Slow Tests"
 
-    log_info "Running slow tests (this may take a while)..."
+    log_info_verbose "Running slow tests (this may take a while)..."
     if python3 -m pytest "$TESTS_DIR" -v -m "slow" --durations=10; then
         log_success "Slow tests passed"
     else
@@ -337,12 +363,12 @@ main() {
     parse_args "$@"
 
     # Show configuration
-    log_info "Configuration:"
-    log_info "  Run tests: $RUN_TESTS"
-    log_info "  Run integration: $RUN_INTEGRATION"
-    log_info "  Auto-fix: $AUTO_FIX"
-    log_info "  Verbose: $VERBOSE"
-    echo ""
+    log_info_verbose "Configuration:"
+    log_info_verbose "  Run tests: $RUN_TESTS"
+    log_info_verbose "  Run integration: $RUN_INTEGRATION"
+    log_info_verbose "  Auto-fix: $AUTO_FIX"
+    log_info_verbose "  Verbose: $VERBOSE"
+    [[ "$VERBOSE" == "true" ]] && echo ""
 
     # Run validation steps
     check_prerequisites
@@ -360,7 +386,7 @@ main() {
             run_slow_tests
         fi
     else
-        log_info "Skipping tests (--quick mode)"
+        log_info_verbose "Skipping tests (--quick mode)"
     fi
 
     # Print summary
