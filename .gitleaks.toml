@@ -1,0 +1,44 @@
+# Gitleaks Configuration
+# https://github.com/gitleaks/gitleaks
+
+title = "Bloginator Gitleaks Configuration"
+
+[extend]
+# Use default gitleaks rules
+useDefault = true
+
+[allowlist]
+description = "Allowlist for known false positives and excluded paths"
+
+# Exclude entire directories from scanning
+paths = [
+    # Python virtual environments
+    '''\.venv/''',
+    '''venv/''',
+    '''env/''',
+
+    # Node modules (if used in future)
+    '''node_modules/''',
+
+    # Build artifacts
+    '''dist/''',
+    '''build/''',
+    '''\.egg-info/''',
+
+    # Python cache
+    '''__pycache__/''',
+    '''\.pytest_cache/''',
+    '''\.mypy_cache/''',
+    '''\.ruff_cache/''',
+
+    # IDE and editor files
+    '''\.vscode/''',
+    '''\.idea/''',
+    '''\.DS_Store''',
+]
+
+# Exclude specific file patterns
+regexes = [
+    # Test files with example credentials
+    '''test.*\.py.*password.*=.*['"]test''',
+]
