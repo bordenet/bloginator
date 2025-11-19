@@ -7,7 +7,7 @@ name = "bloginator"
 version = "1.0.0"
 description = "Authentic content generation from your own writing corpus"
 readme = "README.md"
-requires-python = ">=3.10,<3.14"
+requires-python = ">=3.10,<3.15"
 license = {text = "MIT"}
 authors = [
     {name = "Matt Bordenet", email = "matt@bordenet.com"},
@@ -29,6 +29,8 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Text Processing",
 ]
@@ -127,7 +129,7 @@ exclude = ["tests*"]
 # Black configuration
 [tool.black]
 line-length = 100
-target-version = ['py310', 'py311', 'py312']
+target-version = ['py310', 'py311', 'py312', 'py313', 'py314']
 include = '\.pyi?$'
 extend-exclude = '''
 /(
