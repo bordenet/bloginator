@@ -214,7 +214,7 @@ if ! $SKIP_BUILD && ! ($RESUME && is_step_completed "setup"); then
     print_info "Installing bloginator..."
     # shellcheck disable=SC1091
     source venv/bin/activate
-    pip install -q -e ".[dev]"
+    pip install -q -e ".[all]"
     print_success "Bloginator installed"
 
     save_state "setup"
