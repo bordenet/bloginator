@@ -281,7 +281,7 @@ if ! ($RESUME && is_step_completed "index"); then
     print_success "Index built at $INDEX_DIR"
 
     save_state "index"
-elif $RESUME && is_step_completed "index"); then
+elif $RESUME && is_step_completed "index"; then
     print_info "Skipping indexing (already completed)"
 fi
 
@@ -294,7 +294,7 @@ if ! ($RESUME && is_step_completed "search"); then
     print_success "Search completed"
 
     save_state "search"
-elif $RESUME && is_step_completed "search"); then
+elif $RESUME && is_step_completed "search"; then
     print_info "Skipping search demo (already completed)"
 fi
 
@@ -318,7 +318,7 @@ if ! ($RESUME && is_step_completed "outline"); then
     print_success "Outline generated at $OUTLINE_PATH.md and $OUTLINE_PATH.json"
 
     save_state "outline"
-elif $RESUME && is_step_completed "outline"); then
+elif $RESUME && is_step_completed "outline"; then
     print_info "Skipping outline generation (already completed)"
 fi
 
@@ -343,7 +343,7 @@ if ! ($RESUME && is_step_completed "draft"); then
     print_success "Draft generated at $DRAFT_PATH"
 
     save_state "draft"
-elif $RESUME && is_step_completed "draft"); then
+elif $RESUME && is_step_completed "draft"; then
     print_info "Skipping draft generation (already completed)"
 fi
 
