@@ -21,6 +21,39 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
+# Timer state
+SCRIPT_START_TIME=$(date +%s)
+TIMER_PID=""
+
+# Timer functions
+update_timer() {
+    local start_time="$1"
+    while true; do
+        local cols elapsed hours minutes seconds timer_text timer_col
+        cols=$(tput cols 2>/dev/null || echo 80)
+        elapsed=$(($(date +%s) - start_time))
+        hours=$((elapsed / 3600))
+        minutes=$(((elapsed % 3600) / 60))
+        seconds=$((elapsed % 60))
+        printf -v timer_text "[%02d:%02d:%02d]" "$hours" "$minutes" "$seconds"
+        timer_col=$((cols - ${#timer_text}))
+        echo -ne "\033[s\033[1;${timer_col}H\033[33;40m${timer_text}\033[0m\033[u"
+        sleep 1
+    done
+}
+
+start_timer() {
+    update_timer "$SCRIPT_START_TIME" &
+    TIMER_PID=$!
+}
+
+stop_timer() {
+    [[ -n "$TIMER_PID" ]] && { kill "$TIMER_PID" 2>/dev/null || true; wait "$TIMER_PID" 2>/dev/null || true; }
+    TIMER_PID=""
+}
+
+trap stop_timer EXIT
+
 # Default port
 PORT="${STREAMLIT_PORT:-8501}"
 
@@ -67,6 +100,9 @@ EOF
             ;;
     esac
 done
+
+# Start timer
+start_timer
 
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "${CYAN}Bloginator Web UI${NC}"
@@ -116,6 +152,16 @@ fi
 
 echo -e "${GREEN}✓ Environment ready${NC}"
 echo ""
+
+# Kill any existing Streamlit instances
+EXISTING_PIDS=$(pgrep -f "streamlit run.*bloginator" || true)
+if [ -n "$EXISTING_PIDS" ]; then
+    echo -e "${YELLOW}ℹ${NC} Stopping existing Streamlit instances..."
+    echo "$EXISTING_PIDS" | xargs kill -9 2>/dev/null || true
+    sleep 1
+    echo -e "${GREEN}✓ Old instances stopped${NC}"
+    echo ""
+fi
 
 # Launch Streamlit
 echo -e "${BLUE}ℹ${NC} Starting Streamlit on port ${PORT}..."

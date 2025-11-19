@@ -1,6 +1,42 @@
 #!/bin/bash
 set -e
 
+# Timer state
+SCRIPT_START_TIME=$(date +%s)
+TIMER_PID=""
+
+# Timer functions
+update_timer() {
+    local start_time="$1"
+    while true; do
+        local cols elapsed hours minutes seconds timer_text timer_col
+        cols=$(tput cols 2>/dev/null || echo 80)
+        elapsed=$(($(date +%s) - start_time))
+        hours=$((elapsed / 3600))
+        minutes=$(((elapsed % 3600) / 60))
+        seconds=$((elapsed % 60))
+        printf -v timer_text "[%02d:%02d:%02d]" "$hours" "$minutes" "$seconds"
+        timer_col=$((cols - ${#timer_text}))
+        echo -ne "\033[s\033[1;${timer_col}H\033[33;40m${timer_text}\033[0m\033[u"
+        sleep 1
+    done
+}
+
+start_timer() {
+    update_timer "$SCRIPT_START_TIME" &
+    TIMER_PID=$!
+}
+
+stop_timer() {
+    [[ -n "$TIMER_PID" ]] && { kill "$TIMER_PID" 2>/dev/null || true; wait "$TIMER_PID" 2>/dev/null || true; }
+    TIMER_PID=""
+}
+
+trap stop_timer EXIT
+
+# Start timer
+start_timer
+
 echo "🚀 Running Fast Quality Gate..."
 
 # Check if we're in a virtualenv
