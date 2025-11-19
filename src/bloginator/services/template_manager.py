@@ -25,7 +25,9 @@ class TemplateManager:
         """Initialize template manager."""
         self.template_dir = get_template_dir()
         self.preset_dir = get_preset_dir()
-        self.jinja_env = Environment(autoescape=False)
+        # nosec B701: These are plain text templates for LLM prompts, not HTML.
+        # No XSS risk as output is not rendered in a browser.
+        self.jinja_env = Environment(autoescape=False)  # nosec B701
 
     def create_template(
         self,
