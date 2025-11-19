@@ -252,11 +252,14 @@ install_python_dependencies() {
     # Marker file to track installation state (enables resumability)
     local all_marker="${VENV_DIR}/.bloginator-all-installed"
 
-    # Install bloginator[all] if not already done (includes dev, web, and all optional deps)
-    if [[ -f "$all_marker" ]]; then
-        log_info_verbose "bloginator[all] already installed (skipping)"
+    # Check if all critical packages are actually importable (not just marker file)
+    if python -c "import bloginator, pytest, black, ruff, mypy, bandit, streamlit" 2>/dev/null; then
+        log_info_verbose "bloginator[all] already installed and verified (skipping)"
     else
         log_info_verbose "Installing bloginator[all]..."
+        # Remove stale marker if it exists
+        rm -f "$all_marker"
+
         if python -m pip install -e ".[all]" > /dev/null 2>&1; then
             # Verify critical packages are importable
             log_info_verbose "Verifying package installation..."
