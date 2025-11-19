@@ -173,21 +173,16 @@ run_security_scans() {
     fi
 
     # Bandit - Python security linter
-    if python3 -m pip show bandit &>/dev/null; then
-        log_info_verbose "Running bandit..."
-        if [[ "$VERBOSE" == "true" ]]; then
-            python3 -m bandit -r "$SRC_DIR" -ll && log_success "Bandit: No security issues found" || log_warning "Bandit: Potential security issues found"
-        else
-            python3 -m bandit -r "$SRC_DIR" -ll &>/dev/null && log_success "Bandit: No security issues found" || log_warning "Bandit: Potential security issues found"
-        fi
+    if ! python3 -m pip show bandit &>/dev/null; then
+        log_error "Bandit not installed. Run './scripts/setup-macos.sh' to install dependencies"
+        return 1
+    fi
+
+    log_info_verbose "Running bandit (checking all severity levels)..."
+    if [[ "$VERBOSE" == "true" ]]; then
+        python3 -m bandit -r "$SRC_DIR" -l && log_success "Bandit: No security issues found" || { log_error "Bandit: Security issues found - BUILD FAILED"; return 1; }
     else
-        log_info_verbose "Installing bandit..."
-        python3 -m pip install bandit &>/dev/null
-        if [[ "$VERBOSE" == "true" ]]; then
-            python3 -m bandit -r "$SRC_DIR" -ll && log_success "Bandit: No security issues found" || log_warning "Bandit: Potential security issues found"
-        else
-            python3 -m bandit -r "$SRC_DIR" -ll &>/dev/null && log_success "Bandit: No security issues found" || log_warning "Bandit: Potential security issues found"
-        fi
+        python3 -m bandit -r "$SRC_DIR" -l &>/dev/null && log_success "Bandit: No security issues found" || { log_error "Bandit: Security issues found - run with --verbose to see details"; return 1; }
     fi
 
     log_success "Security scans completed"

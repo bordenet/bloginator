@@ -63,6 +63,7 @@ dev = [
     "isort>=5.12.0",
     "pre-commit>=3.5.0",
     "pydocstyle>=6.3.0",
+    "bandit>=1.7.5",
     "types-requests>=2.31.0",
 ]
 
@@ -94,6 +95,7 @@ all = [
     "isort>=5.12.0",
     "pre-commit>=3.5.0",
     "pydocstyle>=6.3.0",
+    "bandit>=1.7.5",
     "types-requests>=2.31.0",
     # Local LLM
     "ollama>=0.1.0",
