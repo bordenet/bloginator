@@ -129,7 +129,8 @@ def show_extraction_tab():
                 if force_extract:
                     cmd.append("--force")
 
-                result = subprocess.run(
+                # nosec B603 - subprocess without shell=True is safe, cmd is controlled
+                result = subprocess.run(  # nosec B603
                     cmd,
                     capture_output=True,
                     text=True,
@@ -221,7 +222,8 @@ def show_indexing_tab():
                     chunk_strategy,
                 ]
 
-                result = subprocess.run(
+                # nosec B603 - subprocess without shell=True is safe, cmd is controlled
+                result = subprocess.run(  # nosec B603
                     cmd,
                     capture_output=True,
                     text=True,
