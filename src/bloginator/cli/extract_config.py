@@ -9,11 +9,7 @@ from rich.progress import Progress
 from rich.table import Table
 
 from bloginator.cli.error_reporting import ErrorTracker, create_error_panel
-from bloginator.cli.extract_utils import (
-    is_temp_file,
-    load_existing_extractions,
-    should_skip_file,
-)
+from bloginator.cli.extract_utils import is_temp_file, load_existing_extractions, should_skip_file
 from bloginator.corpus_config import CorpusConfig
 from bloginator.extraction import (
     count_words,

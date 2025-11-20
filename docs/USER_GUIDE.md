@@ -22,15 +22,15 @@ This comprehensive guide covers all features and workflows in Bloginator, from c
 
 ## Overview
 
-Bloginator helps you create authentic, high-quality documents by leveraging your own historical writing. Instead of starting from scratch or using generic AI, Bloginator:
+Bloginator creates documents by leveraging your historical writing. The system:
 
 1. **Indexes your past writing** (blog posts, documents, presentations)
 2. **Searches semantically** to find relevant content
-3. **Generates new content** in your authentic voice
+3. **Generates new content** based on retrieved examples
 4. **Protects proprietary information** with blocklist validation
-5. **Refines iteratively** based on your feedback
+5. **Refines iteratively** based on feedback
 
-**Result**: Reduce document creation time from hours to minutes while maintaining your authentic voice.
+This approach can reduce document creation time while maintaining consistency with your existing writing style.
 
 ---
 
@@ -79,7 +79,7 @@ bloginator export draft.md --format docx -o final.docx
 
 ## Corpus Management
 
-Your corpus is the foundation of Bloginator's voice preservation. The better your corpus, the more authentic your generated content.
+Your corpus is the foundation of content generation. A well-curated corpus improves the quality and relevance of generated content.
 
 ### What to Include
 

@@ -29,7 +29,6 @@ from bloginator.extraction.metadata import (
     parse_date_string,
 )
 
-
 __all__ = [
     "extract_text_from_pdf",
     "extract_text_from_docx",

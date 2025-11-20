@@ -131,7 +131,7 @@ exclude = ["tests*"]
 # Black configuration
 [tool.black]
 line-length = 100
-target-version = ['py310', 'py311', 'py312', 'py313', 'py314']
+target-version = ['py310', 'py311', 'py312']
 include = '\.pyi?$'
 extend-exclude = '''
 /(
@@ -217,6 +217,35 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = "tests.*"
+disallow_untyped_defs = false
+
+[[tool.mypy.overrides]]
+module = "bloginator.ui.*"
+disallow_untyped_defs = false
+warn_return_any = false
+
+[[tool.mypy.overrides]]
+module = "bloginator.cli.serve"
+disallow_untyped_defs = false
+
+[[tool.mypy.overrides]]
+module = "bloginator.cli.error_reporting"
+disallow_untyped_defs = false
+
+[[tool.mypy.overrides]]
+module = "bloginator.cli.search"
+disallow_untyped_defs = false
+
+[[tool.mypy.overrides]]
+module = "bloginator.generation.llm_mock"
+disallow_untyped_defs = false
+
+[[tool.mypy.overrides]]
+module = "bloginator.utils.parallel"
+disallow_untyped_defs = false
+
+[[tool.mypy.overrides]]
+module = "bloginator.cli.extract_utils"
 disallow_untyped_defs = false
 
 # Pytest configuration

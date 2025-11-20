@@ -3,6 +3,7 @@
 import uuid
 from datetime import datetime
 from enum import Enum
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -36,10 +37,10 @@ class GenerationHistoryEntry(BaseModel):
     title: str = Field(..., description="Document title")
     classification: str = Field(default="guidance")
     audience: str = Field(default="all-disciplines")
-    input_params: dict = Field(default_factory=dict)
+    input_params: dict[str, Any] = Field(default_factory=dict)
     output_path: str = Field(..., description="Path to output file")
     output_format: str = Field(default="markdown")
-    metadata: dict = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
     def __repr__(self) -> str:
         """String representation."""

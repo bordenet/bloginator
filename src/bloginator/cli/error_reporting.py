@@ -65,7 +65,7 @@ class ErrorTracker:
             return ErrorCategory.PERMISSION_DENIED
 
         # Encoding errors
-        if isinstance(exception, (UnicodeDecodeError, UnicodeEncodeError)):
+        if isinstance(exception, UnicodeDecodeError | UnicodeEncodeError):
             return ErrorCategory.ENCODING_ERROR
 
         # Corrupted or invalid file content

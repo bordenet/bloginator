@@ -16,7 +16,6 @@ from bloginator.generation.voice_scorer import VoiceScorer
 from bloginator.models.draft import Draft
 from bloginator.search import Searcher
 
-
 console = Console()
 logger = logging.getLogger(__name__)
 

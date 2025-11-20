@@ -1,6 +1,6 @@
 # Bloginator
 
-Generate content from your historical writing using RAG and local/cloud LLMs.
+Content generation from your historical writing using RAG and local/cloud LLMs.
 
 **Version**: 1.0.0
 **Python**: 3.10+
@@ -8,16 +8,16 @@ Generate content from your historical writing using RAG and local/cloud LLMs.
 
 ---
 
-## What It Does
+## Overview
 
-Bloginator indexes your writing (blog posts, documents, notes) and generates new content that preserves your voice:
+Bloginator indexes your writing (blog posts, documents, notes) and generates new content based on your existing corpus:
 
 1. **Extract** text from PDFs, DOCX, Markdown, TXT
 2. **Index** content using ChromaDB with semantic embeddings
-3. **Search** your corpus semantically (meaning-based)
-4. **Generate** outlines and drafts grounded in your writing
-5. **Refine** content with natural language feedback
-6. **Validate** against blocklist to prevent leaking proprietary content
+3. **Search** your corpus using semantic similarity
+4. **Generate** outlines and drafts based on retrieved content
+5. **Refine** content with iterative feedback
+6. **Validate** against blocklist to prevent proprietary content leakage
 
 ---
 

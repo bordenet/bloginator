@@ -50,10 +50,14 @@ def show_outline_generation() -> None:
     st.subheader("Template Style")
 
     template_manager = TemplateManager()
-    outline_templates = template_manager.list_templates(type=TemplateType.OUTLINE, include_builtin=True)
+    outline_templates = template_manager.list_templates(
+        type=TemplateType.OUTLINE, include_builtin=True
+    )
 
     if outline_templates:
-        template_options = ["Default (No Template)"] + [f"{t.name} - {t.description}" for t in outline_templates]
+        template_options = ["Default (No Template)"] + [
+            f"{t.name} - {t.description}" for t in outline_templates
+        ]
         template_ids = [None] + [t.id for t in outline_templates]
 
         selected_index = st.selectbox(

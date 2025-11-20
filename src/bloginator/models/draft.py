@@ -1,6 +1,7 @@
 """Draft document data models with citations."""
 
 from datetime import datetime
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -101,7 +102,7 @@ class Draft(BaseModel):
     total_citations: int = Field(default=0, ge=0)
     total_words: int = Field(default=0, ge=0)
     has_blocklist_violations: bool = Field(default=False)
-    blocklist_validation_result: dict | None = None
+    blocklist_validation_result: dict[str, Any] | None = None
 
     def calculate_stats(self) -> None:
         """Calculate draft statistics.

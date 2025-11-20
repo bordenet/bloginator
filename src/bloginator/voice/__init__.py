@@ -7,4 +7,4 @@ This module handles:
 - Corpus coverage analysis
 """
 
-__all__ = []
+__all__: list[str] = []

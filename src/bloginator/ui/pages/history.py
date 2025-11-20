@@ -111,9 +111,7 @@ def show():
     filtered_entries = history.entries
 
     if type_filter != "All":
-        filtered_entries = [
-            e for e in filtered_entries if e.generation_type == type_filter.lower()
-        ]
+        filtered_entries = [e for e in filtered_entries if e.generation_type == type_filter.lower()]
 
     if classification_filter != "All":
         filtered_entries = [
@@ -146,9 +144,7 @@ def show():
 
             with col1:
                 st.markdown(f"**Type:** {entry.generation_type.upper()}")
-                st.markdown(
-                    f"**Classification:** {entry.classification.replace('-', ' ').title()}"
-                )
+                st.markdown(f"**Classification:** {entry.classification.replace('-', ' ').title()}")
                 st.markdown(f"**Audience:** {entry.audience.replace('-', ' ').title()}")
                 st.markdown(f"**Format:** {entry.output_format}")
 

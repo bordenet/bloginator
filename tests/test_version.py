@@ -7,7 +7,7 @@ def test_version_exists() -> None:
     """Test that version is defined."""
     assert hasattr(bloginator, "__version__")
     assert isinstance(bloginator.__version__, str)
-    assert bloginator.__version__ == "0.1.0"
+    assert bloginator.__version__ == "1.0.0"
 
 
 def test_author_exists() -> None:
