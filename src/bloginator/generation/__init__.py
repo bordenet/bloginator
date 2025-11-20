@@ -21,7 +21,6 @@ from bloginator.generation.outline_generator import OutlineGenerator
 from bloginator.generation.safety_validator import SafetyValidator
 from bloginator.generation.voice_scorer import VoiceScorer
 
-
 __all__ = [
     # LLM client
     "LLMClient",

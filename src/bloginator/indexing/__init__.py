@@ -9,5 +9,4 @@ This module handles:
 
 from bloginator.indexing.indexer import CorpusIndexer
 
-
 __all__ = ["CorpusIndexer"]

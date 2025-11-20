@@ -6,11 +6,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from bloginator.models.blocklist import (
-    BlocklistCategory,
-    BlocklistEntry,
-    BlocklistPatternType,
-)
+from bloginator.models.blocklist import BlocklistCategory, BlocklistEntry, BlocklistPatternType
 from bloginator.safety.blocklist import BlocklistManager
 
 

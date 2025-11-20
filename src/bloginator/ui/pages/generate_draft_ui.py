@@ -6,10 +6,7 @@ from pathlib import Path
 import streamlit as st
 
 from bloginator.export.ui_utils import show_export_buttons
-from bloginator.ui.pages.generate_ui_utils import (
-    display_generation_error,
-    run_bloginator_command,
-)
+from bloginator.ui.pages.generate_ui_utils import display_generation_error, run_bloginator_command
 
 
 def show_draft_generation() -> None:

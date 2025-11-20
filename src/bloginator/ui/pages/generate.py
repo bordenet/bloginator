@@ -8,10 +8,7 @@ import streamlit as st
 
 from bloginator.ui.pages.generate_draft_ui import show_draft_generation
 from bloginator.ui.pages.generate_outline_ui import show_outline_generation
-from bloginator.ui.pages.generate_ui_utils import (
-    check_index_exists,
-    check_ollama_available,
-)
+from bloginator.ui.pages.generate_ui_utils import check_index_exists, check_ollama_available
 
 
 def show() -> None:

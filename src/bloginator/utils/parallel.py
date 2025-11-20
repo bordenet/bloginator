@@ -8,7 +8,6 @@ from collections.abc import Callable, Iterable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import TypeVar
 
-
 T = TypeVar("T")
 R = TypeVar("R")
 
@@ -58,9 +57,7 @@ def parallel_map(
 
     with ThreadPoolExecutor(max_workers=workers) as executor:
         # Submit all tasks and track their indices
-        future_to_index = {
-            executor.submit(func, item): idx for idx, item in enumerate(items_list)
-        }
+        future_to_index = {executor.submit(func, item): idx for idx, item in enumerate(items_list)}
 
         # Collect results as they complete
         for future in as_completed(future_to_index):
@@ -108,9 +105,7 @@ def parallel_map_with_progress(
 
     with ThreadPoolExecutor(max_workers=workers) as executor:
         # Submit all tasks
-        future_to_index = {
-            executor.submit(func, item): idx for idx, item in enumerate(items_list)
-        }
+        future_to_index = {executor.submit(func, item): idx for idx, item in enumerate(items_list)}
 
         # Collect results as they complete
         for future in as_completed(future_to_index):

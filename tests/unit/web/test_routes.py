@@ -2,7 +2,6 @@
 
 import pytest
 
-
 try:
     from fastapi.testclient import TestClient
 

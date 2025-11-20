@@ -1,16 +1,18 @@
 """Main UI routes."""
 
+from typing import Any
+
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
-
+from fastapi.templating import Jinja2Templates
 
 router = APIRouter()
 
 
 @router.get("/", response_class=HTMLResponse)
-async def index(request: Request):
+async def index(request: Request) -> Any:
     """Home page."""
-    templates = request.app.state.templates
+    templates: Jinja2Templates = request.app.state.templates
     return templates.TemplateResponse(
         "index.html",
         {
@@ -21,9 +23,9 @@ async def index(request: Request):
 
 
 @router.get("/corpus", response_class=HTMLResponse)
-async def corpus_page(request: Request):
+async def corpus_page(request: Request) -> Any:
     """Corpus management page."""
-    templates = request.app.state.templates
+    templates: Jinja2Templates = request.app.state.templates
     return templates.TemplateResponse(
         "corpus.html",
         {
@@ -34,9 +36,9 @@ async def corpus_page(request: Request):
 
 
 @router.get("/create", response_class=HTMLResponse)
-async def create_page(request: Request):
+async def create_page(request: Request) -> Any:
     """Document creation page."""
-    templates = request.app.state.templates
+    templates: Jinja2Templates = request.app.state.templates
     return templates.TemplateResponse(
         "create.html",
         {
@@ -47,9 +49,9 @@ async def create_page(request: Request):
 
 
 @router.get("/search", response_class=HTMLResponse)
-async def search_page(request: Request):
+async def search_page(request: Request) -> Any:
     """Search page."""
-    templates = request.app.state.templates
+    templates: Jinja2Templates = request.app.state.templates
     return templates.TemplateResponse(
         "search.html",
         {

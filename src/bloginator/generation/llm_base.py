@@ -4,7 +4,6 @@ import sys
 from abc import ABC, abstractmethod
 from enum import Enum
 
-
 # ANSI color codes for verbose output (only if stdout is a TTY)
 if sys.stdout.isatty():
     COLOR_PROMPT = "\033[37;40m"  # Light gray on black

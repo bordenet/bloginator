@@ -20,7 +20,7 @@ def test_cli_version_option() -> None:
     result = runner.invoke(cli, ["--version"])
     assert result.exit_code == 0
     assert "bloginator" in result.output.lower()
-    assert "0.1.0" in result.output
+    assert "1.0.0" in result.output
 
 
 def test_version_command() -> None:
@@ -28,5 +28,5 @@ def test_version_command() -> None:
     runner = CliRunner()
     result = runner.invoke(cli, ["version"])
     assert result.exit_code == 0
-    assert "Bloginator version 0.1.0" in result.output
+    assert "Bloginator version 1.0.0" in result.output
     assert "Matt Bordenet" in result.output

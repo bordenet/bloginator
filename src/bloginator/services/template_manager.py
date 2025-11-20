@@ -2,9 +2,8 @@
 
 import json
 import uuid
-from pathlib import Path
 
-from jinja2 import Environment, Template, TemplateSyntaxError, meta
+from jinja2 import Environment, TemplateSyntaxError, meta
 
 from bloginator.models.template import (
     GenerationPreset,
@@ -54,7 +53,7 @@ class TemplateManager:
         """
         # Validate template syntax
         try:
-            jinja_template = self.jinja_env.from_string(template)
+            _ = self.jinja_env.from_string(template)
         except TemplateSyntaxError as e:
             raise TemplateSyntaxError(f"Invalid template syntax: {e}") from e
 
@@ -197,7 +196,11 @@ class TemplateManager:
             Created GenerationPreset
         """
         preset = GenerationPreset(
-            id=str(uuid.uuid4()), name=name, description=description, template_id=template_id, **kwargs
+            id=str(uuid.uuid4()),
+            name=name,
+            description=description,
+            template_id=template_id,
+            **kwargs,
         )
 
         self._save_preset(preset)
