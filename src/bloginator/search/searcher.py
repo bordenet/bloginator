@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import chromadb
 from sentence_transformers import SentenceTransformer
@@ -130,11 +130,12 @@ class CorpusSearcher:
         where = self._build_where_filter(quality_filter, format_filter)
 
         # Query ChromaDB
-        results = self.collection.query(
+        raw_results = self.collection.query(
             query_embeddings=[query_embedding.tolist()],
             n_results=n_results,
             where=where if where else None,
         )
+        results = cast("dict[str, Any]", raw_results)
 
         # Convert to SearchResult objects
         search_results = []

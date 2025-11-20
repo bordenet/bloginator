@@ -7,6 +7,8 @@ Note: This module has been refactored into smaller focused components.
 This file serves as a compatibility wrapper, re-exporting all public APIs.
 """
 
+from typing import Any
+
 # Re-export base classes and types
 from bloginator.generation.llm_base import (
     LLMClient,
@@ -25,7 +27,7 @@ from bloginator.generation.llm_ollama import OllamaClient
 def create_llm_client(
     provider: LLMProvider = LLMProvider.OLLAMA,
     model: str = "llama3",
-    **kwargs,
+    **kwargs: Any,
 ) -> LLMClient:
     """Factory function to create LLM client.
 

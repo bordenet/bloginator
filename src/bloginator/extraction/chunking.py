@@ -38,7 +38,7 @@ def chunk_text_fixed_size(
     if overlap >= chunk_size:
         raise ValueError("overlap must be less than chunk_size")
 
-    chunks = []
+    chunks: list[Chunk] = []
     chunk_index = 0
     start = 0
 
@@ -88,9 +88,9 @@ def chunk_text_by_paragraphs(
     paragraphs = re.split(r"\n\s*\n", text)
     paragraphs = [p.strip() for p in paragraphs if p.strip()]
 
-    chunks = []
+    chunks: list[Chunk] = []
     chunk_index = 0
-    current_chunk_parts = []
+    current_chunk_parts: list[str] = []
     current_size = 0
     char_start = 0
 

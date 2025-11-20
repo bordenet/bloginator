@@ -78,11 +78,15 @@ echo ""
 echo "3/5 Type checking (mypy)..."
 if ls src/**/*.py 1> /dev/null 2>&1; then
     if ! mypy \
-        src/bloginator/utils/parallel.py \
+        src/bloginator/models \
+        src/bloginator/extraction \
+        src/bloginator/search \
+        src/bloginator/safety \
+        src/bloginator/export \
+        src/bloginator/services \
         src/bloginator/indexing/indexer.py \
-        src/bloginator/generation/version_manager.py \
-        src/bloginator/generation/voice_scorer.py \
-        src/bloginator/generation/refinement_engine.py 2>/dev/null; then
+        src/bloginator/generation \
+        src/bloginator/utils/parallel.py 2>/dev/null; then
         echo "❌ Type checking failed"
         exit 1
     fi
