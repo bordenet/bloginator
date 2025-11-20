@@ -4,6 +4,8 @@ This module provides a convenient way to create LLM clients using
 environment variables from the config module.
 """
 
+from typing import Any
+
 from bloginator.config import config
 from bloginator.generation.llm_client import (
     CustomLLMClient,
@@ -47,7 +49,7 @@ def create_llm_from_config(verbose: bool = False) -> LLMClient:
         ) from e
 
     # Common parameters
-    kwargs = {
+    kwargs: dict[str, Any] = {
         "model": config.LLM_MODEL,
         "timeout": config.LLM_TIMEOUT,
         "verbose": verbose,
@@ -79,7 +81,7 @@ def create_llm_from_config(verbose: bool = False) -> LLMClient:
         return create_llm_client(provider, **kwargs)
 
 
-def get_default_generation_params() -> dict:
+def get_default_generation_params() -> dict[str, Any]:
     """Get default generation parameters from config.
 
     Returns:

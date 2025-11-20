@@ -1,6 +1,7 @@
 """Safety validation for generated content using blocklist."""
 
 from pathlib import Path
+from typing import Any
 
 from bloginator.models.draft import Draft, DraftSection
 from bloginator.safety import BlocklistManager
@@ -76,7 +77,7 @@ class SafetyValidator:
                 f"Review and remove these terms before regenerating."
             )
 
-    def _validate_section(self, section: DraftSection) -> dict:
+    def _validate_section(self, section: DraftSection) -> dict[str, Any]:
         """Validate a section's content.
 
         Args:
@@ -97,7 +98,7 @@ class SafetyValidator:
 
         return result
 
-    def _format_violation_summary(self, violations: list[dict]) -> str:
+    def _format_violation_summary(self, violations: list[dict[str, Any]]) -> str:
         """Format violation summary for error message.
 
         Args:
@@ -143,7 +144,9 @@ class SafetyValidator:
         """
         return [s for s in draft.get_all_sections() if s.has_blocklist_violations]
 
-    def validate_before_generation(self, title: str, keywords: list[str], thesis: str = "") -> dict:
+    def validate_before_generation(
+        self, title: str, keywords: list[str], thesis: str = ""
+    ) -> dict[str, Any]:
         """Pre-validate inputs before generation.
 
         Checks if title, keywords, or thesis contain blocklist violations
