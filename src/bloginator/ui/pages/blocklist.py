@@ -12,7 +12,6 @@ from bloginator.safety.blocklist import BlocklistManager
 
 def show():
     """Display the blocklist management page."""
-
     st.header("🚫 Blocklist Management")
 
     st.markdown(
@@ -41,7 +40,6 @@ def show():
 
 def show_manage_entries(manager: BlocklistManager):
     """Show and manage existing blocklist entries."""
-
     st.subheader("Blocklist Entries")
 
     # Summary metrics
@@ -112,7 +110,6 @@ def show_manage_entries(manager: BlocklistManager):
 
 def show_add_entry(manager: BlocklistManager):
     """Show form for adding new blocklist entries."""
-
     st.subheader("Add New Blocklist Entry")
 
     st.markdown(
@@ -210,7 +207,6 @@ def show_add_entry(manager: BlocklistManager):
 
 def show_check_content(manager: BlocklistManager):
     """Show content validation against blocklist."""
-
     st.subheader("Check Content for Violations")
 
     st.markdown(

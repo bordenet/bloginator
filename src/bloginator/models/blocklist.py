@@ -46,7 +46,7 @@ class BlocklistEntry(BaseModel):
     notes: str = Field(default="", description="Why this is blocked")
 
     def matches(self, text: str) -> list[str]:
-        """Check if pattern appears in text.
+        r"""Check if pattern appears in text.
 
         Args:
             text: Text to search for pattern matches

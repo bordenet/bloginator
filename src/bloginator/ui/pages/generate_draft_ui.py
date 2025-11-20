@@ -11,7 +11,6 @@ from bloginator.ui.pages.generate_ui_utils import display_generation_error, run_
 
 def show_draft_generation() -> None:
     """Show the draft generation interface."""
-
     st.subheader("Generate Draft from Outline")
 
     st.markdown("Generate a full blog post draft from an existing outline.")

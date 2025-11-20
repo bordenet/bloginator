@@ -28,7 +28,6 @@ def serve(host: str, port: int, reload: bool) -> None:
     Access the UI at http://localhost:8000 (or specified host/port).
 
     Examples:
-
         # Run on default host and port
         bloginator serve
 

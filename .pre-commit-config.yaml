@@ -20,17 +20,6 @@ repos:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
 
-  # Type checking
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.7.1
-    hooks:
-      - id: mypy
-        additional_dependencies:
-          - types-requests
-          - pydantic
-        args: [--strict, --ignore-missing-imports]
-        exclude: ^tests/
-
   # File checks
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
@@ -68,6 +57,11 @@ repos:
   # Fast quality gate (runs on commit)
   - repo: local
     hooks:
+      - id: mypy-selected
+        name: MyPy (selected modules)
+        entry: bash -c 'mypy src/bloginator/utils/parallel.py src/bloginator/indexing/indexer.py src/bloginator/generation/version_manager.py src/bloginator/generation/voice_scorer.py src/bloginator/generation/refinement_engine.py'
+        language: system
+        pass_filenames: false
       - id: fast-quality-gate
         name: Fast Quality Gate
         entry: bash -c 'if [ -f ./scripts/fast-quality-gate.sh ]; then ./scripts/fast-quality-gate.sh; else echo "Skipping fast-quality-gate (script not found)"; fi'

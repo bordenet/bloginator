@@ -13,7 +13,6 @@ from bloginator.ui.pages.generate_ui_utils import check_index_exists, check_olla
 
 def show() -> None:
     """Display the content generation page."""
-
     st.header("📝 Generate Content")
 
     st.markdown(

@@ -91,7 +91,7 @@ def refine(
     blocklist: Path | None,
     show_diff: bool,
 ) -> None:
-    """Refine a draft document based on natural language feedback.
+    r"""Refine a draft document based on natural language feedback.
 
     This command iteratively improves drafts by:
     - Parsing natural language feedback to identify changes
@@ -100,7 +100,6 @@ def refine(
     - Tracking version history for rollback
 
     Examples:
-
         # Make introduction more engaging
         bloginator refine -i output/index -d draft.json \\
             -f "Make the introduction more compelling and hook the reader"

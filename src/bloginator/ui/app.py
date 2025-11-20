@@ -1,5 +1,4 @@
-"""
-Bloginator Streamlit Web UI
+"""Bloginator Streamlit web UI.
 
 Main entry point for the Streamlit web interface.
 Provides interactive access to all Bloginator functionality.

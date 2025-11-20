@@ -56,7 +56,6 @@ def revert(
     are preserved and you can switch between them at any time.
 
     Examples:
-
         # Revert to version 2
         bloginator revert my-draft 2 -o draft.json
 

@@ -1,5 +1,7 @@
 """Voice similarity scoring for authentic content validation."""
 
+from typing import Any
+
 from sentence_transformers import SentenceTransformer
 
 from bloginator.models.draft import Draft, DraftSection
@@ -92,9 +94,9 @@ class VoiceScorer:
             from numpy import dot
             from numpy.linalg import norm
 
-            def cosine_similarity(a, b):
+            def cosine_similarity(a: Any, b: Any) -> float:
                 """Calculate cosine similarity between two vectors."""
-                return dot(a, b) / (norm(a) * norm(b))
+                return float(dot(a, b) / (norm(a) * norm(b)))
 
             similarities = [
                 cosine_similarity(generated_embedding, corpus_emb)
@@ -153,8 +155,8 @@ class VoiceScorer:
             from numpy import dot
             from numpy.linalg import norm
 
-            def cosine_similarity(a, b):
-                return dot(a, b) / (norm(a) * norm(b))
+            def cosine_similarity(a: Any, b: Any) -> float:
+                return float(dot(a, b) / (norm(a) * norm(b)))
 
             similarities = [
                 cosine_similarity(text_embedding, corpus_emb) for corpus_emb in corpus_embeddings
@@ -166,7 +168,7 @@ class VoiceScorer:
         except Exception:
             return 0.5
 
-    def get_voice_insights(self, draft: Draft, threshold: float = 0.7) -> dict[str, any]:
+    def get_voice_insights(self, draft: Draft, threshold: float = 0.7) -> dict[str, Any]:
         """Get insights about voice similarity across draft.
 
         Args:

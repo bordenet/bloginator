@@ -70,7 +70,6 @@ def diff(
     - Showing statistics about changes
 
     Examples:
-
         # List all versions
         bloginator diff my-draft --list-versions
 

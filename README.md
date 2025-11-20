@@ -1,5 +1,11 @@
 # Bloginator
 
+[![Tests](https://github.com/bordenet/bloginator/actions/workflows/tests.yml/badge.svg)](https://github.com/bordenet/bloginator/actions/workflows/tests.yml)
+[![Lint and type check](https://github.com/bordenet/bloginator/actions/workflows/lint.yml/badge.svg)](https://github.com/bordenet/bloginator/actions/workflows/lint.yml)
+![Coverage](https://img.shields.io/badge/coverage-39.6%25-blue)
+![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+
 Content generation from your historical writing using RAG and local/cloud LLMs.
 
 **Version**: 1.0.0
@@ -50,6 +56,7 @@ bloginator serve --port 8000
 ## Features
 
 ### Core
+
 - Document extraction (PDF, DOCX, MD, TXT, ZIP)
 - Vector indexing with ChromaDB + sentence-transformers
 - Semantic search with quality/recency weighting
@@ -58,11 +65,13 @@ bloginator serve --port 8000
 - Blocklist validation (exact, case-insensitive, regex)
 
 ### Interfaces
+
 - **CLI**: 12 commands for all workflows
 - **Streamlit UI**: 7-page web interface
 - **FastAPI**: REST API (experimental, requires `pip install ".[web]"`)
 
 ### LLM Support
+
 - **Ollama** (default): Local inference
 - **Custom**: Any OpenAI-compatible API
 - **Cloud**: OpenAI/Anthropic (requires API keys)
@@ -127,6 +136,6 @@ MIT - See LICENSE file.
 
 ## Links
 
-**Repository**: https://github.com/bordenet/bloginator
-**Issues**: https://github.com/bordenet/bloginator/issues
-**Author**: Matt Bordenet
+- **Repository**: <https://github.com/bordenet/bloginator>
+- **Issues**: <https://github.com/bordenet/bloginator/issues>
+- **Author**: Matt Bordenet

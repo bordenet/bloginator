@@ -59,7 +59,7 @@ def blocklist() -> None:
 )
 @click.option("--notes", default="", help="Explanation of why this is blocked")
 def add(config_dir: Path, pattern: str, pattern_type: str, category: str, notes: str) -> None:
-    """Add term or pattern to blocklist.
+    r"""Add term or pattern to blocklist.
 
     PATTERN: The term or regex pattern to block
 

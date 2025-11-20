@@ -135,7 +135,7 @@ def outline(
     log_file: Path | None,
     verbose: bool,
 ) -> None:
-    """Generate document outline from keywords and thesis.
+    r"""Generate document outline from keywords and thesis.
 
     Uses RAG to analyze corpus coverage for each section and
     creates a structured outline with coverage statistics.

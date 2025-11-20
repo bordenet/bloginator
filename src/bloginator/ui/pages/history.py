@@ -14,7 +14,6 @@ from bloginator.services.history_manager import HistoryManager
 
 def show():
     """Display the generation history page."""
-
     st.header("📜 Generation History")
 
     st.markdown(
