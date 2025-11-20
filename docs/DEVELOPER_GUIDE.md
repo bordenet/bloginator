@@ -2,6 +2,8 @@
 
 This guide covers everything developers need to know to contribute to Bloginator, including architecture, coding standards, testing strategies, and development workflows.
 
+For future enhancements and roadmap, see [ACTION_PLAN.md](ACTION_PLAN.md) and [FUTURE_WORK.md](FUTURE_WORK.md).
+
 ---
 
 ## Table of Contents
