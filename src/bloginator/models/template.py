@@ -42,6 +42,15 @@ class PromptTemplate(BaseModel):
     modified_date: datetime = Field(default_factory=datetime.now)
     tags: list[str] = Field(default_factory=list, description="Tags")
 
+    @property
+    def required_variables(self) -> list[str]:
+        """Backward-compatible alias for template variables.
+
+        Historically some callers referred to ``required_variables``; this keeps
+        that API stable while the canonical field remains ``variables``.
+        """
+        return self.variables
+
     class Config:
         """Pydantic configuration."""
 

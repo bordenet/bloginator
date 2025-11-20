@@ -63,7 +63,7 @@ class HTMLExporter(Exporter):
         """
         return "html"
 
-    def _build_html_page(self, title: str, content: str, metadata: dict) -> str:
+    def _build_html_page(self, title: str, content: str, metadata: dict[str, str]) -> str:
         """Build complete HTML page with CSS.
 
         Args:
@@ -74,10 +74,17 @@ class HTMLExporter(Exporter):
         Returns:
             Complete HTML page string
         """
+        escaped_title = self._escape_html(title)
+
         # Build metadata HTML
         metadata_html = "<div class='metadata'>\n"
         for key, value in metadata.items():
-            metadata_html += f"  <span><strong>{key}:</strong> {value}</span>\n"
+            metadata_html += (
+                "  <span><strong>"
+                f"{self._escape_html(key)}:"
+                "</strong> "
+                f"{self._escape_html(value)}</span>\n"
+            )
         metadata_html += "</div>"
 
         return f"""<!DOCTYPE html>
@@ -85,7 +92,7 @@ class HTMLExporter(Exporter):
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{title}</title>
+    <title>{escaped_title}</title>
     <style>
         body {{
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -128,6 +135,17 @@ class HTMLExporter(Exporter):
             margin-right: 1.5rem;
             color: #666;
         }}
+        .section-coverage {{
+            font-size: 0.85rem;
+            color: #666;
+            margin: 0.25rem 0 0.5rem 0;
+        }}
+        .section-notes {{
+            font-size: 0.85rem;
+            color: #888;
+            font-style: italic;
+            margin-bottom: 0.75rem;
+        }}
         .citation-note {{
             font-size: 0.85rem;
             color: #888;
@@ -150,7 +168,7 @@ class HTMLExporter(Exporter):
     </style>
 </head>
 <body>
-    <h1>{title}</h1>
+    <h1>{escaped_title}</h1>
     {metadata_html}
     <hr>
     {content}
@@ -242,17 +260,27 @@ class HTMLExporter(Exporter):
             HTML string
         """
         level = min(level, 6)
-        html_parts = []
+        html_parts: list[str] = []
 
         # Section heading
         html_parts.append(f"<h{level}>{self._escape_html(section.title)}</h{level}>")
 
-        # Key points
-        if section.key_points:
-            html_parts.append("<ul>")
-            for point in section.key_points:
-                html_parts.append(f"  <li>{self._escape_html(point)}</li>")
-            html_parts.append("</ul>")
+        # Description
+        if section.description:
+            html_parts.append(f"<p>{self._escape_html(section.description)}</p>")
+
+        # Coverage and source metadata
+        coverage_text = (
+            f"Coverage: {section.coverage_pct:.0f}% from {section.source_count} document(s)"
+        )
+        html_parts.append(f"<p class='section-coverage'>{self._escape_html(coverage_text)}</p>")
+
+        # Notes
+        if section.notes:
+            html_parts.append(
+                "<p class='section-notes'><em>"
+                + f"Note: {self._escape_html(section.notes)}</em></p>"
+            )
 
         # Subsections
         for subsection in section.subsections:

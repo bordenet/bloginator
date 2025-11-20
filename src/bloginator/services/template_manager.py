@@ -20,7 +20,7 @@ class TemplateManager:
     Handles CRUD operations, template rendering, and built-in templates.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize template manager."""
         self.template_dir = get_template_dir()
         self.preset_dir = get_preset_dir()
@@ -55,7 +55,8 @@ class TemplateManager:
         try:
             _ = self.jinja_env.from_string(template)
         except TemplateSyntaxError as e:
-            raise TemplateSyntaxError(f"Invalid template syntax: {e}") from e
+            # Wrap the original error with a more descriptive message while preserving the cause.
+            raise TemplateSyntaxError(f"Invalid template syntax: {e}", 0) from e
 
         # Extract variables from template
         ast = self.jinja_env.parse(template)
@@ -152,7 +153,7 @@ class TemplateManager:
 
         return True
 
-    def render_template(self, template_id: str, **kwargs) -> str:
+    def render_template(self, template_id: str, **kwargs: object) -> str:
         """Render a template with variables.
 
         Args:
@@ -175,22 +176,38 @@ class TemplateManager:
             jinja_template = self.jinja_env.from_string(template.template)
             return jinja_template.render(**kwargs)
         except Exception as e:
-            raise TemplateSyntaxError(f"Template rendering failed: {e}") from e
+            # Normalize rendering failures as TemplateSyntaxError so callers can
+            # handle both parse-time and render-time issues consistently.
+            raise TemplateSyntaxError(f"Template rendering failed: {e}", 0) from e
 
     def create_preset(
         self,
         name: str,
         description: str = "",
         template_id: str | None = None,
-        **kwargs,
+        classification: str = "guidance",
+        audience: str = "all-disciplines",
+        temperature: float = 0.7,
+        max_tokens: int = 2000,
+        keywords: list[str] | None = None,
+        tags: list[str] | None = None,
     ) -> GenerationPreset:
         """Create a generation preset.
+
+        This API mirrors :class:`GenerationPreset` fields explicitly rather than
+        accepting arbitrary ``**kwargs``. That keeps the preset schema
+        discoverable and MyPy-friendly while still providing sensible defaults.
 
         Args:
             name: Preset name
             description: Preset description
             template_id: Associated template ID
-            **kwargs: Preset parameters
+            classification: Default classification
+            audience: Default audience
+            temperature: Default LLM temperature
+            max_tokens: Default max tokens
+            keywords: Default keywords
+            tags: Tags for categorization
 
         Returns:
             Created GenerationPreset
@@ -200,7 +217,12 @@ class TemplateManager:
             name=name,
             description=description,
             template_id=template_id,
-            **kwargs,
+            classification=classification,
+            audience=audience,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            keywords=keywords or [],
+            tags=tags or [],
         )
 
         self._save_preset(preset)

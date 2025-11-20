@@ -66,15 +66,15 @@ def create_exporter(format: ExportFormat) -> Exporter:
     Raises:
         ValueError: If format is not supported
     """
-    exporters = {
-        ExportFormat.MARKDOWN: MarkdownExporter,
-        ExportFormat.PDF: PDFExporter,
-        ExportFormat.DOCX: DOCXExporter,
-        ExportFormat.HTML: HTMLExporter,
-        ExportFormat.TEXT: PlainTextExporter,
-    }
+    if format is ExportFormat.MARKDOWN:
+        return MarkdownExporter()
+    if format is ExportFormat.PDF:
+        return PDFExporter()
+    if format is ExportFormat.DOCX:
+        return DOCXExporter()
+    if format is ExportFormat.HTML:
+        return HTMLExporter()
+    if format is ExportFormat.TEXT:
+        return PlainTextExporter()
 
-    if format not in exporters:
-        raise ValueError(f"Unsupported export format: {format}")
-
-    return exporters[format]()
+    raise ValueError(f"Unsupported export format: {format}")

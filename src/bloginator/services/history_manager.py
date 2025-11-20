@@ -14,7 +14,7 @@ class HistoryManager:
     - Individual entries: .bloginator/history/<id>.json
     """
 
-    def __init__(self, history_dir: Path | None = None):
+    def __init__(self, history_dir: Path | None = None) -> None:
         """Initialize history manager.
 
         Args:

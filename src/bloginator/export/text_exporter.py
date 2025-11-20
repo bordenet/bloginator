@@ -79,8 +79,8 @@ class PlainTextExporter(Exporter):
         # Remove horizontal rules
         text = re.sub(r"^---+$", "", text, flags=re.MULTILINE)
 
-        # Remove citation markers
-        text = re.sub(r"\s*\*\[\d+\s+sources?\]\*", "", text)
+        # Remove citation markers like *[3 sources]* or [3 sources]
+        text = re.sub(r"\s*\*?\[\d+\s+sources?\]\*?", "", text)
 
         # Clean up extra whitespace
         text = re.sub(r"\n{3,}", "\n\n", text)
