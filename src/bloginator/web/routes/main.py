@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
+
 
 if TYPE_CHECKING:  # pragma: no cover - imported only for type checking
     from fastapi.templating import Jinja2Templates
