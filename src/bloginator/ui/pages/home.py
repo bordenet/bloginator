@@ -7,7 +7,6 @@ import streamlit as st
 
 def show():
     """Display the home page."""
-
     st.header("Welcome to Bloginator")
 
     st.markdown(

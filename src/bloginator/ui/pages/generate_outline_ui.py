@@ -19,7 +19,6 @@ from bloginator.ui.pages.generate_ui_utils import (
 
 def show_outline_generation() -> None:
     """Show the outline generation interface."""
-
     st.subheader("Generate Blog Outline")
 
     st.markdown("Create a structured outline for your blog post based on your corpus.")

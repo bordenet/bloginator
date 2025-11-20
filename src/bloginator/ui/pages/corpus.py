@@ -4,12 +4,11 @@ import subprocess
 from pathlib import Path
 
 import streamlit as st
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 
 def show():
     """Display the corpus management page."""
-
     st.header("📁 Corpus Management")
 
     st.markdown(
@@ -33,7 +32,6 @@ def show():
 
 def show_extraction_tab():
     """Show the extraction interface."""
-
     st.subheader("Extract Documents")
 
     st.markdown(
@@ -160,7 +158,6 @@ def show_extraction_tab():
 
 def show_indexing_tab():
     """Show the indexing interface."""
-
     st.subheader("Build Search Index")
 
     st.markdown(
@@ -260,7 +257,6 @@ def show_indexing_tab():
 
 def show_status_tab():
     """Show corpus status and statistics."""
-
     st.subheader("Corpus Status")
 
     # Check extracted files

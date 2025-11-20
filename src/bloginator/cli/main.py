@@ -21,12 +21,11 @@ from bloginator.cli.template import template
 @click.version_option(version=__version__, prog_name="bloginator")
 @click.pass_context
 def cli(ctx: click.Context) -> None:
-    """Bloginator: Authentic content generation from your own writing corpus.
+    """Bloginator command-line interface.
 
-    Bloginator helps you create high-quality documents by leveraging your
-    historical writing to maintain your authentic voice.
+    Use this tool to extract, index, search, outline, draft, refine,
+    and review documents based on your existing writing corpus.
 
-    \b
     Workflow:
       1. bloginator extract <source> -o output/extracted
       2. bloginator index output/extracted -o output/index

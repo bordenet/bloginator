@@ -10,7 +10,6 @@ import streamlit as st
 
 def show():
     """Display the analytics page."""
-
     st.header("📊 Analytics & Insights")
 
     st.markdown(

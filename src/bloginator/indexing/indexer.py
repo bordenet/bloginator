@@ -1,11 +1,16 @@
 """ChromaDB indexer for document corpus."""
 
 from pathlib import Path
+from typing import Any, TypeAlias, cast
 
 import chromadb
+from chromadb.api.types import SparseVector
 from sentence_transformers import SentenceTransformer
 
 from bloginator.models import Chunk, Document
+
+
+MetadataValue: TypeAlias = str | int | float | bool | SparseVector | None
 
 
 class CorpusIndexer:
@@ -64,7 +69,7 @@ class CorpusIndexer:
         )
 
         if results and results["metadatas"]:
-            return results["metadatas"][0].get("content_checksum")
+            return cast("str | None", results["metadatas"][0].get("content_checksum"))
 
         return None
 
@@ -101,9 +106,9 @@ class CorpusIndexer:
         embeddings = self.embedding_model.encode(contents, show_progress_bar=False)
 
         # Prepare metadata for each chunk
-        metadatas = []
+        metadatas: list[dict[str, MetadataValue]] = []
         for chunk in chunks:
-            metadata = {
+            metadata: dict[str, MetadataValue] = {
                 "document_id": chunk.document_id,
                 "chunk_index": chunk.chunk_index,
                 "section_heading": chunk.section_heading or "",
@@ -112,7 +117,7 @@ class CorpusIndexer:
                 # Document-level metadata
                 "filename": document.filename,
                 "format": document.format,
-                "quality_rating": (
+                "quality_rating": str(
                     document.quality_rating.value
                     if hasattr(document.quality_rating, "value")
                     else document.quality_rating
@@ -138,7 +143,7 @@ class CorpusIndexer:
             ids=[chunk.id for chunk in chunks],
             embeddings=embeddings.tolist(),
             documents=contents,
-            metadatas=metadatas,
+            metadatas=metadatas,  # type: ignore[arg-type]
         )
 
     def get_total_chunks(self) -> int:
@@ -167,7 +172,7 @@ class CorpusIndexer:
         self.client.delete_collection(name=self.collection_name)
         self.collection = self.client.get_or_create_collection(name=self.collection_name)
 
-    def get_collection_info(self) -> dict[str, any]:  # type: ignore
+    def get_collection_info(self) -> dict[str, Any]:
         """Get information about the collection.
 
         Returns:

@@ -19,7 +19,7 @@ STATIC_DIR = WEB_DIR / "static"
 
 def create_app(
     title: str = "Bloginator",
-    description: str = "Authentic content generation from your own corpus",
+    description: str = "Content generation from your own corpus",
     version: str = __version__,
     debug: bool = False,
 ) -> FastAPI:

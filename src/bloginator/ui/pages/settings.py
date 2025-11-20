@@ -8,7 +8,6 @@ import streamlit as st
 
 def show():
     """Display the settings page."""
-
     st.header("⚙️ Settings")
 
     st.markdown(
@@ -32,7 +31,6 @@ def show():
 
 def show_llm_settings():
     """Show LLM configuration settings."""
-
     st.subheader("LLM Configuration")
 
     st.markdown(
@@ -163,7 +161,6 @@ def show_llm_settings():
 
 def show_path_settings():
     """Show path configuration settings."""
-
     st.subheader("Path Configuration")
 
     st.markdown("Configure directory paths for corpus, index, and outputs.")
@@ -216,7 +213,6 @@ def show_path_settings():
 
 def show_about():
     """Show about information."""
-
     st.subheader("About Bloginator")
 
     st.markdown(

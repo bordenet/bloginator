@@ -11,7 +11,8 @@ def test_cli_help() -> None:
     result = runner.invoke(cli, ["--help"])
     assert result.exit_code == 0
     assert "Bloginator" in result.output
-    assert "authentic content generation" in result.output.lower()
+    # Ensure the help output includes the concise CLI description
+    assert "bloginator command-line interface" in result.output.lower()
 
 
 def test_cli_version_option() -> None:

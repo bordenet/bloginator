@@ -53,7 +53,7 @@ def parallel_map(
     if len(items_list) <= 1:
         return [func(item) for item in items_list]
 
-    results = [None] * len(items_list)
+    result_map: dict[int, R] = {}
 
     with ThreadPoolExecutor(max_workers=workers) as executor:
         # Submit all tasks and track their indices
@@ -62,9 +62,9 @@ def parallel_map(
         # Collect results as they complete
         for future in as_completed(future_to_index):
             idx = future_to_index[future]
-            results[idx] = future.result()
+            result_map[idx] = future.result()
 
-    return results
+    return [result_map[i] for i in range(len(items_list))]
 
 
 def parallel_map_with_progress(
@@ -95,12 +95,12 @@ def parallel_map_with_progress(
 
     # Don't use thread pool for small lists
     if len(items_list) <= 1:
-        results = [func(item) for item in items_list]
+        single_results = [func(item) for item in items_list]
         if progress_callback:
-            progress_callback(len(results))
-        return results
+            progress_callback(len(single_results))
+        return single_results
 
-    results = [None] * len(items_list)
+    result_map: dict[int, R] = {}
     completed = 0
 
     with ThreadPoolExecutor(max_workers=workers) as executor:
@@ -110,10 +110,10 @@ def parallel_map_with_progress(
         # Collect results as they complete
         for future in as_completed(future_to_index):
             idx = future_to_index[future]
-            results[idx] = future.result()
+            result_map[idx] = future.result()
 
             completed += 1
             if progress_callback:
                 progress_callback(completed)
 
-    return results
+    return [result_map[i] for i in range(len(items_list))]

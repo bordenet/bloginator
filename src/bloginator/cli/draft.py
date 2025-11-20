@@ -112,7 +112,7 @@ def draft(
     log_file: Path | None,
     verbose: bool,
 ) -> None:
-    """Generate document draft from outline.
+    r"""Generate document draft from outline.
 
     Uses RAG to synthesize content for each section based on corpus sources.
     Optionally validates against blocklist and scores voice similarity.
@@ -298,7 +298,9 @@ def draft(
         voice_color = (
             "green"
             if draft_obj.voice_score >= 0.7
-            else "yellow" if draft_obj.voice_score >= 0.5 else "red"
+            else "yellow"
+            if draft_obj.voice_score >= 0.5
+            else "red"
         )
         stats_table.add_row(
             "Voice Score:",

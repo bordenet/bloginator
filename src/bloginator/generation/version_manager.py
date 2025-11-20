@@ -3,6 +3,7 @@
 import difflib
 import json
 from pathlib import Path
+from typing import Any
 
 from bloginator.models.draft import Draft
 from bloginator.models.version import DraftVersion, VersionHistory
@@ -207,7 +208,7 @@ class VersionManager:
 
         return False
 
-    def get_version_summary(self, version: DraftVersion) -> dict[str, any]:
+    def get_version_summary(self, version: DraftVersion) -> dict[str, Any]:
         """Get a summary of a version for display.
 
         Args:
@@ -227,7 +228,7 @@ class VersionManager:
             "voice_score": version.draft.voice_score,
         }
 
-    def list_versions(self, history: VersionHistory) -> list[dict[str, any]]:
+    def list_versions(self, history: VersionHistory) -> list[dict[str, Any]]:
         """Get summaries of all versions.
 
         Args:

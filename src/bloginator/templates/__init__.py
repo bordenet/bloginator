@@ -5,6 +5,7 @@ __all__ = ["TEMPLATES", "get_template", "list_templates"]
 from pathlib import Path
 from typing import Any
 
+
 # Get the directory containing template files
 TEMPLATES_DIR = Path(__file__).parent
 

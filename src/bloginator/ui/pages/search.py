@@ -8,7 +8,6 @@ import streamlit as st
 
 def show():
     """Display the search page."""
-
     st.header("🔍 Search Corpus")
 
     st.markdown(

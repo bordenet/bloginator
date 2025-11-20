@@ -1,6 +1,7 @@
 """Refinement engine for iterative draft improvement."""
 
 import logging
+from typing import Any
 
 from bloginator.generation.draft_generator import DraftGenerator
 from bloginator.generation.llm_client import LLMClient
@@ -55,7 +56,7 @@ class RefinementEngine:
             searcher=searcher,
         )
 
-    def parse_feedback(self, draft: Draft, feedback: str) -> dict[str, any]:
+    def parse_feedback(self, draft: Draft, feedback: str) -> dict[str, Any]:
         """Parse natural language feedback to identify refinement actions.
 
         Args:

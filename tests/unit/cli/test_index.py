@@ -1,14 +1,12 @@
 """Tests for index CLI command."""
 
 import json
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 from click.testing import CliRunner
 
 from bloginator.cli.index import index
-from bloginator.models import Document, QualityRating
 
 
 @pytest.fixture
