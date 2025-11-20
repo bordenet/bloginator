@@ -10,6 +10,7 @@ from bloginator.extraction.extractor import DocumentExtractor
 from bloginator.indexing.indexer import CorpusIndexer
 from bloginator.safety.blocklist_manager import BlocklistManager
 
+
 router = APIRouter()
 
 

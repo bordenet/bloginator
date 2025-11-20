@@ -9,6 +9,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+
 # Load .env file from project root
 _project_root = Path(__file__).parent.parent.parent
 _env_file = _project_root / ".env"

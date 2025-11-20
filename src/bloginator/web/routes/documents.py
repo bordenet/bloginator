@@ -13,6 +13,7 @@ from bloginator.models.draft import Draft
 from bloginator.models.outline import Outline
 from bloginator.search import Searcher
 
+
 router = APIRouter()
 
 

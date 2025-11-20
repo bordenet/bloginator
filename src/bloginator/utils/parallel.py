@@ -8,6 +8,7 @@ from collections.abc import Callable, Iterable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import TypeVar
 
+
 T = TypeVar("T")
 R = TypeVar("R")
 
