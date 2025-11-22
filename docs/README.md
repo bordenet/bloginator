@@ -11,6 +11,7 @@ This directory contains all project documentation.
 ## Developer Documentation
 
 - **[DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md)** - Development setup, testing, and contribution guidelines
+- **[TESTING_GUIDE.md](TESTING_GUIDE.md)** - Comprehensive testing guide including mock LLM usage and VS Code integration
 - **[ACTION_PLAN.md](ACTION_PLAN.md)** - Post-release action plan for future improvements
 - **[FUTURE_WORK.md](FUTURE_WORK.md)** - Planned features and enhancements
 

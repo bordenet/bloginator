@@ -10,6 +10,7 @@ from rich.syntax import Syntax
 from rich.table import Table
 
 from bloginator.generation.version_manager import VersionManager
+from bloginator.models.version import DraftVersion, VersionHistory
 
 
 console = Console()
@@ -118,11 +119,14 @@ def diff(
             version2 = history.current_version
             version1 = version2 - 1 if version2 > 1 else 1
         elif version1 is None:
+            # version2 is not None here
+            assert version2 is not None
             version1 = version2 - 1 if version2 > 1 else 1
         elif version2 is None:
             version2 = history.current_version
 
-        # Validate versions
+        # Validate versions (both are now guaranteed to be int)
+        assert version1 is not None and version2 is not None
         v1 = history.get_version(version1)
         v2 = history.get_version(version2)
 
@@ -145,7 +149,7 @@ def diff(
 
 def _display_version_list(
     version_manager: VersionManager,
-    history,
+    history: VersionHistory,
 ) -> None:
     """Display list of all versions.
 
@@ -185,8 +189,8 @@ def _display_version_list(
 
 def _display_diff(
     version_manager: VersionManager,
-    v1,
-    v2,
+    v1: DraftVersion,
+    v2: DraftVersion,
     context_lines: int,
 ) -> None:
     """Display diff between two versions.
@@ -251,7 +255,7 @@ def _display_diff(
         console.print(syntax)
 
 
-def _display_version_content(version) -> None:
+def _display_version_content(version: DraftVersion) -> None:
     """Display full content of a version.
 
     Args:

@@ -10,7 +10,7 @@ from bloginator.services.history_manager import HistoryManager
 
 
 @click.group()
-def history():
+def history() -> None:
     """Manage generation history."""
     pass
 
@@ -47,7 +47,7 @@ def list_history(
     audience: str | None,
     limit: int,
     history_dir: Path | None,
-):
+) -> None:
     """List generation history entries.
 
     Examples:
@@ -108,7 +108,7 @@ def list_history(
     type=click.Path(path_type=Path),
     help="History directory (defaults to ~/.bloginator/history/)",
 )
-def show_entry(entry_id: str, history_dir: Path | None):
+def show_entry(entry_id: str, history_dir: Path | None) -> None:
     """Show detailed information for a history entry.
 
     Examples:
@@ -168,7 +168,7 @@ def show_entry(entry_id: str, history_dir: Path | None):
     help="History directory (defaults to ~/.bloginator/history/)",
 )
 @click.confirmation_option(prompt="Are you sure you want to delete this entry?")
-def delete_entry(entry_id: str, history_dir: Path | None):
+def delete_entry(entry_id: str, history_dir: Path | None) -> None:
     """Delete a history entry.
 
     Examples:
@@ -191,7 +191,7 @@ def delete_entry(entry_id: str, history_dir: Path | None):
     help="History directory (defaults to ~/.bloginator/history/)",
 )
 @click.confirmation_option(prompt="Are you sure you want to clear ALL history?")
-def clear_history(history_dir: Path | None):
+def clear_history(history_dir: Path | None) -> None:
     """Clear all history entries.
 
     WARNING: This will delete all generation history.
@@ -233,7 +233,7 @@ def export_entry(
     export_format: str,
     output_file: Path | None,
     history_dir: Path | None,
-):
+) -> None:
     """Export a history entry.
 
     Examples:
