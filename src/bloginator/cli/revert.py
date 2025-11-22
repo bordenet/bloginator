@@ -3,7 +3,6 @@
 import json
 import logging
 from pathlib import Path
-from typing import Optional
 
 import click
 from rich.console import Console
@@ -140,8 +139,8 @@ def revert(
 
 
 def _display_revert_info(
-    current_version: Optional,
-    target_version,
+    current_version: int | None,
+    target_version: int,
 ) -> None:
     """Display information about the revert operation.
 

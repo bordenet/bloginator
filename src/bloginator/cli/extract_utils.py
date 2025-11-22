@@ -20,7 +20,7 @@ def load_existing_extractions(output_dir: Path) -> dict[str, tuple[str, datetime
     Returns:
         Dictionary mapping source file paths to (doc_id, modified_date) tuples
     """
-    existing = {}
+    existing: dict[str, tuple[str, datetime]] = {}
 
     if not output_dir.exists():
         return existing
