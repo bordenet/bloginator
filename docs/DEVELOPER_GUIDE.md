@@ -904,12 +904,13 @@ Reviewers will check:
 
 ## Additional Resources
 
-- [PRD: Core System](PRD-BLOGINATOR-001-Core-System.md)
-- [Design Spec](DESIGN-SPEC-001-Implementation-Plan.md)
-- [Testing Spec](TESTING-SPEC-003-Quality-Assurance.md)
-- [Architecture Doc](ARCHITECTURE-002-Deployment-Modes.md)
-- [Claude Guidelines](CLAUDE_GUIDELINES.md)
-- [Style Guide](../STYLE_GUIDE.md)
+- [Action Plan](ACTION_PLAN.md) - Post-release improvements and next steps
+- [Future Work](FUTURE_WORK.md) - Planned features and enhancements
+- [Custom LLM Guide](CUSTOM_LLM_GUIDE.md) - Advanced LLM configuration
+- [User Guide](USER_GUIDE.md) - Complete user documentation
+- [Contributing Guidelines](../CONTRIBUTING.md) - How to contribute to the project
+- [Security Policy](../SECURITY.md) - Security and vulnerability reporting
+- [Style Guide](../scripts/STYLE_GUIDE.md) - Code style conventions
 
 ---
 
