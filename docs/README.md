@@ -2,24 +2,25 @@
 
 This directory contains all project documentation.
 
-## Documentation Files
+## User Documentation
 
-### For Developers
+- **[USER_GUIDE.md](USER_GUIDE.md)** - Complete user guide for using Bloginator
+- **[INSTALLATION.md](INSTALLATION.md)** - Installation and setup instructions
+- **[CUSTOM_LLM_GUIDE.md](CUSTOM_LLM_GUIDE.md)** - Guide for configuring custom LLM providers (OpenAI, Anthropic, etc.)
 
-- **[CLAUDE.md](CLAUDE.md)** - AI assistant development guide with project context, architecture, and conventions
-- **[PROJECT_PLAN.md](PROJECT_PLAN.md)** - Living document tracking implementation progress, phases, and current status
-- **[CUSTOM_LLM_GUIDE.md](CUSTOM_LLM_GUIDE.md)** - Detailed guide for configuring custom LLM providers (OpenAI, Anthropic, etc.)
+## Developer Documentation
 
-### For Internal Use
-
-- **[SESSION_HANDOFF.md](SESSION_HANDOFF.md)** - Template for session continuity and context handoff
-- **[VERBOSE_LOGGING_PLAN.md](VERBOSE_LOGGING_PLAN.md)** - Design document for verbose logging implementation
+- **[DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md)** - Development setup, testing, and contribution guidelines
+- **[ACTION_PLAN.md](ACTION_PLAN.md)** - Post-release action plan for future improvements
+- **[FUTURE_WORK.md](FUTURE_WORK.md)** - Planned features and enhancements
 
 ## Main Documentation
 
 - **[../README.md](../README.md)** - Project overview, quick start, and usage guide (at repository root)
+- **[../CONTRIBUTING.md](../CONTRIBUTING.md)** - Contribution guidelines and code standards
+- **[../CHANGELOG.md](../CHANGELOG.md)** - Version history and release notes
+- **[../SECURITY.md](../SECURITY.md)** - Security policy and vulnerability reporting
 
 ## Other Resources
 
 - **[../corpus/README.md](../corpus/README.md)** - Corpus configuration and management guide
-- **[../starter-kit/](../starter-kit/)** - Starter kit templates and deployment guides

@@ -85,7 +85,9 @@ See [CUSTOM_LLM_GUIDE.md](docs/CUSTOM_LLM_GUIDE.md) for configuration.
 - [Installation](docs/INSTALLATION.md)
 - [User Guide](docs/USER_GUIDE.md)
 - [Developer Guide](docs/DEVELOPER_GUIDE.md)
-- [Architecture](docs/ARCHITECTURE-002-Deployment-Modes.md)
+- [Custom LLM Guide](docs/CUSTOM_LLM_GUIDE.md)
+- [Contributing](CONTRIBUTING.md)
+- [Security](SECURITY.md)
 
 ---
 
