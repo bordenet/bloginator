@@ -36,6 +36,12 @@ system_prompt: |
   - Be direct and specific, not vague
   - Apply user feedback precisely
 
+  SPECIFICITY REQUIREMENTS:
+  - Include concrete metrics and quantifiable data when available
+  - Use specific examples with real details
+  - Replace vague quantifiers with precise numbers
+  - Provide actionable steps with clear parameters
+
 # User prompt template
 user_prompt_template: |
   Refine the following section based on the user's feedback.
