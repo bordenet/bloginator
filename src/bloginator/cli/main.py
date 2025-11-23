@@ -9,6 +9,7 @@ from bloginator.cli.draft import draft
 from bloginator.cli.extract import extract
 from bloginator.cli.history import history
 from bloginator.cli.index import index
+from bloginator.cli.init import init
 from bloginator.cli.outline import outline
 from bloginator.cli.refine import refine
 from bloginator.cli.revert import revert
@@ -26,6 +27,9 @@ def cli(ctx: click.Context) -> None:
     Use this tool to extract, index, search, outline, draft, refine,
     and review documents based on your existing writing corpus.
 
+    First-time setup:
+      bloginator init  # Pre-download models (recommended for first use)
+
     Workflow:
       1. bloginator extract <source> -o output/extracted
       2. bloginator index output/extracted -o output/index
@@ -37,6 +41,9 @@ def cli(ctx: click.Context) -> None:
       8. bloginator revert my-draft 2 -o draft.md
 
     Examples:
+      First-time setup:
+        bloginator init
+
       Extract and index:
         bloginator extract ~/my-writing -o output/extracted
         bloginator index output/extracted -o output/index
@@ -67,6 +74,7 @@ cli.add_command(draft)
 cli.add_command(extract)
 cli.add_command(history)
 cli.add_command(index)
+cli.add_command(init)
 cli.add_command(outline)
 cli.add_command(refine)
 cli.add_command(revert)

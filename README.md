@@ -37,6 +37,9 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
 
+# First-time setup (recommended)
+bloginator init  # Pre-downloads embedding models (~80MB, 10-60s)
+
 # Setup LLM (Ollama recommended)
 ollama pull llama3
 
@@ -50,6 +53,19 @@ bloginator draft --index output/index --outline outline.json
 # Or use web UI
 bloginator serve --port 8000
 ```
+
+### Performance Expectations
+
+**First-time setup:**
+- `bloginator init`: 10-60 seconds (downloads embedding model)
+- Without `init`, first command will download models automatically
+
+**Typical command times:**
+- `extract`: 1-10 seconds per document (depends on size/format)
+- `index`: 5-30 seconds (depends on corpus size)
+- `search`: <1 second (after first run)
+- `outline`: 30-90 seconds (depends on LLM speed)
+- `draft`: 1-5 minutes (depends on outline complexity and LLM speed)
 
 ---
 
