@@ -15,6 +15,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+import yaml
+
 from bloginator.generation.draft_generator import DraftGenerator
 from bloginator.generation.llm_client import LLMClient
 from bloginator.generation.outline_generator import OutlineGenerator
@@ -116,48 +118,59 @@ class PromptTuner:
         self.slop_detector = SlopDetector(prompt_loader=self.prompt_loader)
 
     def generate_test_cases(self, num_cases: int = 5) -> list[TestCase]:
-        """Generate test cases from corpus.
+        """Load test cases from YAML configuration.
 
         Args:
-            num_cases: Number of test cases to generate
+            num_cases: Number of test cases to load (default: all)
 
         Returns:
             List of test cases
-        """
-        # For now, return hardcoded test cases
-        # In future, could analyze corpus to generate diverse cases
-        test_cases = [
-            TestCase(
-                id="test_001",
-                name="Engineering Best Practices",
-                title="Code Review Best Practices for Engineering Teams",
-                keywords=["code review", "engineering", "quality", "collaboration"],
-                thesis="Effective code reviews improve code quality and team knowledge sharing",
-                classification="best-practice",
-                audience="ic-engineers",
-                expected_qualities={
-                    "clarity": 4.0,
-                    "voice_match": 4.0,
-                    "no_slop": 5.0,
-                },
-            ),
-            TestCase(
-                id="test_002",
-                name="Leadership Guidance",
-                title="Building High-Performing Engineering Teams",
-                keywords=["leadership", "team building", "culture", "performance"],
-                thesis="Great engineering teams are built through clear vision, trust, and continuous improvement",
-                classification="guidance",
-                audience="engineering-leaders",
-                expected_qualities={
-                    "clarity": 4.0,
-                    "voice_match": 4.0,
-                    "no_slop": 5.0,
-                },
-            ),
-        ]
 
-        return test_cases[:num_cases]
+        Raises:
+            FileNotFoundError: If test cases file not found
+            ValueError: If test cases file is invalid
+        """
+        # Load test cases from YAML file
+        test_cases_file = Path(__file__).parent.parent.parent / "prompts" / "optimization" / "test_cases.yaml"
+
+        if not test_cases_file.exists():
+            raise FileNotFoundError(
+                f"Test cases file not found: {test_cases_file}\n"
+                "Expected location: prompts/optimization/test_cases.yaml"
+            )
+
+        try:
+            with test_cases_file.open() as f:
+                data = yaml.safe_load(f)
+
+            if not data or "test_cases" not in data:
+                raise ValueError("Invalid test cases file: missing 'test_cases' key")
+
+            test_cases = []
+            for tc_data in data["test_cases"]:
+                test_case = TestCase(
+                    id=tc_data["id"],
+                    name=tc_data["name"],
+                    title=tc_data["title"],
+                    keywords=tc_data["keywords"],
+                    thesis=tc_data["thesis"],
+                    classification=tc_data["classification"],
+                    audience=tc_data["audience"],
+                    expected_qualities=tc_data.get("expected_qualities", {}),
+                )
+                test_cases.append(test_case)
+
+            logger.info(f"Loaded {len(test_cases)} test cases from {test_cases_file}")
+
+            # Return requested number of test cases
+            if num_cases <= 0:
+                return test_cases
+            return test_cases[:num_cases]
+
+        except yaml.YAMLError as e:
+            raise ValueError(f"Failed to parse test cases YAML: {e}") from e
+        except KeyError as e:
+            raise ValueError(f"Invalid test case format: missing required field {e}") from e
 
     def run_baseline(self, test_case: TestCase) -> tuple[Outline, Draft, float]:
         """Run baseline generation with current prompts.

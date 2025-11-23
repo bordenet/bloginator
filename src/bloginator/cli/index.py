@@ -43,8 +43,8 @@ def index(source: Path, output: Path, chunk_size: int) -> None:
     # Initialize error tracker
     error_tracker = ErrorTracker()
 
-    # Find all extracted documents (metadata JSON files)
-    meta_files = list(source.glob("*.json"))
+    # Find all extracted documents (metadata JSON files) - recursively
+    meta_files = list(source.rglob("*.json"))
 
     if not meta_files:
         panel = create_error_panel(
@@ -94,8 +94,8 @@ def index(source: Path, output: Path, chunk_size: int) -> None:
                 if indexer.get_document_checksum(document.id) is not None:
                     indexer.delete_document(document.id)
 
-                # Load extracted text
-                text_file = source / f"{document.id}.txt"
+                # Load extracted text (look in same directory as JSON file)
+                text_file = meta_file.parent / f"{document.id}.txt"
                 if not text_file.exists():
                     error = FileNotFoundError(f"Missing text file: {text_file}")
                     category = ErrorCategory.FILE_NOT_FOUND
