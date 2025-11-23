@@ -201,8 +201,10 @@ def outline(
         TextColumn("[progress.description]{task.description}"),
         console=console,
     ) as progress:
-        # Load searcher
-        task = progress.add_task("Loading corpus index...", total=None)
+        # Load searcher (this may load embedding model on first run)
+        task = progress.add_task(
+            "Loading corpus index and embedding model (first run may take 10-60s)...", total=None
+        )
         try:
             logger.info(f"Loading index from {index_dir}")
             searcher = CorpusSearcher(index_dir=index_dir)
@@ -210,6 +212,9 @@ def outline(
         except Exception as e:
             logger.error(f"Failed to load index: {e}")
             console.print(f"[red]✗[/red] Failed to load index: {e}")
+            console.print(
+                "[dim]Note: First run downloads embedding model from HuggingFace (may take time)[/dim]"
+            )
             return
         progress.update(task, completed=True)
 
