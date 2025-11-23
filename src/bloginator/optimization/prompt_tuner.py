@@ -119,7 +119,12 @@ class PromptTuner:
         # Load meta-prompt for evaluation
         # __file__ is absolute, so: .../src/bloginator/optimization/prompt_tuner.py
         # We need to go up 4 levels to get to repo root: .parent (optimization) -> .parent (bloginator) -> .parent (src) -> .parent (repo root)
-        meta_prompt_file = Path(__file__).parent.parent.parent.parent / "prompts" / "optimization" / "meta_prompt.yaml"
+        meta_prompt_file = (
+            Path(__file__).parent.parent.parent.parent
+            / "prompts"
+            / "optimization"
+            / "meta_prompt.yaml"
+        )
         with meta_prompt_file.open() as f:
             meta_data = yaml.safe_load(f)
             self.meta_prompt_template = Template(meta_data["evaluation_prompt"])
@@ -152,7 +157,12 @@ class PromptTuner:
         """
         # Load test cases from YAML file
         # __file__ is absolute, so we need to go up 4 levels to repo root
-        test_cases_file = Path(__file__).parent.parent.parent.parent / "prompts" / "optimization" / "test_cases.yaml"
+        test_cases_file = (
+            Path(__file__).parent.parent.parent.parent
+            / "prompts"
+            / "optimization"
+            / "test_cases.yaml"
+        )
 
         if not test_cases_file.exists():
             raise FileNotFoundError(
@@ -436,8 +446,7 @@ class PromptTuner:
         """
         # Prepare draft preview (first 3 sections)
         draft_preview = "\n\n".join(
-            f"## {section.title}\n{section.content}"
-            for section in draft.sections[:3]
+            f"## {section.title}\n{section.content}" for section in draft.sections[:3]
         )
 
         # Render meta-prompt
@@ -485,14 +494,19 @@ class PromptTuner:
                 "score": self._score_draft(draft),
                 "slop_violations": {"critical": [], "high": [], "medium": [], "low": []},
                 "voice_analysis": {"authenticity_score": 3.0, "issues": [], "strengths": []},
-                "content_quality": {"clarity": 3.0, "depth": 3.0, "nuance": 3.0, "specificity": 3.0},
+                "content_quality": {
+                    "clarity": 3.0,
+                    "depth": 3.0,
+                    "nuance": 3.0,
+                    "specificity": 3.0,
+                },
                 "evolutionary_strategy": {
                     "prompt_to_modify": "draft",
                     "specific_changes": [],
                     "priority": "medium",
-                    "expected_impact": "Unable to parse AI evaluation"
+                    "expected_impact": "Unable to parse AI evaluation",
                 },
-                "reasoning": f"Fallback evaluation due to parse error: {e}"
+                "reasoning": f"Fallback evaluation due to parse error: {e}",
             }
 
     def optimize(
@@ -585,13 +599,19 @@ class PromptTuner:
                 # Log evolutionary strategy
                 strategy = evaluation.get("evolutionary_strategy", {})
                 logger.info(f"    Score: {ai_score:.2f}/5.0")
-                logger.info(f"    Violations: {total_violations} (C:{critical} H:{high} M:{medium} L:{low})")
-                logger.info(f"    Strategy: {strategy.get('prompt_to_modify', 'N/A')} - {strategy.get('priority', 'N/A')}")
+                logger.info(
+                    f"    Violations: {total_violations} (C:{critical} H:{high} M:{medium} L:{low})"
+                )
+                logger.info(
+                    f"    Strategy: {strategy.get('prompt_to_modify', 'N/A')} - {strategy.get('priority', 'N/A')}"
+                )
 
                 # Apply evolutionary strategy (mutate prompts)
                 if strategy.get("priority") in ["high", "critical"] and total_violations > 0:
                     self._apply_prompt_mutations(strategy)
-                    logger.info(f"    Applied {len(strategy.get('specific_changes', []))} prompt mutations")
+                    logger.info(
+                        f"    Applied {len(strategy.get('specific_changes', []))} prompt mutations"
+                    )
 
                 # Sleep between rounds to avoid pummeling the LLM
                 if round_num < num_iterations - 1:  # Don't sleep after last round

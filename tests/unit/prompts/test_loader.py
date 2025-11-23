@@ -58,8 +58,7 @@ def test_render_system_prompt():
     template = loader.load("outline/base.yaml")
 
     rendered = template.render_system_prompt(
-        classification_context="Test classification",
-        audience_context="Test audience"
+        classification_context="Test classification", audience_context="Test audience"
     )
 
     assert "Test classification" in rendered
@@ -77,7 +76,7 @@ def test_render_user_prompt():
         audience="ic-engineers",
         keywords=["testing", "quality"],
         thesis="Test thesis statement",
-        num_sections=5
+        num_sections=5,
     )
 
     assert "Test Title" in rendered
@@ -132,10 +131,9 @@ def test_prompt_template_defaults():
         description="Test prompt",
         context="Test context",
         system_prompt="System",
-        user_prompt_template="User {{var}}"
+        user_prompt_template="User {{var}}",
     )
 
     assert template.parameters == {}
     assert template.quality_criteria == []
     assert template.ai_slop_patterns == {}
-

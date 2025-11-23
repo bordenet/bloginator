@@ -157,4 +157,3 @@ def test_quality_levels(qa_system, clean_outline):
     )
     assessment = qa_system.assess_quality(clean_outline, poor_draft)
     assert assessment.quality_level == QualityLevel.POOR
-

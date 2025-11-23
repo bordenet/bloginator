@@ -7,7 +7,6 @@ satisfactory content is produced.
 
 import logging
 from dataclasses import dataclass
-from typing import Any
 
 from bloginator.generation.draft_generator import DraftGenerator
 from bloginator.generation.llm_client import LLMClient
@@ -17,6 +16,7 @@ from bloginator.models.outline import Outline
 from bloginator.prompts.loader import PromptLoader
 from bloginator.quality.quality_assurance import QualityAssessment, QualityAssurance, QualityLevel
 from bloginator.search.searcher import CorpusSearcher
+
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +92,9 @@ class RetryOrchestrator:
         for attempt_num in range(self.max_retries + 1):
             # Select prompt variant
             variant_name = prompt_variants[min(attempt_num, len(prompt_variants) - 1)]
-            logger.info(f"Generation attempt {attempt_num + 1}/{self.max_retries + 1} using variant: {variant_name}")
+            logger.info(
+                f"Generation attempt {attempt_num + 1}/{self.max_retries + 1} using variant: {variant_name}"
+            )
 
             # Load prompts with variant
             prompt_loader = self._load_prompt_variant(variant_name)
@@ -185,4 +187,3 @@ class RetryOrchestrator:
         """
         # TODO: Implement actual prompt variant loading
         return PromptLoader()
-

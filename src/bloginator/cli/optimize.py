@@ -139,7 +139,9 @@ def optimize(
     table.add_column("Slop After", justify="right")
 
     for result in results:
-        improvement_str = f"+{result.improvement:.2f}" if result.improvement >= 0 else f"{result.improvement:.2f}"
+        improvement_str = (
+            f"+{result.improvement:.2f}" if result.improvement >= 0 else f"{result.improvement:.2f}"
+        )
         table.add_row(
             result.test_case_id,
             f"{result.baseline_score:.2f}",
@@ -160,4 +162,3 @@ def optimize(
     console.print(f"📈 Average improved score: {avg_improved:.2f}/5.0")
     console.print(f"🎯 Average improvement: {avg_improvement:+.2f}")
     console.print(f"\n📁 Results saved to: {output_dir}")
-

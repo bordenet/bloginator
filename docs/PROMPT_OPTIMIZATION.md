@@ -11,7 +11,7 @@ This document describes the sophisticated evolutionary optimization apparatus fo
 1. **Eliminate AI Slop**: Remove telltale signs of AI-generated content
    - Critical violations: Em-dashes (—), flowery corporate jargon
    - Medium/Low violations: Hedging words, vague language
-   
+
 2. **Match Author Voice**: Ensure generated content sounds authentic
    - Analyze corpus to extract voice patterns
    - Score generated content against authentic voice
@@ -223,4 +223,3 @@ Each round produces a strategy with:
 5. ⏳ Analyze results and determine optimal rounds
 6. ⏳ Show git diff of prompt evolution
 7. ⏳ Validate success criteria
-

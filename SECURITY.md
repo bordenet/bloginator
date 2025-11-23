@@ -132,4 +132,3 @@ pip-audit
 ## Acknowledgments
 
 We appreciate responsible disclosure and will acknowledge security researchers who help improve Bloginator's security.
-

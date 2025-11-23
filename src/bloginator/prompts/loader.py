@@ -97,4 +97,3 @@ class PromptLoader:
     def clear_cache(self) -> None:
         """Clear the prompt template cache."""
         self._cache.clear()
-

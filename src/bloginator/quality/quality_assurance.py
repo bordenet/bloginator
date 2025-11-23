@@ -8,11 +8,11 @@ alternate LLM prompts until satisfactory content is produced.
 import logging
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any
 
 from bloginator.models.draft import Draft
 from bloginator.models.outline import Outline
 from bloginator.quality.slop_detector import SlopDetector
+
 
 logger = logging.getLogger(__name__)
 
@@ -125,9 +125,7 @@ class QualityAssurance:
             quality_level = QualityLevel.POOR
 
         # Generate recommendations
-        recommendations = self._generate_recommendations(
-            critical, high, medium, low, score
-        )
+        recommendations = self._generate_recommendations(critical, high, medium, low, score)
 
         # Determine if retry is suggested
         retry_suggested = quality_level == QualityLevel.POOR
@@ -160,11 +158,8 @@ class QualityAssurance:
                 "Add: 'Avoid corporate jargon. Use concrete, specific language.'"
             )
         if medium > 0:
-            recommendations.append(
-                "Add: 'Be direct and specific. Avoid hedging words.'"
-            )
+            recommendations.append("Add: 'Be direct and specific. Avoid hedging words.'")
         if score < 3.0:
             recommendations.append("Consider using a different LLM model or provider")
 
         return recommendations
-

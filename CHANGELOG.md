@@ -52,4 +52,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Additional export formats
 - Enhanced voice analysis metrics
 - Multi-language support for corpus documents
-
