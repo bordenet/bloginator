@@ -147,4 +147,3 @@ def test_word_boundary_detection():
     hedging_violations = [v for v in violations if v.pattern_name == "hedging_words"]
     # Should only find "Perhaps", not "haps" in "mishaps"
     assert len(hedging_violations) == 1
-

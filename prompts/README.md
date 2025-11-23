@@ -72,4 +72,3 @@ The prompt optimization framework (`src/bloginator/optimization/`) uses these pr
 4. Track performance metrics over time
 
 See `docs/PROMPT_OPTIMIZATION.md` for details.
-

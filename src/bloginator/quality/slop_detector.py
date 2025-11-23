@@ -142,4 +142,3 @@ class SlopDetector:
         """
         violations = self.detect(text)
         return any(v.severity == "critical" for v in violations)
-

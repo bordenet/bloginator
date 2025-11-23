@@ -28,8 +28,8 @@ class AnthropicClient(LLMClient):
         api_key: str | None = None,
         timeout: int = 120,
         verbose: bool = False,
-        **kwargs,
-    ):
+        **kwargs: object,
+    ) -> None:
         """Initialize Anthropic client.
 
         Args:
@@ -43,8 +43,7 @@ class AnthropicClient(LLMClient):
             import anthropic
         except ImportError as e:
             raise ImportError(
-                "anthropic package not installed. "
-                "Install with: pip install anthropic"
+                "anthropic package not installed. " "Install with: pip install anthropic"
             ) from e
 
         self.model = model
@@ -90,7 +89,9 @@ class AnthropicClient(LLMClient):
 
         try:
             # Build message
-            kwargs = {
+            from typing import Any
+
+            kwargs: dict[str, Any] = {
                 "model": self.model,
                 "max_tokens": max_tokens,
                 "temperature": temperature,
@@ -132,4 +133,3 @@ class AnthropicClient(LLMClient):
             True if API key is configured
         """
         return bool(self.api_key)
-

@@ -103,12 +103,16 @@ class AssistantLLMClient(LLMClient):
             json.dump(request_data, f, indent=2)
 
         if self.verbose:
-            console.print(f"\n[bold blue]📤 Request {request_id} written to {request_file}[/bold blue]")
+            console.print(
+                f"\n[bold blue]📤 Request {request_id} written to {request_file}[/bold blue]"
+            )
 
         # Wait for response file
         response_file = self.response_dir / f"response_{request_id:04d}.json"
 
-        console.print(f"\n[bold yellow]⏳ Waiting for AI assistant response {request_id}...[/bold yellow]")
+        console.print(
+            f"\n[bold yellow]⏳ Waiting for AI assistant response {request_id}...[/bold yellow]"
+        )
         console.print(f"[dim]Request file: {request_file}[/dim]")
         console.print(f"[dim]Expecting response: {response_file}[/dim]")
 
@@ -129,7 +133,11 @@ class AssistantLLMClient(LLMClient):
 
         if self.verbose:
             console.print(f"\n[bold green]📥 Response {request_id} received![/bold green]")
-            console.print(Panel(content[:500] + "..." if len(content) > 500 else content, border_style="green"))
+            console.print(
+                Panel(
+                    content[:500] + "..." if len(content) > 500 else content, border_style="green"
+                )
+            )
 
         return LLMResponse(
             content=content,

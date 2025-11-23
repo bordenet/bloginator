@@ -4,4 +4,3 @@ from .loader import PromptLoader, PromptTemplate
 
 
 __all__ = ["PromptLoader", "PromptTemplate"]
-

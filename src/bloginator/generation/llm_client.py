@@ -10,6 +10,9 @@ This file serves as a compatibility wrapper, re-exporting all public APIs.
 import os
 from typing import Any
 
+# Re-export client implementations
+from bloginator.generation.llm_anthropic import AnthropicClient
+
 # Re-export base classes and types
 from bloginator.generation.llm_base import (
     LLMClient,
@@ -18,9 +21,6 @@ from bloginator.generation.llm_base import (
     print_llm_request,
     print_llm_response,
 )
-
-# Re-export client implementations
-from bloginator.generation.llm_anthropic import AnthropicClient
 from bloginator.generation.llm_custom import CustomLLMClient
 from bloginator.generation.llm_mock import AssistantLLMClient, InteractiveLLMClient, MockLLMClient
 from bloginator.generation.llm_ollama import OllamaClient

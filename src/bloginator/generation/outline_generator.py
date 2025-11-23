@@ -85,29 +85,24 @@ class OutlineGenerator:
         classification_contexts = prompt_template.parameters.get("classification_contexts", {})
         audience_contexts = prompt_template.parameters.get("audience_contexts", {})
 
-        classification_context = classification_contexts.get(
-            classification,
-            "This is guidance."
-        )
+        classification_context = classification_contexts.get(classification, "This is guidance.")
         audience_context = audience_contexts.get(
-            audience,
-            "TARGET AUDIENCE: General technical audience."
+            audience, "TARGET AUDIENCE: General technical audience."
         )
 
         # Render system prompt with context
         system_prompt = prompt_template.render_system_prompt(
-            classification_context=classification_context,
-            audience_context=audience_context
+            classification_context=classification_context, audience_context=audience_context
         )
 
         # Render user prompt with variables
         base_prompt = prompt_template.render_user_prompt(
             title=title,
-            classification=classification.replace('-', ' ').title(),
-            audience=audience.replace('-', ' ').title(),
-            keywords=', '.join(keywords),
-            thesis=thesis if thesis else '',
-            num_sections=num_sections
+            classification=classification.replace("-", " ").title(),
+            audience=audience.replace("-", " ").title(),
+            keywords=", ".join(keywords),
+            thesis=thesis if thesis else "",
+            num_sections=num_sections,
         )
 
         # Prepend custom template if provided

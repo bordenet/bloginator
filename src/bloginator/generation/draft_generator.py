@@ -202,18 +202,13 @@ class DraftGenerator:
         audience_contexts = prompt_template.parameters.get("audience_contexts", {})
 
         classification_guidance = classification_contexts.get(
-            classification,
-            "Provide helpful guidance"
+            classification, "Provide helpful guidance"
         )
-        audience_context = audience_contexts.get(
-            audience,
-            "general professional audience"
-        )
+        audience_context = audience_contexts.get(audience, "general professional audience")
 
         # Render system prompt with context
         system_prompt = prompt_template.render_system_prompt(
-            classification_guidance=classification_guidance,
-            audience_context=audience_context
+            classification_guidance=classification_guidance, audience_context=audience_context
         )
 
         # Render user prompt with variables
@@ -221,7 +216,7 @@ class DraftGenerator:
             title=outline_section.title,
             description=outline_section.description,
             max_words=max_words,
-            source_context=source_context
+            source_context=source_context,
         )
 
         response = self.llm_client.generate(

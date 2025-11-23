@@ -4,4 +4,3 @@ from .slop_detector import SlopDetector, SlopViolation
 
 
 __all__ = ["SlopDetector", "SlopViolation"]
-

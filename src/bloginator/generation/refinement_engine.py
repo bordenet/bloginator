@@ -262,10 +262,7 @@ Examples:
 
         # Render user prompt with variables
         user_prompt = prompt_template.render_user_prompt(
-            title=section.title,
-            content=section.content,
-            instructions=instructions,
-            context=context
+            title=section.title, content=section.content, instructions=instructions, context=context
         )
 
         try:
