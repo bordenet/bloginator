@@ -12,9 +12,9 @@ Pass 5 focused on expanding test coverage from the baseline of 46.40% toward the
 
 | Metric | Pass 4 Baseline | Current | Change | Pass 5 Target | Final Target |
 |--------|----------------|---------|--------|---------------|--------------|
-| **Overall Coverage** | 46.40% | 48.87% | +2.47pp | 70% | 85% |
-| **Test Count** | 420 | 434 | +14 | ~550 | ~650 |
-| **Lines Covered** | 2,419/5,213 | 2,548/5,213 | +129 | ~3,649 | ~4,431 |
+| **Overall Coverage** | 46.40% | 49.53% | +3.13pp | 70% | 85% |
+| **Test Count** | 420 | 444 | +24 | ~550 | ~650 |
+| **Lines Covered** | 2,419/5,213 | 2,582/5,213 | +163 | ~3,649 | ~4,431 |
 
 ### Module-Specific Improvements
 
@@ -22,7 +22,8 @@ Pass 5 focused on expanding test coverage from the baseline of 46.40% toward the
 |--------|--------|-------|--------|--------|
 | `extract_single.py` | 11.49% | 65.54% | +54.05pp | ✅ Excellent |
 | `extract_utils.py` | 12.96% | 79.63% | +66.67pp | ✅ Excellent |
-| `llm_mock.py` | 18.75% | ~60%* | +41.25pp | ✅ Good |
+| `llm_mock.py` | 18.75% | ~65%* | +46.25pp | ✅ Excellent |
+| `llm_factory.py` | 13.89% | ~90%* | +76.11pp | ✅ Excellent |
 | `error_reporting.py` | 68.38% | 70.09% | +1.71pp | ✅ Good |
 
 *Estimated based on test additions; exact coverage TBD
@@ -69,11 +70,28 @@ Pass 5 focused on expanding test coverage from the baseline of 46.40% toward the
 
 **Impact**: Improved `llm_mock.py` coverage significantly; critical for deterministic testing
 
-### 3. Commits and CI/CD ✅
+### 3. LLM Factory Tests ✅
+
+**File**: `tests/unit/generation/test_llm_factory.py` (169 lines, 10 tests)
+
+**Test Coverage**:
+
+- Ollama client creation from config
+- Mock client creation from config
+- Custom client creation (with/without API key, with custom headers)
+- Invalid provider error handling
+- Case-insensitive provider names
+- Default generation parameters retrieval
+
+**Impact**: Improved `llm_factory.py` coverage from 13.89% to ~90% (+76.11pp)
+
+### 4. Commits and CI/CD ✅
 
 **Commits**:
+
 1. `75901cb` - test: Add comprehensive tests for extract_single CLI module
 2. `24b4f81` - test: Add comprehensive tests for MockLLMClient
+3. `0dc62aa` - test: Add comprehensive tests for LLM factory module
 
 **GitHub Actions**: All workflows passing (Tests ✅, Lint ✅, Security ✅)
 
@@ -81,9 +99,9 @@ Pass 5 focused on expanding test coverage from the baseline of 46.40% toward the
 
 ### Coverage Gap Analysis
 
-**Current**: 48.87% (2,548/5,213 lines)
+**Current**: 49.53% (2,582/5,213 lines)
 **Target**: 70% (3,649/5,213 lines)
-**Gap**: 21.13 percentage points (1,101 lines)
+**Gap**: 20.47 percentage points (1,067 lines)
 
 ### High-Impact Modules (Prioritized)
 
