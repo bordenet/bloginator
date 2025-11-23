@@ -9,6 +9,7 @@ from typing import Any
 from bloginator.config import config
 from bloginator.generation.llm_client import (
     CustomLLMClient,
+    InteractiveLLMClient,
     LLMClient,
     LLMProvider,
     MockLLMClient,
@@ -74,7 +75,14 @@ def create_llm_from_config(verbose: bool = False) -> LLMClient:
 
     elif provider == LLMProvider.MOCK:
         # Mock provider for testing - no additional config needed
-        return MockLLMClient(**kwargs)
+        # Check if interactive mode is requested via environment variable
+        import os
+
+        mock_mode = os.getenv("BLOGINATOR_LLM_MOCK", "").lower()
+        if mock_mode == "interactive":
+            return InteractiveLLMClient(**kwargs)
+        else:
+            return MockLLMClient(**kwargs)
 
     else:
         # Use generic factory (will add more providers in future)

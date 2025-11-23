@@ -21,7 +21,7 @@ from bloginator.generation.llm_base import (
 
 # Re-export client implementations
 from bloginator.generation.llm_custom import CustomLLMClient
-from bloginator.generation.llm_mock import MockLLMClient
+from bloginator.generation.llm_mock import InteractiveLLMClient, MockLLMClient
 from bloginator.generation.llm_ollama import OllamaClient
 
 
@@ -33,11 +33,11 @@ def create_llm_client(
     """Factory function to create LLM client.
 
     Automatically uses MockLLMClient if BLOGINATOR_LLM_MOCK environment
-    variable is set to 'true' (case-insensitive), overriding the provider
-    parameter. This enables deterministic testing without external LLM calls.
+    variable is set to 'true', or InteractiveLLMClient if set to 'interactive'.
+    This enables deterministic testing or human-in-the-loop testing.
 
     Args:
-        provider: LLM provider to use (ignored if BLOGINATOR_LLM_MOCK=true)
+        provider: LLM provider to use (ignored if BLOGINATOR_LLM_MOCK is set)
         model: Model name
         **kwargs: Additional arguments passed to client constructor
 
@@ -55,11 +55,17 @@ def create_llm_client(
         >>> # Enable mock mode for testing
         >>> os.environ["BLOGINATOR_LLM_MOCK"] = "true"
         >>> client = create_llm_client()  # Returns MockLLMClient
+
+        >>> # Enable interactive mode for human-in-the-loop testing
+        >>> os.environ["BLOGINATOR_LLM_MOCK"] = "interactive"
+        >>> client = create_llm_client()  # Returns InteractiveLLMClient
     """
-    # Check environment variable for mock mode
-    use_mock = os.getenv("BLOGINATOR_LLM_MOCK", "").lower() == "true"
-    if use_mock:
+    # Check environment variable for mock/interactive mode
+    mock_mode = os.getenv("BLOGINATOR_LLM_MOCK", "").lower()
+    if mock_mode == "true":
         return MockLLMClient(model=model, **kwargs)
+    elif mock_mode == "interactive":
+        return InteractiveLLMClient(model=model, **kwargs)
 
     if provider == LLMProvider.OLLAMA:
         return OllamaClient(model=model, **kwargs)
@@ -78,6 +84,7 @@ __all__ = [
     "OllamaClient",
     "CustomLLMClient",
     "MockLLMClient",
+    "InteractiveLLMClient",
     "create_llm_client",
     "print_llm_request",
     "print_llm_response",
