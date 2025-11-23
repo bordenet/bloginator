@@ -40,6 +40,19 @@ def create_llm_from_config(verbose: bool = False) -> LLMClient:
         >>> response = client.generate("Write a blog post about Python")
         >>> print(response.content)
     """
+    import os
+
+    # Check for mock/interactive/assistant mode first (overrides provider)
+    mock_mode = os.getenv("BLOGINATOR_LLM_MOCK", "").lower()
+    if mock_mode in ("true", "interactive", "assistant"):
+        # Use create_llm_client which handles these modes
+        return create_llm_client(
+            provider=LLMProvider.MOCK,
+            model=config.LLM_MODEL,
+            timeout=config.LLM_TIMEOUT,
+            verbose=verbose,
+        )
+
     provider_str = config.LLM_PROVIDER.lower()
 
     try:
