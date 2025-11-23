@@ -1,0 +1,86 @@
+# Test cases for prompt optimization experiments
+#
+# These test cases are used to evaluate and optimize LLM prompts for blog generation.
+# Each test case represents a realistic blog post scenario with specific parameters.
+
+test_cases:
+  - id: test_001
+    name: Engineering Best Practices
+    title: Code Review Best Practices for Engineering Teams
+    keywords:
+      - code review
+      - engineering
+      - quality
+      - collaboration
+    thesis: Effective code reviews improve code quality and team knowledge sharing
+    classification: best-practice
+    audience: ic-engineers
+    expected_qualities:
+      clarity: 4.0
+      voice_match: 4.0
+      no_slop: 5.0
+
+  - id: test_002
+    name: Leadership Guidance
+    title: Building High-Performing Engineering Teams
+    keywords:
+      - leadership
+      - team building
+      - culture
+      - performance
+    thesis: Great engineering teams are built through clear vision, trust, and continuous improvement
+    classification: guidance
+    audience: engineering-leaders
+    expected_qualities:
+      clarity: 4.0
+      voice_match: 4.0
+      no_slop: 5.0
+
+  - id: test_003
+    name: Technical Deep Dive
+    title: Designing Scalable Microservices Architectures
+    keywords:
+      - microservices
+      - architecture
+      - scalability
+      - distributed systems
+    thesis: Well-designed microservices balance autonomy with consistency through clear boundaries and contracts
+    classification: best-practice
+    audience: senior-engineers
+    expected_qualities:
+      clarity: 4.5
+      voice_match: 4.0
+      no_slop: 5.0
+
+  - id: test_004
+    name: Process Improvement
+    title: Implementing Effective Sprint Retrospectives
+    keywords:
+      - agile
+      - retrospectives
+      - continuous improvement
+      - team dynamics
+    thesis: Meaningful retrospectives drive team improvement through honest reflection and actionable commitments
+    classification: guidance
+    audience: engineering-leaders
+    expected_qualities:
+      clarity: 4.0
+      voice_match: 4.0
+      no_slop: 5.0
+
+  - id: test_005
+    name: Career Development
+    title: Growing from Individual Contributor to Tech Lead
+    keywords:
+      - career growth
+      - leadership
+      - technical leadership
+      - mentorship
+    thesis: Successful tech leads balance technical excellence with people leadership and strategic thinking
+    classification: guidance
+    audience: senior-engineers
+    expected_qualities:
+      clarity: 4.0
+      voice_match: 4.5
+      no_slop: 5.0
+
