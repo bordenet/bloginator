@@ -153,10 +153,19 @@ test-corpus/
 *.db
 *.sqlite3
 
+# CRITICAL: Local corpus materials (NEVER PUSH TO GITHUB)
+corpus/local/
+corpus/personal/
+corpus/proprietary/
+local-corpus/
+personal-corpus/
+proprietary-corpus/
+
 # Sensitive corpus configuration (local paths to proprietary content)
 corpus.local.yaml
 corpus/*.local.yaml
 corpus.*.yaml
+.corpus-config.local.json
 
 # ChromaDB
 chroma.sqlite3
