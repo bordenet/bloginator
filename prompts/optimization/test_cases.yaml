@@ -2,6 +2,11 @@
 #
 # These test cases are used to evaluate and optimize LLM prompts for blog generation.
 # Each test case represents a realistic blog post scenario with specific parameters.
+#
+# Enhanced test cases for prompt optimization experiments targeting People, Process, and Technology blogs
+#
+# Each test case focuses on real-world scenarios with nuanced parameters to better challenge LLM prompt tuning.
+# Added fields: complexity (1-5), nuance (1-5) to guide evaluation of depth and subtlety.
 
 test_cases:
   - id: test_001
@@ -12,13 +17,15 @@ test_cases:
       - engineering
       - quality
       - collaboration
-    thesis: Effective code reviews improve code quality and team knowledge sharing
+    thesis: Effective code reviews enhance code quality, accelerate learning, and foster team cohesion by encouraging constructive feedback.
     classification: best-practice
     audience: ic-engineers
     expected_qualities:
-      clarity: 4.0
+      clarity: 4.5
       voice_match: 4.0
       no_slop: 5.0
+      complexity: 3
+      nuance: 3
 
   - id: test_002
     name: Leadership Guidance
@@ -28,13 +35,15 @@ test_cases:
       - team building
       - culture
       - performance
-    thesis: Great engineering teams are built through clear vision, trust, and continuous improvement
+    thesis: High-performing teams thrive on psychological safety, clear vision, inclusive leadership, and continuous iterative improvements.
     classification: guidance
     audience: engineering-leaders
     expected_qualities:
-      clarity: 4.0
-      voice_match: 4.0
+      clarity: 4.5
+      voice_match: 4.5
       no_slop: 5.0
+      complexity: 4
+      nuance: 4
 
   - id: test_003
     name: Technical Deep Dive
@@ -44,13 +53,15 @@ test_cases:
       - architecture
       - scalability
       - distributed systems
-    thesis: Well-designed microservices balance autonomy with consistency through clear boundaries and contracts
+    thesis: A scalable microservices architecture balances service autonomy with system-wide consistency, fault tolerance, and operational observability.
     classification: best-practice
     audience: senior-engineers
     expected_qualities:
       clarity: 4.5
       voice_match: 4.0
       no_slop: 5.0
+      complexity: 5
+      nuance: 4
 
   - id: test_004
     name: Process Improvement
@@ -60,13 +71,15 @@ test_cases:
       - retrospectives
       - continuous improvement
       - team dynamics
-    thesis: Meaningful retrospectives drive team improvement through honest reflection and actionable commitments
+    thesis: Meaningful retrospectives unlock continuous team growth by cultivating openness, actionable insights, and accountability mechanisms.
     classification: guidance
     audience: engineering-leaders
     expected_qualities:
-      clarity: 4.0
+      clarity: 4.5
       voice_match: 4.0
       no_slop: 5.0
+      complexity: 3
+      nuance: 3
 
   - id: test_005
     name: Career Development
@@ -76,11 +89,102 @@ test_cases:
       - leadership
       - technical leadership
       - mentorship
-    thesis: Successful tech leads balance technical excellence with people leadership and strategic thinking
+    thesis: Transitioning to tech lead requires blending deep technical skills with empathy-driven people management and strategic influence.
     classification: guidance
     audience: senior-engineers
     expected_qualities:
       clarity: 4.0
       voice_match: 4.5
       no_slop: 5.0
+      complexity: 4
+      nuance: 4
 
+  - id: test_006
+    name: People-Centric Culture
+    title: Fostering Psychological Safety in Distributed Teams
+    keywords:
+      - psychological safety
+      - culture
+      - remote work
+      - trust
+    thesis: Psychological safety in remote teams is forged by transparent communication, inclusive practices, and empathetic leadership that transcends physical distance.
+    classification: culture
+    audience: engineering-leaders
+    expected_qualities:
+      clarity: 4.5
+      voice_match: 4.5
+      no_slop: 5.0
+      complexity: 4
+      nuance: 5
+
+  - id: test_007
+    name: Process Optimization
+    title: Balancing Agility and Stability in DevOps Pipelines
+    keywords:
+      - devops
+      - process optimization
+      - agility
+      - reliability
+    thesis: Effective DevOps pipelines strike a balance between rapid iteration and operational stability by integrating automation, monitoring, and feedback loops.
+    classification: best-practice
+    audience: senior-engineers
+    expected_qualities:
+      clarity: 4.5
+      voice_match: 4.0
+      no_slop: 5.0
+      complexity: 5
+      nuance: 4
+
+  - id: test_008
+    name: Innovative Technology
+    title: Leveraging Machine Learning for Predictive Incident Management
+    keywords:
+      - machine learning
+      - incident management
+      - predictive analytics
+      - automation
+    thesis: Predictive incident management powered by machine learning can reduce downtime by anticipating outages and enabling proactive remediation.
+    classification: innovation
+    audience: tech-leads
+    expected_qualities:
+      clarity: 4.5
+      voice_match: 4.0
+      no_slop: 5.0
+      complexity: 5
+      nuance: 5
+
+  - id: test_009
+    name: People & Process Integration
+    title: Aligning Engineering Goals with Business Objectives
+    keywords:
+      - alignment
+      - engineering goals
+      - business objectives
+      - communication
+    thesis: Aligning engineering goals with business objectives requires ongoing dialogue, shared metrics, and unified prioritization across teams.
+    classification: guidance
+    audience: engineering-leaders
+    expected_qualities:
+      clarity: 4.0
+      voice_match: 4.5
+      no_slop: 5.0
+      complexity: 4
+      nuance: 4
+
+  - id: test_010
+    name: Technical Strategy
+    title: Evaluating Cloud-Native Migration Risks and Strategies
+    keywords:
+      - cloud-native
+      - migration
+      - risk management
+      - strategy
+    thesis: Thoughtful risk assessment and phased migration strategies are essential for successful cloud-native transformations without disrupting business continuity.
+    classification: best-practice
+    audience: senior-engineers
+    expected_qualities:
+      clarity: 4.5
+      voice_match: 4.0
+      no_slop: 5.0
+      complexity: 5
+      nuance: 5

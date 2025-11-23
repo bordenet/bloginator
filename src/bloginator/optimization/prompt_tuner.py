@@ -42,6 +42,8 @@ class TestCase:
     classification: str
     audience: str
     expected_qualities: dict[str, float] = field(default_factory=dict)
+    complexity: int = 3  # 1-5 scale
+    nuance: int = 3  # 1-5 scale
 
 
 @dataclass
@@ -157,6 +159,8 @@ class PromptTuner:
                     classification=tc_data["classification"],
                     audience=tc_data["audience"],
                     expected_qualities=tc_data.get("expected_qualities", {}),
+                    complexity=tc_data.get("complexity", 3),
+                    nuance=tc_data.get("nuance", 3),
                 )
                 test_cases.append(test_case)
 
@@ -365,6 +369,8 @@ class PromptTuner:
             "classification": test_case.classification,
             "audience": test_case.audience,
             "expected_qualities": test_case.expected_qualities,
+            "complexity": test_case.complexity,
+            "nuance": test_case.nuance,
         }
 
     def _round_result_to_dict(self, result: RoundResult) -> dict[str, Any]:
