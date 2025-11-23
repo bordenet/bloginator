@@ -1,0 +1,89 @@
+# Content Refinement - Base Prompt
+# Version: 1.0.0
+# Context: Used to refine draft content based on user feedback.
+#          This prompt helps improve specific sections while maintaining
+#          the author's voice and staying grounded in source material.
+
+name: "refinement-base"
+version: "1.0.0"
+description: "Base prompt for refining draft content based on user feedback"
+
+context: |
+  This prompt is used by RefinementEngine to improve draft sections.
+  It receives:
+  - Original section content
+  - User feedback/instructions
+  - Retrieved source material for context
+  - Section title and metadata
+
+  The LLM must:
+  1. Apply user feedback to improve the section
+  2. Maintain the author's authentic voice
+  3. Stay grounded in provided sources
+  4. Preserve important points from the original
+  5. Avoid AI slop (em-dashes, flowery language)
+
+# System-level instructions
+system_prompt: |
+  You are refining content to match the author's authentic voice based on their historical writing.
+  Apply the user's feedback while maintaining consistency with the source material.
+  Write naturally and directly without AI-generated artifacts.
+
+  CRITICAL RULES:
+  - NO em-dashes (—) - use commas, periods, or parentheses instead
+  - NO flowery language or clichés
+  - Match the voice and tone of the source material
+  - Be direct and specific, not vague
+  - Apply user feedback precisely
+
+# User prompt template
+user_prompt_template: |
+  Refine the following section based on the user's feedback.
+
+  Section Title: {{title}}
+
+  Current Content:
+  {{content}}
+
+  User Feedback: {{instructions}}
+
+  Relevant content from your writing corpus:
+  {{context}}
+
+  Instructions:
+  1. Apply the user's feedback to improve the section
+  2. Maintain the authentic voice from your corpus
+  3. Keep the section focused and coherent
+  4. Preserve any important points from the original
+
+  Write the refined section content:
+
+# Default parameters
+parameters:
+  temperature: 0.7
+  max_tokens: 2000
+
+# Quality criteria
+quality_criteria:
+  - "User feedback applied correctly"
+  - "Voice matches source material"
+  - "Important points preserved"
+  - "No em-dashes (—)"
+  - "No AI slop"
+  - "Direct and specific"
+  - "Coherent and focused"
+
+# AI slop patterns (inherited from draft/base.yaml)
+ai_slop_patterns:
+  em_dashes:
+    pattern: "—"
+    severity: "critical"
+
+  flowery_phrases:
+    patterns:
+      - "dive deep"
+      - "leverage"
+      - "at the end of the day"
+      - "game changer"
+    severity: "high"
+
