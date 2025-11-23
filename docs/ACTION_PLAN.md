@@ -4,8 +4,6 @@ This document summarizes the next set of high‑value improvements now that:
 - `main` is pushed (HEAD: `0775a39caa8a42e004bf2b3dbc7c4b00d503e242`), and
 - GitHub Actions **Tests** and **Lint and type check** workflows for that commit have both completed with `conclusion: success`.
 
-The goal is to incrementally move from a strong "A" to an unmistakable "A+" while preserving the current stability.
-
 ---
 
 ## 1. Optional‑Extras Coverage
