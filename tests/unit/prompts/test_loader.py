@@ -1,7 +1,8 @@
 """Tests for prompt loader."""
 
+
 import pytest
-from pathlib import Path
+
 from bloginator.prompts.loader import PromptLoader, PromptTemplate
 
 
