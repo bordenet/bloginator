@@ -110,7 +110,7 @@ def optimize(
     searcher = CorpusSearcher(index_dir=index_path)
 
     # Initialize prompt tuner
-    console.print("🎯 Initializing prompt tuner...")
+    console.print("🎯 Initializing prompt tuner (using automated evaluation)...")
     tuner = PromptTuner(
         llm_client=llm_client,
         searcher=searcher,
