@@ -11,6 +11,7 @@ from bloginator.cli.history import history
 from bloginator.cli.index import index
 from bloginator.cli.init import init
 from bloginator.cli.metrics import metrics
+from bloginator.cli.optimize import optimize
 from bloginator.cli.outline import outline
 from bloginator.cli.refine import refine
 from bloginator.cli.revert import revert
@@ -77,6 +78,7 @@ cli.add_command(history)
 cli.add_command(index)
 cli.add_command(init)
 cli.add_command(metrics)
+cli.add_command(optimize)
 cli.add_command(outline)
 cli.add_command(refine)
 cli.add_command(revert)

@@ -1,8 +1,9 @@
 """Prompt loading and rendering from YAML files."""
 
-import yaml
 from pathlib import Path
 from typing import Any
+
+import yaml
 from jinja2 import Template
 from pydantic import BaseModel, Field
 
@@ -80,7 +81,7 @@ class PromptLoader:
         if not full_path.exists():
             raise FileNotFoundError(f"Prompt file not found: {full_path}")
 
-        with open(full_path, "r") as f:
+        with full_path.open() as f:
             data = yaml.safe_load(f)
 
         # Validate and create template
