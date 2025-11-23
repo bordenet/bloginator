@@ -8,6 +8,7 @@ from typing import Any
 
 from bloginator.config import config
 from bloginator.generation.llm_client import (
+    AnthropicClient,
     CustomLLMClient,
     InteractiveLLMClient,
     LLMClient,
@@ -72,6 +73,11 @@ def create_llm_from_config(verbose: bool = False) -> LLMClient:
             kwargs["headers"] = custom_headers
 
         return CustomLLMClient(**kwargs)
+
+    elif provider == LLMProvider.ANTHROPIC:
+        if config.LLM_API_KEY:
+            kwargs["api_key"] = config.LLM_API_KEY
+        return AnthropicClient(**kwargs)
 
     elif provider == LLMProvider.MOCK:
         # Mock provider for testing - no additional config needed

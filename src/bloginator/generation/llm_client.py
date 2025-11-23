@@ -20,6 +20,7 @@ from bloginator.generation.llm_base import (
 )
 
 # Re-export client implementations
+from bloginator.generation.llm_anthropic import AnthropicClient
 from bloginator.generation.llm_custom import CustomLLMClient
 from bloginator.generation.llm_mock import InteractiveLLMClient, MockLLMClient
 from bloginator.generation.llm_ollama import OllamaClient
@@ -83,6 +84,7 @@ __all__ = [
     "LLMResponse",
     "OllamaClient",
     "CustomLLMClient",
+    "AnthropicClient",
     "MockLLMClient",
     "InteractiveLLMClient",
     "create_llm_client",

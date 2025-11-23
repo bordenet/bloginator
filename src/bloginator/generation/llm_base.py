@@ -21,8 +21,9 @@ class LLMProvider(str, Enum):
 
     OLLAMA = "ollama"
     CUSTOM = "custom"
+    ANTHROPIC = "anthropic"
     MOCK = "mock"  # For testing without real LLM
-    # Future: OPENAI = "openai", ANTHROPIC = "anthropic"
+    # Future: OPENAI = "openai"
 
 
 class LLMResponse:
