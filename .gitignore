@@ -211,6 +211,9 @@ htmlcov/
 .ollama/
 .lmstudio/
 
+# Prompt optimization experiment results (temporary test data)
+prompt_optimization*/
+optimization_run.log
 
 #Ignore vscode AI rules
 .github/instructions/codacy.instructions.md
