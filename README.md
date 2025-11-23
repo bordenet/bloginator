@@ -168,6 +168,30 @@ MIT - See LICENSE file.
 
 ---
 
+## Monitoring
+
+Bloginator includes built-in monitoring and observability:
+
+```bash
+# View metrics
+bloginator metrics
+
+# Export as JSON or Prometheus format
+bloginator metrics --format json --output metrics.json
+bloginator metrics --format prometheus --output metrics.prom
+```
+
+**Features:**
+- Operation counts and success/failure rates
+- Performance metrics (duration, throughput)
+- System resource usage (CPU, memory)
+- Structured logging with JSON support
+- Prometheus integration
+
+See [MONITORING.md](docs/MONITORING.md) for details.
+
+---
+
 ## Links
 
 - **Repository**: <https://github.com/bordenet/bloginator>

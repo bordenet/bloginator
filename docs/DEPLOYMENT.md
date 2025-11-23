@@ -238,14 +238,108 @@ docker logs -f bloginator
 docker logs bloginator 2>&1 | grep ERROR
 ```
 
-### Metrics
+### Built-in Metrics Collection
 
-Monitor these metrics:
+Bloginator includes built-in metrics collection for monitoring operations:
 
-- **Request latency**: Time to generate outlines/drafts
-- **Error rate**: Failed generations
-- **Resource usage**: CPU, memory, disk
-- **LLM API calls**: Rate and cost
+```bash
+# View metrics in console
+bloginator metrics
+
+# Export as JSON
+bloginator metrics --format json --output metrics.json
+
+# Export in Prometheus format
+bloginator metrics --format prometheus --output metrics.prom
+```
+
+**Metrics collected:**
+- **Operation counts**: Total, success, failure for each operation type
+- **Performance**: Duration (min, max, avg) for extract, index, search, generate
+- **System resources**: CPU usage, memory usage, thread count
+- **Throughput**: Operations per second
+
+**Example output:**
+```
+Operation Metrics
+┏━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━━━━┓
+┃ Operation ┃ Count ┃ Success ┃ Failure ┃ Avg Duration ┃
+┡━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━━━━━┩
+│ extract   │    10 │      10 │       0 │       0.234s │
+│ index     │     5 │       5 │       0 │       2.145s │
+│ search    │    50 │      50 │       0 │       0.012s │
+│ draft     │     3 │       3 │       0 │      45.678s │
+└───────────┴───────┴─────────┴─────────┴──────────────┘
+
+System Metrics
+┏━━━━━━━━━━━━━━┳━━━━━━━━━┓
+┃ Metric       ┃   Value ┃
+┡━━━━━━━━━━━━━━╇━━━━━━━━━┩
+│ CPU Usage    │   12.3% │
+│ Memory Usage │ 245.6MB │
+│ Memory %     │    3.2% │
+│ Threads      │      12 │
+└──────────────┴─────────┘
+```
+
+### Prometheus Integration
+
+Export metrics for Prometheus scraping:
+
+```bash
+# Export metrics periodically
+while true; do
+  bloginator metrics --format prometheus --output /var/lib/prometheus/bloginator.prom
+  sleep 60
+done
+```
+
+**Prometheus configuration:**
+```yaml
+scrape_configs:
+  - job_name: 'bloginator'
+    static_configs:
+      - targets: ['localhost:8000']
+    file_sd_configs:
+      - files:
+        - '/var/lib/prometheus/bloginator.prom'
+```
+
+### Structured Logging
+
+Configure structured logging for better observability:
+
+```python
+from bloginator.monitoring import configure_logging
+
+# JSON logging for production
+configure_logging(
+    level="INFO",
+    log_file=Path("/var/log/bloginator/app.log"),
+    structured=True,
+    rich_console=False,
+)
+
+# Rich console for development
+configure_logging(
+    level="DEBUG",
+    rich_console=True,
+)
+```
+
+**Environment variables:**
+- `BLOGINATOR_LOG_LEVEL`: Set log level (DEBUG, INFO, WARNING, ERROR)
+- `BLOGINATOR_LOG_FILE`: Path to log file
+- `BLOGINATOR_LOG_STRUCTURED`: Enable JSON logging (true/false)
+
+### Monitoring Best Practices
+
+1. **Track key operations**: Extract, index, search, outline, draft
+2. **Set up alerts**: High error rates, slow operations, resource exhaustion
+3. **Monitor LLM usage**: API calls, tokens, costs
+4. **Resource limits**: Set memory/CPU limits in Docker
+5. **Log aggregation**: Use ELK stack, Splunk, or CloudWatch
+6. **Metrics visualization**: Grafana dashboards for Prometheus metrics
 
 ---
 
