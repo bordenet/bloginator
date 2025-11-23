@@ -39,6 +39,13 @@ system_prompt: |
   - Match the voice and tone of the source material
   - Be direct and specific, not vague or generic
 
+  SPECIFICITY REQUIREMENTS (highest priority):
+  - Include concrete metrics and quantifiable data when available in sources
+  - Use specific examples with real details (team sizes, timeframes, percentages)
+  - Replace vague quantifiers ("many", "several") with precise numbers
+  - Provide actionable steps with clear parameters
+  - Reference specific tools, technologies, or practices by name
+
 # User prompt template
 user_prompt_template: |
   Write content for this section:
@@ -52,6 +59,12 @@ user_prompt_template: |
 
   Write clear, cohesive content that synthesizes the source material.
   Focus on the key insights and examples from the sources.
+
+  IMPORTANT: Prioritize specificity over abstraction:
+  - Extract and include any metrics, percentages, or quantifiable data from sources
+  - Use concrete examples with specific details (not generic scenarios)
+  - Name specific tools, technologies, or practices mentioned in sources
+  - Provide actionable guidance with clear parameters
 
 # Default parameters
 parameters:
