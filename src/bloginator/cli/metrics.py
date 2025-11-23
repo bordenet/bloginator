@@ -57,6 +57,7 @@ def metrics(format: str, output: Path | None) -> None:
         return
 
     # Select exporter
+    exporter: JSONExporter | PrometheusExporter | ConsoleExporter
     if format == "json":
         exporter = JSONExporter()
     elif format == "prometheus":

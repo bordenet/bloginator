@@ -4,7 +4,7 @@ import subprocess
 from pathlib import Path
 
 import streamlit as st
-import yaml  # type: ignore[import-untyped]
+import yaml
 
 
 def show():
