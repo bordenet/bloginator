@@ -198,6 +198,76 @@ class CorpusSearcher:
 
         return search_results[:n_results]
 
+    def batch_search(
+        self,
+        queries: list[str],
+        n_results: int = 10,
+        quality_filter: str | None = None,
+        tags_filter: list[str] | None = None,
+        format_filter: str | None = None,
+    ) -> list[list[SearchResult]]:
+        """Search corpus with multiple queries in a single batch.
+
+        This is more efficient than calling search() multiple times because
+        it encodes all queries at once and makes a single ChromaDB query.
+
+        Args:
+            queries: List of natural language search queries
+            n_results: Number of results to return per query
+            quality_filter: Filter by quality rating (preferred, standard, deprecated)
+            tags_filter: Filter by tags (any match)
+            format_filter: Filter by document format (pdf, docx, markdown, txt)
+
+        Returns:
+            List of search result lists, one per query in original order
+
+        Example:
+            >>> searcher = CorpusSearcher(index_dir)
+            >>> queries = ["leadership", "code review", "testing"]
+            >>> results = searcher.batch_search(queries, n_results=5)
+            >>> for query, query_results in zip(queries, results):
+            ...     print(f"{query}: {len(query_results)} results")
+        """
+        if not queries:
+            return []
+
+        # Generate all query embeddings at once (much faster than one-by-one)
+        query_embeddings = self.embedding_model.encode(queries)
+
+        # Build metadata filter
+        where = self._build_where_filter(quality_filter, format_filter)
+
+        # Query ChromaDB with all embeddings at once
+        raw_results = self.collection.query(
+            query_embeddings=[emb.tolist() for emb in query_embeddings],
+            n_results=n_results,
+            where=where if where else None,
+        )
+        results = cast("dict[str, Any]", raw_results)
+
+        # Convert to SearchResult objects for each query
+        all_search_results = []
+        for query_idx in range(len(queries)):
+            search_results = []
+            if results["ids"] and query_idx < len(results["ids"]) and results["ids"][query_idx]:
+                for i, chunk_id in enumerate(results["ids"][query_idx]):
+                    result = SearchResult(
+                        chunk_id=chunk_id,
+                        content=results["documents"][query_idx][i],
+                        metadata=results["metadatas"][query_idx][i],
+                        distance=results["distances"][query_idx][i],
+                    )
+
+                    # Filter by tags if specified
+                    if tags_filter and not self._matches_tags(result.metadata, tags_filter):
+                        continue
+
+                    search_results.append(result)
+
+            all_search_results.append(search_results[:n_results])
+
+        return all_search_results
+
     def _build_where_filter(
         self, quality_filter: str | None, format_filter: str | None
     ) -> dict[str, Any] | None:
