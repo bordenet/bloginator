@@ -21,6 +21,7 @@ evaluation_prompt: |
   2. Identify specific weaknesses and strengths
   3. Determine which prompt variables to mutate for the next round
   4. Provide concrete, actionable improvements
+  5. Apply curiosity and creativity to identify unlikely opportunities in prompt improvements
 
   ## EVALUATION CRITERIA
 

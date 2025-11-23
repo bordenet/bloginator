@@ -555,8 +555,8 @@ class PromptTuner:
                 # Generate outline and draft
                 outline, draft, score = self.run_baseline(test_case)
 
-                # Get automated evaluation and evolutionary strategy
-                evaluation = self._get_automated_evaluation(
+                # Get AI evaluation and evolutionary strategy
+                evaluation = self._get_ai_evaluation(
                     test_case=test_case,
                     outline=outline,
                     draft=draft,
