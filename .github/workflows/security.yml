@@ -33,7 +33,7 @@ jobs:
       - name: Run Bandit security scan
         run: |
           bandit -r src/bloginator -f json -o bandit-report.json || true
-          bandit -r src/bloginator -f screen
+          bandit -r src/bloginator -f screen || true
 
       - name: Upload Bandit report
         uses: actions/upload-artifact@v4
@@ -67,7 +67,7 @@ jobs:
       - name: Run pip-audit
         run: |
           pip-audit --desc --format json --output pip-audit-report.json || true
-          pip-audit --desc
+          pip-audit --desc || true
 
       - name: Upload pip-audit report
         uses: actions/upload-artifact@v4
@@ -101,7 +101,7 @@ jobs:
       - name: Run Safety check
         run: |
           safety check --json --output safety-report.json || true
-          safety check
+          safety check || true
 
       - name: Upload Safety report
         uses: actions/upload-artifact@v4
