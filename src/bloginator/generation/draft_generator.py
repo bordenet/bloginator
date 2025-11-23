@@ -1,5 +1,7 @@
 """Draft generation with RAG and citation tracking."""
 
+from collections.abc import Callable
+
 from bloginator.generation.llm_client import LLMClient
 from bloginator.models.draft import Citation, Draft, DraftSection
 from bloginator.models.outline import Outline, OutlineSection
@@ -40,6 +42,7 @@ class DraftGenerator:
         outline: Outline,
         temperature: float = 0.7,
         max_section_words: int = 300,
+        progress_callback: Callable[[str, int, int], None] | None = None,
     ) -> Draft:
         """Generate draft from outline.
 
@@ -47,6 +50,7 @@ class DraftGenerator:
             outline: Outline to generate from
             temperature: LLM sampling temperature
             max_section_words: Target words per section
+            progress_callback: Optional callback(message, current, total) for progress updates
 
         Returns:
             Draft with generated content and citations
@@ -58,6 +62,10 @@ class DraftGenerator:
             >>> print(f"Generated {draft.total_words} words")
             >>> print(f"Citations: {draft.total_citations}")
         """
+        # Count total sections for progress tracking
+        total_sections = len(outline.get_all_sections())
+        current_section = 0
+
         # Generate sections from outline
         sections = []
         for outline_section in outline.sections:
@@ -68,7 +76,12 @@ class DraftGenerator:
                 audience=outline.audience,
                 temperature=temperature,
                 max_words=max_section_words,
+                progress_callback=progress_callback,
+                current_section=current_section,
+                total_sections=total_sections,
             )
+            # Update counter (section + all its subsections)
+            current_section += len(outline_section.get_all_sections())
             sections.append(draft_section)
 
         # Create draft
@@ -94,6 +107,9 @@ class DraftGenerator:
         audience: str = "all-disciplines",
         temperature: float = 0.7,
         max_words: int = 300,
+        progress_callback: Callable[[str, int, int], None] | None = None,
+        current_section: int = 0,
+        total_sections: int = 1,
     ) -> DraftSection:
         """Generate content for a single section.
 
@@ -104,10 +120,21 @@ class DraftGenerator:
             audience: Target audience
             temperature: LLM temperature
             max_words: Target word count
+            progress_callback: Optional callback for progress updates
+            current_section: Current section number (0-based)
+            total_sections: Total number of sections
 
         Returns:
             DraftSection with generated content and citations
         """
+        # Report progress
+        if progress_callback:
+            progress_callback(
+                f"Searching corpus for: {outline_section.title}",
+                current_section,
+                total_sections,
+            )
+
         # Search corpus for relevant content
         query = f"{outline_section.title} {outline_section.description} {' '.join(keywords[:2])}"
 
@@ -115,6 +142,14 @@ class DraftGenerator:
             query=query,
             n_results=self.sources_per_section,
         )
+
+        # Report progress
+        if progress_callback:
+            progress_callback(
+                f"Generating content for: {outline_section.title}",
+                current_section,
+                total_sections,
+            )
 
         # Build context from search results
         source_context = self._build_source_context(search_results)
@@ -177,7 +212,14 @@ Focus on the key insights and examples from the sources."""
 
         # Generate subsections recursively
         subsections = []
-        for outline_subsection in outline_section.subsections:
+        subsection_offset = (
+            current_section + 1
+        )  # Current section is done, start counting subsections
+        for i, outline_subsection in enumerate(outline_section.subsections):
+            # Calculate offset for this subsection (includes all previous subsections and their children)
+            subsection_current = subsection_offset + sum(
+                len(outline_section.subsections[j].get_all_sections()) for j in range(i)
+            )
             draft_subsection = self._generate_section(
                 outline_subsection,
                 keywords,
@@ -185,6 +227,9 @@ Focus on the key insights and examples from the sources."""
                 audience,
                 temperature,
                 max_words // 2,  # Subsections get less content
+                progress_callback=progress_callback,
+                current_section=subsection_current,
+                total_sections=total_sections,
             )
             subsections.append(draft_subsection)
 

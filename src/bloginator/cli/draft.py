@@ -239,19 +239,31 @@ def draft(
             sources_per_section=sources_per_section,
         )
 
-        # Generate draft
+        # Generate draft with progress tracking
+        total_sections = len(outline_obj.get_all_sections())
         task = progress.add_task(
-            f"Generating content ({len(outline_obj.sections)} sections)...",
-            total=None,
+            f"Generating content (0/{total_sections} sections)...",
+            total=total_sections,
         )
+
+        def update_progress(message: str, current: int, total: int) -> None:
+            """Update progress bar with current section."""
+            progress.update(
+                task,
+                description=f"{message} ({current + 1}/{total})",
+                completed=current + 1,
+            )
+
         try:
             logger.info(
-                f"Generating draft with {len(outline_obj.sections)} sections, temperature={temperature}"
+                f"Generating draft with {len(outline_obj.sections)} top-level sections, "
+                f"{total_sections} total sections (including subsections), temperature={temperature}"
             )
             draft_obj = generator.generate(
                 outline=outline_obj,
                 temperature=temperature,
                 max_section_words=max_section_words,
+                progress_callback=update_progress,
             )
             logger.info(
                 f"Draft generated: {draft_obj.total_words} words, {draft_obj.total_citations} citations"
@@ -260,7 +272,7 @@ def draft(
             logger.error(f"Failed to generate draft: {e}", exc_info=True)
             console.print(f"[red]✗[/red] Failed to generate draft: {e}")
             return
-        progress.update(task, completed=True)
+        progress.update(task, completed=total_sections)
 
         # Validate safety if requested
         if validate_safety:
