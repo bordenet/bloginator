@@ -36,6 +36,26 @@ This approach can reduce document creation time while maintaining consistency wi
 
 ## Getting Started
 
+### First-Time Setup
+
+**Before your first use**, run the initialization command to pre-download required models:
+
+```bash
+bloginator init
+```
+
+This downloads the embedding model (~80MB) used for semantic search. It typically takes 10-60 seconds depending on your internet connection.
+
+**What happens if you skip this step?**
+- The first command that needs the model will download it automatically
+- You'll see a message: "Loading embedding model 'all-MiniLM-L6-v2' (this may take 10-60 seconds)..."
+- Subsequent commands will be faster since the model is cached
+
+**Troubleshooting first-run issues:**
+- If download fails, check your internet connection
+- If it takes longer than 60 seconds, your connection may be slow - be patient
+- Models are cached in `~/.cache/huggingface/` - you can delete this to re-download
+
 ### Quick Start Workflow
 
 #### Option 1: Web Interface (Recommended)
@@ -74,6 +94,32 @@ bloginator refine draft.md "Make tone more collaborative"
 # 5. Export
 bloginator export draft.md --format docx -o final.docx
 ```
+
+### Performance Expectations
+
+Understanding typical command execution times helps you know when something is working vs. frozen:
+
+**First-time setup:**
+- `bloginator init`: 10-60 seconds (downloads embedding model)
+- Without `init`, first command will download models automatically
+
+**Typical command times:**
+- `extract`: 1-10 seconds per document (depends on size/format)
+- `index`: 5-30 seconds (depends on corpus size)
+- `search`: <1 second (after first run)
+- `outline`: 30-90 seconds (depends on LLM speed)
+- `draft`: 1-5 minutes (depends on outline complexity and LLM speed)
+
+**What affects performance:**
+- **LLM speed**: Local models (Ollama) are slower than cloud APIs
+- **Corpus size**: Larger corpora take longer to index and search
+- **Document complexity**: More sections = longer generation time
+- **First run**: Model downloads add 10-60 seconds to first command
+
+**Progress indicators:**
+- All long-running commands show progress bars or spinners
+- Draft generation shows: "Generating content for: [Section Title] (1/6)"
+- If you see progress updates, the command is working - be patient!
 
 ---
 
@@ -658,6 +704,19 @@ bloginator revert <file> --version <n>
 
 ### Common Issues
 
+**First command is slow or appears frozen**:
+- **First-time model download**: The first command downloads the embedding model (~80MB, 10-60 seconds)
+- **Solution**: Run `bloginator init` before your first use to pre-download models
+- **How to tell if it's working**: Look for message "Loading embedding model 'all-MiniLM-L6-v2'..."
+- **If it takes longer than 60 seconds**: Your internet connection may be slow - be patient
+- **If download fails**: Check internet connection and try again
+
+**Command appears frozen with no progress**:
+- **Check for progress indicators**: Most commands show spinners or progress bars
+- **Draft generation**: Should show "Generating content for: [Section Title] (1/6)"
+- **If no progress for 5+ minutes**: Command may be stuck - try Ctrl+C and restart
+- **Enable verbose logging**: Run with `--verbose` flag to see detailed progress
+
 **Search returns no results**:
 - Check index exists and is not corrupted
 - Try broader search terms
@@ -683,7 +742,9 @@ bloginator revert <file> --version <n>
 - Check firewall settings
 
 **Generation is slow**:
-- Use local LLM (Ollama) instead of cloud API
+- **Expected times**: Outline (30-90s), Draft (1-5 minutes)
+- **If slower than expected**: Check LLM is responding (try `ollama list`)
+- Use local LLM (Ollama) instead of cloud API for faster iteration
 - Reduce similarity threshold
 - Decrease number of search results
 - Use smaller embedding model
