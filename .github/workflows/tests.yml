@@ -41,19 +41,18 @@ jobs:
           COVERAGE=$(python -c "import json; print(json.load(open('coverage.json'))['totals']['percent_covered'])")
           echo "Current coverage: ${COVERAGE}%"
 
-          # Set minimum coverage threshold (progressive target)
-          # Current: 46.3%, Pass 4 Target: 46%, Pass 5 Target: 70%, Final Target: 85%
-          # Using 46% to prevent regressions while we expand coverage
-          MIN_COVERAGE=46.0
+          # Set minimum coverage threshold
+          # Current: 82.5%, Target: 70% (professional standard)
+          MIN_COVERAGE=70.0
 
           # Compare coverage (using bc for floating point comparison)
           if (( $(echo "$COVERAGE < $MIN_COVERAGE" | bc -l) )); then
             echo "❌ Coverage ${COVERAGE}% is below minimum threshold ${MIN_COVERAGE}%"
-            echo "Progressive targets: Pass 4: 46%, Pass 5: 70%, Final: 85%"
+            echo "Target: 70% (professional standard)"
             exit 1
           else
             echo "✅ Coverage ${COVERAGE}% meets minimum threshold ${MIN_COVERAGE}%"
-            echo "Progressive targets: Pass 4: 46%, Pass 5: 70%, Final: 85%"
+            echo "Target: 70% (professional standard)"
           fi
 
       - name: Upload coverage to Codecov
