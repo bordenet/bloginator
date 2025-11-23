@@ -94,6 +94,29 @@ bloginator serve --port 8000
 
 See [CUSTOM_LLM_GUIDE.md](docs/CUSTOM_LLM_GUIDE.md) for configuration.
 
+### Quality Assurance
+
+Bloginator includes an iterative, generational quality assurance system:
+
+**Automated Evaluation:**
+- Slop detection (em-dashes, corporate jargon, hedging words, vague language)
+- Scoring on 0-5 scale with configurable thresholds
+- Violation categorization (critical, high, medium, low)
+
+**Retry Logic:**
+- Automatic retry with alternate prompts when quality is below threshold
+- Escalating prompt variants (default → strict_no_slop → minimal)
+- Configurable retry limits (default: 3 attempts)
+- Full attempt history tracking
+
+**Prompt Optimization:**
+- Evolutionary optimization framework with automated evaluation
+- Round-by-round tracking of quality metrics
+- Adaptive strategy based on violation patterns
+- Detailed JSON output for analysis
+
+This methodology ensures high-quality output by detecting poor results and automatically retrying with improved prompts until satisfactory content is produced.
+
 ---
 
 ## Documentation
