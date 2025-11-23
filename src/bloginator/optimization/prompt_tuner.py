@@ -114,7 +114,9 @@ class PromptTuner:
         self.sleep_between_rounds = sleep_between_rounds
 
         # Load meta-prompt for evaluation
-        meta_prompt_file = Path(__file__).parent.parent.parent / "prompts" / "optimization" / "meta_prompt.yaml"
+        # __file__ is absolute, so: .../src/bloginator/optimization/prompt_tuner.py
+        # We need to go up 4 levels to get to repo root: .parent (optimization) -> .parent (bloginator) -> .parent (src) -> .parent (repo root)
+        meta_prompt_file = Path(__file__).parent.parent.parent.parent / "prompts" / "optimization" / "meta_prompt.yaml"
         with meta_prompt_file.open() as f:
             meta_data = yaml.safe_load(f)
             self.meta_prompt_template = Template(meta_data["evaluation_prompt"])
@@ -146,7 +148,8 @@ class PromptTuner:
             ValueError: If test cases file is invalid
         """
         # Load test cases from YAML file
-        test_cases_file = Path(__file__).parent.parent.parent / "prompts" / "optimization" / "test_cases.yaml"
+        # __file__ is absolute, so we need to go up 4 levels to repo root
+        test_cases_file = Path(__file__).parent.parent.parent.parent / "prompts" / "optimization" / "test_cases.yaml"
 
         if not test_cases_file.exists():
             raise FileNotFoundError(
