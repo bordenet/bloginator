@@ -220,7 +220,7 @@ class PromptTuner:
 
         # Save test cases
         test_cases_file = self.output_dir / "test_cases.json"
-        with open(test_cases_file, "w") as f:
+        with test_cases_file.open("w") as f:
             json.dump(
                 {"test_cases": [self._test_case_to_dict(tc) for tc in test_cases]},
                 f,
@@ -259,21 +259,19 @@ class PromptTuner:
 
             # Save individual result
             result_file = self.output_dir / f"result_{test_case.id}.json"
-            with open(result_file, "w") as f:
+            with result_file.open("w") as f:
                 json.dump(self._result_to_dict(result), f, indent=2)
 
         # Save summary
         summary_file = self.output_dir / "optimization_summary.json"
-        with open(summary_file, "w") as f:
+        with summary_file.open("w") as f:
             json.dump(
                 {
                     "num_test_cases": len(test_cases),
                     "num_iterations": num_iterations,
                     "results": [self._result_to_dict(r) for r in results],
-                    "avg_baseline_score": sum(r.baseline_score for r in results)
-                    / len(results),
-                    "avg_improved_score": sum(r.improved_score for r in results)
-                    / len(results),
+                    "avg_baseline_score": sum(r.baseline_score for r in results) / len(results),
+                    "avg_improved_score": sum(r.improved_score for r in results) / len(results),
                     "timestamp": datetime.now().isoformat(),
                 },
                 f,
@@ -310,4 +308,3 @@ class PromptTuner:
             "voice_score_after": result.voice_score_after,
             "timestamp": result.timestamp,
         }
-
