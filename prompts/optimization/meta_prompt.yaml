@@ -2,6 +2,16 @@
 #
 # This prompt guides the AI assistant (Claude) in evaluating generated content
 # and determining evolutionary strategies for improving prompts across rounds.
+#
+# Enhanced with:
+# - Explicit scoring guidance with point deductions
+# - Line numbers and context for traceability
+# - Voice matching with specific excerpts
+# - Content quality justifications with references
+# - One mutation per round (prevents confounding)
+# - Hypothesis-driven approach
+# - Unexpected strengths tracking
+# - Suggested score adjustment field
 
 evaluation_prompt: |
   You are an expert prompt engineer conducting an evolutionary optimization experiment.
@@ -16,20 +26,27 @@ evaluation_prompt: |
 
   ### AI Slop Detection (Critical)
   - Em-dashes (—): CRITICAL violation, auto-fail (-2.0 points each)
-  - Flowery corporate jargon: HIGH severity (-0.5 points each)
-  - Hedging words (perhaps, maybe, might): MEDIUM severity
-  - Vague language: LOW severity
+  - Flowery corporate jargon (e.g., "synergize", "leverage", "best-in-class"): HIGH severity (-0.5 points each)
+  - Hedging words (e.g., "perhaps", "maybe", "might", "could"): MEDIUM severity (-0.25 points each)
+  - Vague language (e.g., "things", "stuff", "somewhat"): LOW severity (-0.1 points each)
+
+  Include line numbers and surrounding context for each violation to aid traceability.
 
   ### Voice Matching
-  - Does it sound like the author's authentic voice from the corpus?
-  - Is the tone consistent with the target audience?
-  - Does it avoid generic "AI voice" patterns?
+  - Authenticity: Does it sound like the author's authentic voice from the corpus?
+  - Tone consistency: Is the tone aligned with the target audience?
+  - Avoidance of generic "AI voice" patterns
+
+  Report specific excerpts showing voice mismatch and strengths reinforcing authenticity.
 
   ### Content Quality
-  - Clarity: Is the message clear and direct?
-  - Depth: Does it match the expected complexity level?
-  - Nuance: Does it handle subtlety appropriately?
-  - Specificity: Concrete examples vs. abstract platitudes?
+  Score on a 0-5 scale with brief justification for each:
+  - Clarity: Is the message clear, direct, and understandable?
+  - Depth: Does the content meet the expected complexity level?
+  - Nuance: Does it effectively handle subtle or complex ideas?
+  - Specificity: Are concrete examples used rather than abstract platitudes?
+
+  Provide references to relevant sections supporting each score.
 
   ## GENERATED CONTENT TO EVALUATE
 
@@ -82,7 +99,13 @@ evaluation_prompt: |
       "clarity": <float 0.0-5.0>,
       "depth": <float 0.0-5.0>,
       "nuance": <float 0.0-5.0>,
-      "specificity": <float 0.0-5.0>
+      "specificity": <float 0.0-5.0>,
+      "justifications": {
+        "clarity": "<reference to draft>",
+        "depth": "<reference to draft>",
+        "nuance": "<reference to draft>",
+        "specificity": "<reference to draft>"
+      }
     },
     "evolutionary_strategy": {
       "prompt_to_modify": "<outline|draft|refinement>",
@@ -97,24 +120,36 @@ evaluation_prompt: |
       "priority": "<high|medium|low>",
       "expected_impact": "<description of expected improvement>"
     },
-    "reasoning": "<your detailed analysis of what worked, what didn't, and why>"
+    "priority_summary": [
+      "Most critical issue to address",
+      "Secondary priority"
+    ],
+    "unexpected_strengths": [
+      "Positive patterns worth preserving",
+      "Effective techniques to maintain"
+    ],
+    "suggested_score_adjustment": <float -5.0 to +5.0>,
+    "reasoning": "<detailed analysis of what worked, what didn't, and why>"
   }
   ```
 
   ## EVOLUTIONARY STRATEGY GUIDELINES
 
-  Focus on ONE primary issue per round to avoid confounding variables:
-  - Rounds 1-20: Focus on eliminating critical slop (em-dashes, jargon)
-  - Rounds 21-40: Focus on voice matching and authenticity
-  - Rounds 41-60: Focus on depth and nuance
-  - Rounds 61-80: Focus on specificity and examples
-  - Rounds 81-99: Fine-tuning and convergence
+  Focus on ONE primary issue per round to avoid confounding variables.
+  Include exactly ONE mutation in the "specific_changes" array per round.
+
+  Adaptive strategy based on observed violations:
+  - If critical violations persist: Eliminate em-dashes and jargon
+  - If voice issues dominate: Improve authenticity and tone matching
+  - If content is shallow: Enhance depth and nuance
+  - If too abstract: Increase specificity and concrete examples
+  - If converging: Fine-tune and polish
 
   When modifying prompts:
-  - Be SPECIFIC: Don't just say "improve clarity" - say exactly what to add/remove
-  - Be SURGICAL: Change one thing at a time to measure impact
-  - Be EVIDENCE-BASED: Reference specific violations or patterns you observed
-  - Be CORPUS-AWARE: Suggest changes that align with the author's actual voice
+  - Be SPECIFIC: State exactly what to add/remove, not just "improve clarity"
+  - Be SURGICAL: Change only ONE element per round to measure impact
+  - Be EVIDENCE-BASED: Reference specific violations or observed patterns
+  - Be CORPUS-AWARE: Align suggestions with the author's actual voice
+  - Be HYPOTHESIS-DRIVEN: Each mutation should test a measurable hypothesis
 
-  Remember: You are conducting a scientific experiment. Each mutation should be
-  hypothesis-driven and measurable.
+  This is a scientific experiment. Track what works and what doesn't.
