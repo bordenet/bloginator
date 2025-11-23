@@ -98,24 +98,31 @@ See [CUSTOM_LLM_GUIDE.md](docs/CUSTOM_LLM_GUIDE.md) for configuration.
 
 Bloginator includes an iterative, generational quality assurance system:
 
-**Automated Evaluation:**
-- Slop detection (em-dashes, corporate jargon, hedging words, vague language)
-- Scoring on 0-5 scale with configurable thresholds
+**Automated Slop Detection:**
+- Pattern matching for AI slop (em-dashes, corporate jargon, hedging words, vague language)
 - Violation categorization (critical, high, medium, low)
+- Configurable severity thresholds
 
-**Retry Logic:**
+**AI-Based Evaluation:**
+- LLM-driven content assessment using meta-prompts
+- Multi-dimensional scoring: clarity, depth, nuance, specificity
+- Voice authenticity analysis against corpus
+- Floating-point scores (0-5 scale) with detailed justifications
+
+**Retry Orchestration:**
 - Automatic retry with alternate prompts when quality is below threshold
 - Escalating prompt variants (default → strict_no_slop → minimal)
 - Configurable retry limits (default: 3 attempts)
 - Full attempt history tracking
 
-**Prompt Optimization:**
-- Evolutionary optimization framework with automated evaluation
-- Round-by-round tracking of quality metrics
+**Evolutionary Prompt Optimization:**
+- Scientific experimentation framework with controlled mutations
+- AI-driven evaluation of generated content
+- Round-by-round tracking of quality metrics and convergence
 - Adaptive strategy based on violation patterns
-- Detailed JSON output for analysis
+- Automated response system for autonomous optimization runs
 
-This methodology ensures high-quality output by detecting poor results and automatically retrying with improved prompts until satisfactory content is produced.
+This methodology ensures high-quality output by detecting poor results and automatically retrying with improved prompts until satisfactory content is produced. See [PROMPT_OPTIMIZATION.md](docs/PROMPT_OPTIMIZATION.md) for details.
 
 ---
 
