@@ -43,6 +43,21 @@ class TestCase:
 
 
 @dataclass
+class RoundResult:
+    """Result of a single optimization round."""
+
+    round_number: int
+    test_case_id: str
+    score: float
+    slop_violations: int
+    critical_violations: int
+    high_violations: int
+    medium_violations: int
+    low_violations: int
+    timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
+
+
+@dataclass
 class TuningResult:
     """Result of prompt tuning run."""
 
@@ -54,6 +69,7 @@ class TuningResult:
     slop_violations_after: int
     voice_score_before: float
     voice_score_after: float
+    rounds: list[RoundResult] = field(default_factory=list)
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
 
 
@@ -199,21 +215,36 @@ class PromptTuner:
 
         return score
 
+    def _count_violations_by_severity(self, all_text: str) -> tuple[int, int, int, int]:
+        """Count violations by severity level.
+
+        Returns:
+            Tuple of (critical, high, medium, low) counts
+        """
+        violations = self.slop_detector.detect(all_text)
+        critical = len([v for v in violations if v.severity == "critical"])
+        high = len([v for v in violations if v.severity == "high"])
+        medium = len([v for v in violations if v.severity == "medium"])
+        low = len([v for v in violations if v.severity == "low"])
+        return critical, high, medium, low
+
     def optimize(
         self,
         num_iterations: int = 3,
         num_test_cases: int = 2,
     ) -> list[TuningResult]:
-        """Run prompt optimization.
+        """Run prompt optimization across multiple rounds.
 
         Args:
-            num_iterations: Number of optimization iterations
+            num_iterations: Number of optimization rounds to run
             num_test_cases: Number of test cases to use
 
         Returns:
-            List of tuning results
+            List of tuning results with round-by-round data
         """
-        logger.info(f"Starting prompt optimization with {num_test_cases} test cases")
+        logger.info(
+            f"Starting {num_iterations}-round optimization with {num_test_cases} test cases"
+        )
 
         # Generate test cases
         test_cases = self.generate_test_cases(num_test_cases)
@@ -229,30 +260,58 @@ class PromptTuner:
 
         results: list[TuningResult] = []
 
-        # Run baseline for each test case
+        # Run optimization for each test case
         for test_case in test_cases:
-            logger.info(f"Running baseline for test case: {test_case.name}")
+            logger.info(f"Optimizing test case: {test_case.name}")
 
-            outline, draft, baseline_score = self.run_baseline(test_case)
+            round_results: list[RoundResult] = []
 
-            # Count slop violations
-            all_text = "\n\n".join(section.content for section in draft.sections)
-            violations_before = self.slop_detector.detect(all_text)
+            # Run multiple rounds
+            for round_num in range(num_iterations):
+                logger.info(f"  Round {round_num + 1}/{num_iterations}")
 
-            # For now, "improved" score is same as baseline
-            # In future iterations, this would actually optimize prompts
-            improved_score = baseline_score
-            violations_after = violations_before
+                # Generate outline and draft
+                outline, draft, score = self.run_baseline(test_case)
+
+                # Collect all text and analyze
+                all_text = "\n\n".join(section.content for section in draft.sections)
+                critical, high, medium, low = self._count_violations_by_severity(all_text)
+                total_violations = critical + high + medium + low
+
+                # Record round result
+                round_result = RoundResult(
+                    round_number=round_num + 1,
+                    test_case_id=test_case.id,
+                    score=score,
+                    slop_violations=total_violations,
+                    critical_violations=critical,
+                    high_violations=high,
+                    medium_violations=medium,
+                    low_violations=low,
+                )
+                round_results.append(round_result)
+
+                # Save round result
+                round_file = self.output_dir / f"round_{test_case.id}_r{round_num + 1:03d}.json"
+                with round_file.open("w") as f:
+                    json.dump(self._round_result_to_dict(round_result), f, indent=2)
+
+            # Calculate baseline (first round) vs final round
+            baseline_score = round_results[0].score
+            baseline_violations = round_results[0].slop_violations
+            final_score = round_results[-1].score
+            final_violations = round_results[-1].slop_violations
 
             result = TuningResult(
                 test_case_id=test_case.id,
                 baseline_score=baseline_score,
-                improved_score=improved_score,
-                improvement=improved_score - baseline_score,
-                slop_violations_before=len(violations_before),
-                slop_violations_after=len(violations_after),
+                improved_score=final_score,
+                improvement=final_score - baseline_score,
+                slop_violations_before=baseline_violations,
+                slop_violations_after=final_violations,
                 voice_score_before=baseline_score,
-                voice_score_after=improved_score,
+                voice_score_after=final_score,
+                rounds=round_results,
             )
 
             results.append(result)
@@ -295,6 +354,20 @@ class PromptTuner:
             "expected_qualities": test_case.expected_qualities,
         }
 
+    def _round_result_to_dict(self, result: RoundResult) -> dict[str, Any]:
+        """Convert round result to dict for JSON serialization."""
+        return {
+            "round_number": result.round_number,
+            "test_case_id": result.test_case_id,
+            "score": result.score,
+            "slop_violations": result.slop_violations,
+            "critical_violations": result.critical_violations,
+            "high_violations": result.high_violations,
+            "medium_violations": result.medium_violations,
+            "low_violations": result.low_violations,
+            "timestamp": result.timestamp,
+        }
+
     def _result_to_dict(self, result: TuningResult) -> dict[str, Any]:
         """Convert tuning result to dict for JSON serialization."""
         return {
@@ -306,5 +379,6 @@ class PromptTuner:
             "slop_violations_after": result.slop_violations_after,
             "voice_score_before": result.voice_score_before,
             "voice_score_after": result.voice_score_after,
+            "rounds": [self._round_result_to_dict(r) for r in result.rounds],
             "timestamp": result.timestamp,
         }
