@@ -2,12 +2,12 @@
 
 import tempfile
 from pathlib import Path
+from typing import Any
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
 
 from bloginator.extraction.extractor import DocumentExtractor
-from bloginator.indexing.indexer import CorpusIndexer
 from bloginator.safety.blocklist_manager import BlocklistManager
 
 
@@ -47,7 +47,7 @@ async def upload_documents(
     files: list[UploadFile] = File(...),
     quality: str | None = Form(None),
     tags: str | None = Form(None),
-):
+) -> dict[str, Any]:
     """Upload and extract documents.
 
     Args:
@@ -115,7 +115,7 @@ async def upload_documents(
 async def create_index(
     corpus_path: str = Form(...),
     index_path: str = Form(...),
-):
+) -> dict[str, Any]:
     """Create vector index from extracted corpus.
 
     Args:
@@ -129,24 +129,22 @@ async def create_index(
     if not corpus_dir.exists():
         raise HTTPException(status_code=404, detail="Corpus directory not found")
 
-    index_dir = Path(index_path)
-
     try:
-        indexer = CorpusIndexer(persist_directory=str(index_dir))
-        stats = indexer.index_corpus(corpus_dir)
-
-        return {
-            "success": True,
-            "total_documents": stats["document_count"],
-            "total_chunks": stats["chunk_count"],
-            "index_path": str(index_dir),
-        }
+        # TODO: Implement batch indexing API for web routes
+        # Current CorpusIndexer API requires indexing documents one at a time
+        # See src/bloginator/indexing/indexer.py for available methods
+        raise NotImplementedError(
+            "Batch corpus indexing not yet implemented for web API. "
+            "Use CLI: bloginator index <corpus_dir> -o <index_dir>"
+        )
+    except NotImplementedError:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Indexing failed: {str(e)}")
 
 
 @router.get("/index/stats")
-async def get_index_stats(index_path: str):
+async def get_index_stats(index_path: str) -> IndexStatsResponse:
     """Get statistics about an index.
 
     Args:
@@ -160,14 +158,15 @@ async def get_index_stats(index_path: str):
         raise HTTPException(status_code=404, detail="Index not found")
 
     try:
-        indexer = CorpusIndexer(persist_directory=str(index_dir))
-        stats = indexer.get_index_stats()
-
-        return IndexStatsResponse(
-            total_documents=stats["document_count"],
-            total_chunks=stats["chunk_count"],
-            index_path=str(index_dir),
+        # TODO: Implement index stats API for web routes
+        # Current CorpusIndexer doesn't have get_index_stats method
+        # Use CorpusSearcher.get_stats() instead or implement new method
+        raise NotImplementedError(
+            "Index statistics not yet implemented for web API. "
+            "Use CLI: bloginator search <index_dir> --stats"
         )
+    except NotImplementedError:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get stats: {str(e)}")
 
@@ -176,7 +175,7 @@ async def get_index_stats(index_path: str):
 async def add_blocklist_entry(
     blocklist_path: str,
     entry: BlocklistEntryRequest,
-):
+) -> BlocklistEntryResponse:
     """Add entry to blocklist.
 
     Args:
@@ -211,7 +210,7 @@ async def add_blocklist_entry(
 
 
 @router.get("/blocklist/list")
-async def list_blocklist_entries(blocklist_path: str):
+async def list_blocklist_entries(blocklist_path: str) -> dict[str, list[BlocklistEntryResponse]]:
     """List all blocklist entries.
 
     Args:
@@ -241,7 +240,7 @@ async def list_blocklist_entries(blocklist_path: str):
 
 
 @router.delete("/blocklist/{entry_id}")
-async def delete_blocklist_entry(blocklist_path: str, entry_id: str):
+async def delete_blocklist_entry(blocklist_path: str, entry_id: str) -> dict[str, Any]:
     """Delete blocklist entry.
 
     Args:

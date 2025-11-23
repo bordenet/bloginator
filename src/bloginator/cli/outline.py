@@ -11,6 +11,7 @@ from rich.table import Table
 from bloginator.generation import OutlineGenerator
 from bloginator.generation.llm_factory import create_llm_from_config
 from bloginator.models.history import GenerationHistoryEntry, GenerationType
+from bloginator.models.outline import OutlineSection
 from bloginator.search import CorpusSearcher
 from bloginator.services.history_manager import HistoryManager
 from bloginator.services.template_manager import TemplateManager
@@ -368,7 +369,9 @@ def outline(
         console.print("[dim]Consider revising these sections or adding more source material[/dim]")
 
 
-def _display_section_coverage(console: Console, sections: list, level: int = 0) -> None:
+def _display_section_coverage(
+    console: Console, sections: list[OutlineSection], level: int = 0
+) -> None:
     """Display section coverage recursively."""
     indent = "  " * level
     for section in sections:

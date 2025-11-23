@@ -129,7 +129,7 @@ def refine(
         # Initialize components
         console.print("[dim]Initializing searcher and LLM...[/dim]")
 
-        searcher = Searcher(persist_directory=str(index))
+        searcher = Searcher(index_dir=index)
         llm_client = create_llm_client(model=llm_model)
 
         voice_scorer = VoiceScorer(searcher=searcher) if score_voice else None

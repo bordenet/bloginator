@@ -8,6 +8,7 @@ import streamlit as st
 
 from bloginator.export.factory import ExportFormat, create_exporter
 from bloginator.models.draft import Draft
+from bloginator.models.history import GenerationType
 from bloginator.models.outline import Outline
 from bloginator.services.history_manager import HistoryManager
 
@@ -46,11 +47,11 @@ def show():
         st.metric("Total Generations", len(history.entries))
 
     with col2:
-        outlines = len(history.filter_by_type("outline"))
+        outlines = len(history.filter_by_type(GenerationType.OUTLINE))
         st.metric("Outlines", outlines)
 
     with col3:
-        drafts = len(history.filter_by_type("draft"))
+        drafts = len(history.filter_by_type(GenerationType.DRAFT))
         st.metric("Drafts", drafts)
 
     with col4:

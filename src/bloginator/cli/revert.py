@@ -9,6 +9,7 @@ from rich.console import Console
 from rich.table import Table
 
 from bloginator.generation.version_manager import VersionManager
+from bloginator.models.version import DraftVersion
 
 
 console = Console()
@@ -139,8 +140,8 @@ def revert(
 
 
 def _display_revert_info(
-    current_version: int | None,
-    target_version: int,
+    current_version: DraftVersion | None,
+    target_version: DraftVersion,
 ) -> None:
     """Display information about the revert operation.
 
