@@ -50,6 +50,12 @@ logger = logging.getLogger(__name__)
     is_flag=True,
     help="Enable verbose logging",
 )
+@click.option(
+    "--sleep-between-rounds",
+    type=float,
+    default=2.0,
+    help="Seconds to sleep between rounds (default: 2.0)",
+)
 def optimize(
     corpus_dir: Path | None,
     index_dir: Path | None,
@@ -57,6 +63,7 @@ def optimize(
     num_test_cases: int,
     num_iterations: int,
     verbose: bool,
+    sleep_between_rounds: float,
 ) -> None:
     """Optimize LLM prompts through iterative testing and scoring.
 
@@ -108,6 +115,7 @@ def optimize(
         llm_client=llm_client,
         searcher=searcher,
         output_dir=output_dir,
+        sleep_between_rounds=sleep_between_rounds,
     )
 
     # Run optimization

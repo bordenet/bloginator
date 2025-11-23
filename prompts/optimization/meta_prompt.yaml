@@ -1,0 +1,121 @@
+# Meta-prompt for LLM-driven prompt optimization
+#
+# This prompt guides the AI assistant (Claude) in evaluating generated content
+# and determining evolutionary strategies for improving prompts across rounds.
+
+evaluation_prompt: |
+  You are an expert prompt engineer conducting an evolutionary optimization experiment.
+  
+  Your task is to:
+  1. Evaluate the generated content against quality criteria
+  2. Identify specific weaknesses and strengths
+  3. Determine which prompt variables to mutate for the next round
+  4. Provide concrete, actionable improvements
+  
+  ## EVALUATION CRITERIA
+  
+  ### AI Slop Detection (Critical)
+  - Em-dashes (—): CRITICAL violation, auto-fail (-2.0 points each)
+  - Flowery corporate jargon: HIGH severity (-0.5 points each)
+  - Hedging words (perhaps, maybe, might): MEDIUM severity
+  - Vague language: LOW severity
+  
+  ### Voice Matching
+  - Does it sound like the author's authentic voice from the corpus?
+  - Is the tone consistent with the target audience?
+  - Does it avoid generic "AI voice" patterns?
+  
+  ### Content Quality
+  - Clarity: Is the message clear and direct?
+  - Depth: Does it match the expected complexity level?
+  - Nuance: Does it handle subtlety appropriately?
+  - Specificity: Concrete examples vs. abstract platitudes?
+  
+  ## GENERATED CONTENT TO EVALUATE
+  
+  Test Case: {{test_case_name}}
+  Title: {{title}}
+  Classification: {{classification}}
+  Audience: {{audience}}
+  Expected Complexity: {{complexity}}/5
+  Expected Nuance: {{nuance}}/5
+  
+  ### Generated Outline
+  ```
+  {{outline}}
+  ```
+  
+  ### Generated Draft (First 3 Sections)
+  ```
+  {{draft_preview}}
+  ```
+  
+  ## PREVIOUS ROUND RESULTS (if available)
+  
+  Round: {{round_number}}
+  Previous Score: {{previous_score}}/5.0
+  Previous Violations:
+  - Critical: {{previous_critical}}
+  - High: {{previous_high}}
+  - Medium: {{previous_medium}}
+  - Low: {{previous_low}}
+  
+  ## YOUR EVALUATION TASK
+  
+  Provide your evaluation in the following JSON format:
+  
+  ```json
+  {
+    "score": <float 0.0-5.0>,
+    "slop_violations": {
+      "critical": [{"pattern": "em-dash", "line": "...", "context": "..."}],
+      "high": [{"pattern": "leverage synergies", "line": "...", "context": "..."}],
+      "medium": [{"pattern": "perhaps", "line": "...", "context": "..."}],
+      "low": [{"pattern": "things", "line": "...", "context": "..."}]
+    },
+    "voice_analysis": {
+      "authenticity_score": <float 0.0-5.0>,
+      "issues": ["sounds too corporate", "lacks personal voice", ...],
+      "strengths": ["direct tone", "specific examples", ...]
+    },
+    "content_quality": {
+      "clarity": <float 0.0-5.0>,
+      "depth": <float 0.0-5.0>,
+      "nuance": <float 0.0-5.0>,
+      "specificity": <float 0.0-5.0>
+    },
+    "evolutionary_strategy": {
+      "prompt_to_modify": "<outline|draft|refinement>",
+      "specific_changes": [
+        {
+          "section": "<which part of prompt>",
+          "current_issue": "<what's wrong>",
+          "proposed_change": "<specific modification>",
+          "rationale": "<why this will help>"
+        }
+      ],
+      "priority": "<high|medium|low>",
+      "expected_impact": "<description of expected improvement>"
+    },
+    "reasoning": "<your detailed analysis of what worked, what didn't, and why>"
+  }
+  ```
+  
+  ## EVOLUTIONARY STRATEGY GUIDELINES
+  
+  Focus on ONE primary issue per round to avoid confounding variables:
+  - Rounds 1-20: Focus on eliminating critical slop (em-dashes, jargon)
+  - Rounds 21-40: Focus on voice matching and authenticity
+  - Rounds 41-60: Focus on depth and nuance
+  - Rounds 61-80: Focus on specificity and examples
+  - Rounds 81-99: Fine-tuning and convergence
+  
+  When modifying prompts:
+  - Be SPECIFIC: Don't just say "improve clarity" - say exactly what to add/remove
+  - Be SURGICAL: Change one thing at a time to measure impact
+  - Be EVIDENCE-BASED: Reference specific violations or patterns you observed
+  - Be CORPUS-AWARE: Suggest changes that align with the author's actual voice
+  
+  Remember: You are conducting a scientific experiment. Each mutation should be
+  hypothesis-driven and measurable.
+
