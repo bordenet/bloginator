@@ -66,6 +66,32 @@ class DraftGenerator:
         total_sections = len(outline.get_all_sections())
         current_section = 0
 
+        # Pre-fetch all search results using batch search for better performance
+        all_sections = outline.get_all_sections()
+        queries = [
+            f"{section.title} {section.description} {' '.join(outline.keywords[:2])}"
+            for section in all_sections
+        ]
+
+        if progress_callback:
+            progress_callback(
+                f"Pre-fetching corpus results for {len(queries)} sections...",
+                0,
+                total_sections,
+            )
+
+        batch_results = self.searcher.batch_search(
+            queries=queries,
+            n_results=self.sources_per_section,
+        )
+
+        # Create a mapping from section ID to search results
+        # Use id() as key since OutlineSection is not hashable
+        search_cache = {
+            id(section): results
+            for section, results in zip(all_sections, batch_results, strict=False)
+        }
+
         # Generate sections from outline
         sections = []
         for outline_section in outline.sections:
@@ -79,6 +105,7 @@ class DraftGenerator:
                 progress_callback=progress_callback,
                 current_section=current_section,
                 total_sections=total_sections,
+                search_cache=search_cache,
             )
             # Update counter (section + all its subsections)
             current_section += len(outline_section.get_all_sections())
@@ -110,6 +137,7 @@ class DraftGenerator:
         progress_callback: Callable[[str, int, int], None] | None = None,
         current_section: int = 0,
         total_sections: int = 1,
+        search_cache: dict[int, list[SearchResult]] | None = None,
     ) -> DraftSection:
         """Generate content for a single section.
 
@@ -123,25 +151,33 @@ class DraftGenerator:
             progress_callback: Optional callback for progress updates
             current_section: Current section number (0-based)
             total_sections: Total number of sections
+            search_cache: Optional pre-fetched search results cache (keyed by id(section))
 
         Returns:
             DraftSection with generated content and citations
         """
-        # Report progress
-        if progress_callback:
-            progress_callback(
-                f"Searching corpus for: {outline_section.title}",
-                current_section,
-                total_sections,
+        # Get search results from cache or perform search
+        section_id = id(outline_section)
+        if search_cache and section_id in search_cache:
+            search_results = search_cache[section_id]
+        else:
+            # Report progress
+            if progress_callback:
+                progress_callback(
+                    f"Searching corpus for: {outline_section.title}",
+                    current_section,
+                    total_sections,
+                )
+
+            # Search corpus for relevant content
+            query = (
+                f"{outline_section.title} {outline_section.description} {' '.join(keywords[:2])}"
             )
 
-        # Search corpus for relevant content
-        query = f"{outline_section.title} {outline_section.description} {' '.join(keywords[:2])}"
-
-        search_results = self.searcher.search(
-            query=query,
-            n_results=self.sources_per_section,
-        )
+            search_results = self.searcher.search(
+                query=query,
+                n_results=self.sources_per_section,
+            )
 
         # Report progress
         if progress_callback:
@@ -230,6 +266,7 @@ Focus on the key insights and examples from the sources."""
                 progress_callback=progress_callback,
                 current_section=subsection_current,
                 total_sections=total_sections,
+                search_cache=search_cache,
             )
             subsections.append(draft_subsection)
 

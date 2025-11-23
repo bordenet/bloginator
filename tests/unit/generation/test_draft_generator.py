@@ -23,6 +23,8 @@ class TestDraftGenerator:
     def mock_searcher(self):
         """Create mock searcher."""
         searcher = Mock()
+        # Mock batch_search to return empty lists by default
+        searcher.batch_search.return_value = []
         return searcher
 
     @pytest.fixture
@@ -194,14 +196,24 @@ class TestDraftGenerator:
 
     def test_generate_full_draft(self, generator, mock_llm_client, mock_searcher):
         """Test generating complete draft from outline."""
-        # Mock search
-        mock_searcher.search.return_value = [
-            SearchResult(
-                chunk_id="chunk1",
-                content="Source",
-                distance=0.2,
-                metadata={"document_id": "doc1", "filename": "file.md"},
-            )
+        # Mock batch search (returns results for 2 sections)
+        mock_searcher.batch_search.return_value = [
+            [
+                SearchResult(
+                    chunk_id="chunk1",
+                    content="Source",
+                    distance=0.2,
+                    metadata={"document_id": "doc1", "filename": "file.md"},
+                )
+            ],
+            [
+                SearchResult(
+                    chunk_id="chunk2",
+                    content="Source",
+                    distance=0.2,
+                    metadata={"document_id": "doc2", "filename": "file2.md"},
+                )
+            ],
         ]
 
         # Mock LLM
@@ -239,13 +251,15 @@ class TestDraftGenerator:
 
     def test_generate_with_custom_params(self, generator, mock_llm_client, mock_searcher):
         """Test generation with custom parameters."""
-        mock_searcher.search.return_value = [
-            SearchResult(
-                chunk_id="chunk1",
-                content="Source",
-                distance=0.2,
-                metadata={"document_id": "doc1", "filename": "file.md"},
-            )
+        mock_searcher.batch_search.return_value = [
+            [
+                SearchResult(
+                    chunk_id="chunk1",
+                    content="Source",
+                    distance=0.2,
+                    metadata={"document_id": "doc1", "filename": "file.md"},
+                )
+            ]
         ]
 
         llm_response = Mock()
@@ -385,7 +399,7 @@ class TestDraftGenerator:
 
     def test_generate_error_handling(self, generator, mock_llm_client, mock_searcher):
         """Test error handling during generation."""
-        mock_searcher.search.return_value = []
+        mock_searcher.batch_search.return_value = [[]]
         mock_llm_client.generate.side_effect = Exception("LLM failed")
 
         outline = Outline(
