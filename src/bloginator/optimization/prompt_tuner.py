@@ -4,18 +4,20 @@ Based on the one-pager repo pattern:
 1. Generate test cases from corpus
 2. Run baseline with current prompts
 3. Score results using voice matching and slop detection
-4. Iteratively improve prompts
+4. Iteratively improve prompts using AI-driven evolutionary strategy
 5. Validate improvements
 """
 
 import json
 import logging
+import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 import yaml
+from jinja2 import Template
 
 from bloginator.generation.draft_generator import DraftGenerator
 from bloginator.generation.llm_client import LLMClient
@@ -58,6 +60,8 @@ class RoundResult:
     high_violations: int
     medium_violations: int
     low_violations: int
+    evolutionary_strategy: dict[str, Any] = field(default_factory=dict)
+    evaluation_details: dict[str, Any] = field(default_factory=dict)
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
 
 
@@ -91,6 +95,7 @@ class PromptTuner:
         searcher: CorpusSearcher,
         prompt_loader: PromptLoader | None = None,
         output_dir: Path | None = None,
+        sleep_between_rounds: float = 2.0,
     ):
         """Initialize prompt tuner.
 
@@ -99,12 +104,20 @@ class PromptTuner:
             searcher: Corpus searcher for RAG
             prompt_loader: Prompt loader (creates default if None)
             output_dir: Directory for results (default: ./prompt_tuning_results)
+            sleep_between_rounds: Seconds to sleep between rounds (default: 2.0)
         """
         self.llm_client = llm_client
         self.searcher = searcher
         self.prompt_loader = prompt_loader or PromptLoader()
         self.output_dir = output_dir or Path("./prompt_tuning_results")
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.sleep_between_rounds = sleep_between_rounds
+
+        # Load meta-prompt for evaluation
+        meta_prompt_file = Path(__file__).parent.parent.parent / "prompts" / "optimization" / "meta_prompt.yaml"
+        with meta_prompt_file.open() as f:
+            meta_data = yaml.safe_load(f)
+            self.meta_prompt_template = Template(meta_data["evaluation_prompt"])
 
         # Initialize components
         self.outline_generator = OutlineGenerator(
@@ -245,6 +258,87 @@ class PromptTuner:
         low = len([v for v in violations if v.severity == "low"])
         return critical, high, medium, low
 
+    def _get_ai_evaluation(
+        self,
+        test_case: TestCase,
+        outline: Outline,
+        draft: Draft,
+        round_number: int,
+        previous_result: RoundResult | None = None,
+    ) -> dict[str, Any]:
+        """Get AI-driven evaluation and evolutionary strategy.
+
+        Args:
+            test_case: Test case being evaluated
+            outline: Generated outline
+            draft: Generated draft
+            round_number: Current round number
+            previous_result: Previous round result (if available)
+
+        Returns:
+            Evaluation dict with score, violations, and evolutionary strategy
+        """
+        # Prepare draft preview (first 3 sections)
+        draft_preview = "\n\n".join(
+            f"## {section.title}\n{section.content}"
+            for section in draft.sections[:3]
+        )
+
+        # Render meta-prompt
+        meta_prompt = self.meta_prompt_template.render(
+            test_case_name=test_case.name,
+            title=test_case.title,
+            classification=test_case.classification,
+            audience=test_case.audience,
+            complexity=test_case.complexity,
+            nuance=test_case.nuance,
+            outline=outline.to_markdown(),
+            draft_preview=draft_preview,
+            round_number=round_number,
+            previous_score=previous_result.score if previous_result else "N/A",
+            previous_critical=previous_result.critical_violations if previous_result else 0,
+            previous_high=previous_result.high_violations if previous_result else 0,
+            previous_medium=previous_result.medium_violations if previous_result else 0,
+            previous_low=previous_result.low_violations if previous_result else 0,
+        )
+
+        # Get AI evaluation
+        logger.info(f"Requesting AI evaluation for round {round_number}...")
+        response = self.llm_client.generate(
+            prompt=meta_prompt,
+            temperature=0.3,  # Lower temperature for more consistent evaluation
+            max_tokens=3000,
+        )
+
+        # Parse JSON response
+        try:
+            # Extract JSON from response (may be wrapped in markdown code blocks)
+            content = response.content.strip()
+            if "```json" in content:
+                content = content.split("```json")[1].split("```")[0].strip()
+            elif "```" in content:
+                content = content.split("```")[1].split("```")[0].strip()
+
+            evaluation = json.loads(content)
+            return evaluation
+        except (json.JSONDecodeError, IndexError) as e:
+            logger.error(f"Failed to parse AI evaluation: {e}")
+            logger.error(f"Response content: {response.content[:500]}")
+            # Return fallback evaluation
+            return {
+                "score": self._score_draft(draft),
+                "slop_violations": {"critical": [], "high": [], "medium": [], "low": []},
+                "voice_analysis": {"authenticity_score": 3.0, "issues": [], "strengths": []},
+                "content_quality": {"clarity": 3.0, "depth": 3.0, "nuance": 3.0, "specificity": 3.0},
+                "evolutionary_strategy": {
+                    "prompt_to_modify": "draft",
+                    "specific_changes": [],
+                    "priority": "medium",
+                    "expected_impact": "Unable to parse AI evaluation"
+                },
+                "reasoning": f"Fallback evaluation due to parse error: {e}"
+            }
+
     def optimize(
         self,
         num_iterations: int = 3,
@@ -284,34 +378,64 @@ class PromptTuner:
             round_results: list[RoundResult] = []
 
             # Run multiple rounds
+            previous_result = None
             for round_num in range(num_iterations):
                 logger.info(f"  Round {round_num + 1}/{num_iterations}")
 
                 # Generate outline and draft
                 outline, draft, score = self.run_baseline(test_case)
 
-                # Collect all text and analyze
-                all_text = "\n\n".join(section.content for section in draft.sections)
-                critical, high, medium, low = self._count_violations_by_severity(all_text)
+                # Get AI-driven evaluation and evolutionary strategy
+                evaluation = self._get_ai_evaluation(
+                    test_case=test_case,
+                    outline=outline,
+                    draft=draft,
+                    round_number=round_num + 1,
+                    previous_result=previous_result,
+                )
+
+                # Extract violation counts from AI evaluation
+                slop_data = evaluation.get("slop_violations", {})
+                critical = len(slop_data.get("critical", []))
+                high = len(slop_data.get("high", []))
+                medium = len(slop_data.get("medium", []))
+                low = len(slop_data.get("low", []))
                 total_violations = critical + high + medium + low
 
-                # Record round result
+                # Use AI-provided score if available, otherwise fallback
+                ai_score = evaluation.get("score", score)
+
+                # Record round result with AI evaluation
                 round_result = RoundResult(
                     round_number=round_num + 1,
                     test_case_id=test_case.id,
-                    score=score,
+                    score=ai_score,
                     slop_violations=total_violations,
                     critical_violations=critical,
                     high_violations=high,
                     medium_violations=medium,
                     low_violations=low,
+                    evolutionary_strategy=evaluation.get("evolutionary_strategy", {}),
+                    evaluation_details=evaluation,
                 )
                 round_results.append(round_result)
+                previous_result = round_result
 
                 # Save round result
                 round_file = self.output_dir / f"round_{test_case.id}_r{round_num + 1:03d}.json"
                 with round_file.open("w") as f:
                     json.dump(self._round_result_to_dict(round_result), f, indent=2)
+
+                # Log evolutionary strategy
+                strategy = evaluation.get("evolutionary_strategy", {})
+                logger.info(f"    Score: {ai_score:.2f}/5.0")
+                logger.info(f"    Violations: {total_violations} (C:{critical} H:{high} M:{medium} L:{low})")
+                logger.info(f"    Strategy: {strategy.get('prompt_to_modify', 'N/A')} - {strategy.get('priority', 'N/A')}")
+
+                # Sleep between rounds to avoid pummeling the LLM
+                if round_num < num_iterations - 1:  # Don't sleep after last round
+                    logger.info(f"    Sleeping {self.sleep_between_rounds}s before next round...")
+                    time.sleep(self.sleep_between_rounds)
 
             # Calculate baseline (first round) vs final round
             baseline_score = round_results[0].score
@@ -384,6 +508,8 @@ class PromptTuner:
             "high_violations": result.high_violations,
             "medium_violations": result.medium_violations,
             "low_violations": result.low_violations,
+            "evolutionary_strategy": result.evolutionary_strategy,
+            "evaluation_details": result.evaluation_details,
             "timestamp": result.timestamp,
         }
 

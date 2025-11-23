@@ -22,7 +22,7 @@ from bloginator.generation.llm_base import (
 # Re-export client implementations
 from bloginator.generation.llm_anthropic import AnthropicClient
 from bloginator.generation.llm_custom import CustomLLMClient
-from bloginator.generation.llm_mock import InteractiveLLMClient, MockLLMClient
+from bloginator.generation.llm_mock import AssistantLLMClient, InteractiveLLMClient, MockLLMClient
 from bloginator.generation.llm_ollama import OllamaClient
 
 
@@ -60,13 +60,19 @@ def create_llm_client(
         >>> # Enable interactive mode for human-in-the-loop testing
         >>> os.environ["BLOGINATOR_LLM_MOCK"] = "interactive"
         >>> client = create_llm_client()  # Returns InteractiveLLMClient
+
+        >>> # Enable assistant mode for AI assistant-driven testing
+        >>> os.environ["BLOGINATOR_LLM_MOCK"] = "assistant"
+        >>> client = create_llm_client()  # Returns AssistantLLMClient
     """
-    # Check environment variable for mock/interactive mode
+    # Check environment variable for mock/interactive/assistant mode
     mock_mode = os.getenv("BLOGINATOR_LLM_MOCK", "").lower()
     if mock_mode == "true":
         return MockLLMClient(model=model, **kwargs)
     elif mock_mode == "interactive":
         return InteractiveLLMClient(model=model, **kwargs)
+    elif mock_mode == "assistant":
+        return AssistantLLMClient(model=model, **kwargs)
 
     if provider == LLMProvider.OLLAMA:
         return OllamaClient(model=model, **kwargs)
