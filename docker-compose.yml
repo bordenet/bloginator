@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  bloginator:
+    build: .
+    image: bloginator:latest
+    container_name: bloginator
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount data directory for persistence
+      - ./data:/data
+      # Mount corpus directory (optional)
+      - ./corpus:/corpus:ro
+    environment:
+      # LLM Configuration
+      - BLOGINATOR_LLM_PROVIDER=ollama
+      - BLOGINATOR_LLM_MODEL=llama3
+      - BLOGINATOR_LLM_BASE_URL=http://ollama:11434
+      # Data directory
+      - BLOGINATOR_DATA_DIR=/data
+      # Logging
+      - BLOGINATOR_LOG_LEVEL=INFO
+    depends_on:
+      - ollama
+    restart: unless-stopped
+    networks:
+      - bloginator-network
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: bloginator-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    restart: unless-stopped
+    networks:
+      - bloginator-network
+    # Pull llama3 model on startup
+    command: >
+      sh -c "ollama serve & sleep 5 && ollama pull llama3 && wait"
+
+volumes:
+  ollama-data:
+    driver: local
+
+networks:
+  bloginator-network:
+    driver: bridge
