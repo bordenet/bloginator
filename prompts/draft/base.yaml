@@ -58,6 +58,27 @@ parameters:
   temperature: 0.7
   max_tokens: 4000  # Allows for longer sections
 
+  # Classification contexts
+  classification_contexts:
+    guidance: "Provide helpful suggestions and recommendations"
+    best-practice: "Present proven approaches and industry standards"
+    mandate: "State required practices with clear authority"
+    principle: "Explain fundamental concepts and reasoning"
+    opinion: "Share personal perspectives backed by experience"
+
+  # Audience contexts
+  audience_contexts:
+    ic-engineers: "individual contributor engineers"
+    senior-engineers: "senior and staff engineers"
+    engineering-leaders: "engineering leaders and managers"
+    qa-engineers: "quality assurance and testing engineers"
+    devops-sre: "DevOps and SRE professionals"
+    product-managers: "product managers and stakeholders"
+    technical-leadership: "technical leads and architects"
+    all-disciplines: "professionals across all disciplines"
+    executives: "executives and senior leadership"
+    general: "general professional audience"
+
 # Quality criteria
 quality_criteria:
   - "Grounded in provided sources (no hallucination)"

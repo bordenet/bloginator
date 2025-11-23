@@ -64,18 +64,23 @@ quality_criteria:
 
 # Classification contexts (injected into system_prompt)
 classification_contexts:
-  guidance: "CLASSIFICATION: Guidance. Provide helpful suggestions and recommendations, not strict rules. Use 'consider', 'you might', 'one approach'."
-  best-practice: "CLASSIFICATION: Best Practice. Describe proven, widely-accepted approaches. Use 'typically', 'commonly', 'effective approach'."
-  mandate: "CLASSIFICATION: Mandate. State requirements clearly and directly. Use 'must', 'required', 'shall'."
-  principle: "CLASSIFICATION: Principle. Explain fundamental concepts and reasoning. Use 'because', 'fundamentally', 'the reason'."
-  opinion: "CLASSIFICATION: Opinion. Express personal perspective clearly. Use 'I believe', 'in my experience', 'I recommend'."
+  guidance: "This is GUIDANCE - suggestive, non-prescriptive recommendations. Use language like 'consider', 'might', 'could help'. Present options and trade-offs."
+  best-practice: "This is a BEST PRACTICE - established patterns with proven value. Use language like 'should', 'recommended', 'proven approach'. Include evidence from experience."
+  mandate: "This is a MANDATE - required standards or policies. Use language like 'must', 'required', 'shall'. Be clear about consequences of non-compliance."
+  principle: "This is a PRINCIPLE - fundamental truth or value. Use language that explores 'why' and underlying philosophy. Focus on timeless concepts."
+  opinion: "This is a PERSONAL OPINION - subjective perspective. Use first-person language, acknowledge other viewpoints exist. Be authentic."
 
 # Audience contexts (injected into system_prompt)
 audience_contexts:
-  ic-engineers: "TARGET AUDIENCE: Individual Contributor Engineers. Use technical depth, assume coding knowledge, include implementation details."
-  engineering-leaders: "TARGET AUDIENCE: Engineering Leaders (managers, directors, VPs). Focus on strategy, team dynamics, organizational impact."
-  product-managers: "TARGET AUDIENCE: Product Managers. Balance technical and business perspectives, focus on user value and tradeoffs."
-  all-disciplines: "TARGET AUDIENCE: Cross-functional (engineering, product, design). Minimize jargon, explain technical concepts clearly."
+  ic-engineers: "TARGET AUDIENCE: Individual Contributor Engineers. Use practical, hands-on examples. Focus on daily work, technical skills, tools and techniques."
+  senior-engineers: "TARGET AUDIENCE: Senior/Staff/Principal Engineers. Emphasize technical depth, architectural decisions, mentorship, and cross-team impact."
+  engineering-leaders: "TARGET AUDIENCE: Engineering Managers, Directors, VPs. Focus on people management, team dynamics, org structure, strategic planning."
+  qa-engineers: "TARGET AUDIENCE: QA and Test Engineers. Emphasize quality practices, testing strategies, automation, and quality culture."
+  devops-sre: "TARGET AUDIENCE: DevOps and SRE. Focus on infrastructure, reliability, deployment, monitoring, and operational excellence."
+  product-managers: "TARGET AUDIENCE: Product Managers. Emphasize product thinking, user needs, roadmaps, and cross-functional collaboration."
+  technical-leadership: "TARGET AUDIENCE: Technical Leads and Architects. Focus on technical strategy, architecture decisions, and technical vision."
+  all-disciplines: "TARGET AUDIENCE: All Technical Roles. Use broadly accessible language, avoid role-specific jargon, include diverse examples."
+  executives: "TARGET AUDIENCE: C-level and Senior Leadership. Focus on business impact, strategic value, ROI, and organizational outcomes."
   general: "TARGET AUDIENCE: General/Non-Technical. Minimize jargon, explain technical concepts simply, use analogies."
 
 # Examples of good outlines (for reference/testing)

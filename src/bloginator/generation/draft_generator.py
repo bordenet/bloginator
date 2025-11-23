@@ -5,6 +5,7 @@ from collections.abc import Callable
 from bloginator.generation.llm_client import LLMClient
 from bloginator.models.draft import Citation, Draft, DraftSection
 from bloginator.models.outline import Outline, OutlineSection
+from bloginator.prompts.loader import PromptLoader
 from bloginator.search import CorpusSearcher, SearchResult
 
 
@@ -25,6 +26,7 @@ class DraftGenerator:
         llm_client: LLMClient,
         searcher: CorpusSearcher,
         sources_per_section: int = 5,
+        prompt_loader: PromptLoader | None = None,
     ):
         """Initialize draft generator.
 
@@ -32,10 +34,12 @@ class DraftGenerator:
             llm_client: LLM client for generation
             searcher: Corpus searcher for RAG
             sources_per_section: Sources to retrieve per section
+            prompt_loader: Prompt loader (creates default if None)
         """
         self.llm_client = llm_client
         self.searcher = searcher
         self.sources_per_section = sources_per_section
+        self.prompt_loader = prompt_loader or PromptLoader()
 
     def generate(
         self,
@@ -190,42 +194,35 @@ class DraftGenerator:
         # Build context from search results
         source_context = self._build_source_context(search_results)
 
-        # Build classification and audience context
-        classification_guidance = {
-            "guidance": "Provide helpful suggestions and recommendations",
-            "best-practice": "Present proven approaches and industry standards",
-            "mandate": "State required practices with clear authority",
-            "principle": "Explain fundamental concepts and reasoning",
-            "opinion": "Share personal perspectives backed by experience",
-        }.get(classification, "Provide helpful guidance")
+        # Load prompt template from external YAML file
+        prompt_template = self.prompt_loader.load("draft/base.yaml")
 
-        audience_context = {
-            "ic-engineers": "individual contributor engineers",
-            "engineering-leaders": "engineering leaders and managers",
-            "all-disciplines": "professionals across all disciplines",
-            "qa-engineers": "quality assurance and testing engineers",
-            "product-managers": "product managers and stakeholders",
-        }.get(audience, "general professional audience")
+        # Get classification and audience context from template
+        classification_contexts = prompt_template.parameters.get("classification_contexts", {})
+        audience_contexts = prompt_template.parameters.get("audience_contexts", {})
 
-        # Generate content with LLM
-        system_prompt = f"""You are a skilled technical writer creating authentic content.
-Write in a clear, professional voice based ONLY on the provided source material.
-{classification_guidance}.
-Write for {audience_context}.
-Do not invent facts or examples not present in the sources.
-Write naturally without explicitly citing sources in the text."""
+        classification_guidance = classification_contexts.get(
+            classification,
+            "Provide helpful guidance"
+        )
+        audience_context = audience_contexts.get(
+            audience,
+            "general professional audience"
+        )
 
-        user_prompt = f"""Write content for this section:
+        # Render system prompt with context
+        system_prompt = prompt_template.render_system_prompt(
+            classification_guidance=classification_guidance,
+            audience_context=audience_context
+        )
 
-Title: {outline_section.title}
-Description: {outline_section.description}
-Target length: {max_words} words
-
-Source Material:
-{source_context}
-
-Write clear, cohesive content that synthesizes the source material.
-Focus on the key insights and examples from the sources."""
+        # Render user prompt with variables
+        user_prompt = prompt_template.render_user_prompt(
+            title=outline_section.title,
+            description=outline_section.description,
+            max_words=max_words,
+            source_context=source_context
+        )
 
         response = self.llm_client.generate(
             prompt=user_prompt,

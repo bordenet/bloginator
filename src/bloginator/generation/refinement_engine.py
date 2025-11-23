@@ -8,6 +8,7 @@ from bloginator.generation.llm_client import LLMClient
 from bloginator.generation.safety_validator import SafetyValidator
 from bloginator.generation.voice_scorer import VoiceScorer
 from bloginator.models.draft import Draft, DraftSection
+from bloginator.prompts.loader import PromptLoader
 from bloginator.search import Searcher
 
 
@@ -37,6 +38,7 @@ class RefinementEngine:
         searcher: Searcher,
         voice_scorer: VoiceScorer | None = None,
         safety_validator: SafetyValidator | None = None,
+        prompt_loader: PromptLoader | None = None,
     ):
         """Initialize refinement engine.
 
@@ -45,9 +47,11 @@ class RefinementEngine:
             searcher: Searcher for corpus retrieval
             voice_scorer: Optional voice similarity scorer
             safety_validator: Optional safety validator
+            prompt_loader: Prompt loader (creates default if None)
         """
         self.llm_client = llm_client
         self.searcher = searcher
+        self.prompt_loader = prompt_loader or PromptLoader()
         self.voice_scorer = voice_scorer
         self.safety_validator = safety_validator
 
@@ -250,33 +254,26 @@ Examples:
             ]
         )
 
-        # Build refinement prompt
-        refine_prompt = f"""Refine the following section based on the user's feedback.
+        # Load prompt template from external YAML file
+        prompt_template = self.prompt_loader.load("refinement/base.yaml")
 
-Section Title: {section.title}
+        # Render system prompt
+        system_prompt = prompt_template.render_system_prompt()
 
-Current Content:
-{section.content}
-
-User Feedback: {instructions}
-
-Relevant content from your writing corpus:
-{context}
-
-Instructions:
-1. Apply the user's feedback to improve the section
-2. Maintain the authentic voice from your corpus
-3. Keep the section focused and coherent
-4. Preserve any important points from the original
-
-Write the refined section content:"""
+        # Render user prompt with variables
+        user_prompt = prompt_template.render_user_prompt(
+            title=section.title,
+            content=section.content,
+            instructions=instructions,
+            context=context
+        )
 
         try:
             response = self.llm_client.generate(
-                prompt=refine_prompt,
+                prompt=user_prompt,
                 temperature=0.7,
                 max_tokens=2000,
-                system_prompt="You are refining content to match the author's authentic voice based on their historical writing.",
+                system_prompt=system_prompt,
             )
 
             # Create refined section
