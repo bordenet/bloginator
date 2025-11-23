@@ -2,6 +2,7 @@
 
 import os
 import uuid
+from datetime import datetime
 from pathlib import Path
 
 from rich.console import Console
@@ -10,7 +11,7 @@ from rich.table import Table
 
 from bloginator.cli.error_reporting import ErrorTracker, create_error_panel
 from bloginator.cli.extract_utils import is_temp_file, load_existing_extractions, should_skip_file
-from bloginator.corpus_config import CorpusConfig
+from bloginator.corpus_config import CorpusConfig, CorpusSource
 from bloginator.extraction import (
     count_words,
     extract_file_metadata,
@@ -18,6 +19,7 @@ from bloginator.extraction import (
     extract_yaml_frontmatter,
 )
 from bloginator.models import Document
+from bloginator.utils.checksum import calculate_content_checksum
 
 
 def extract_from_config(
@@ -105,7 +107,7 @@ def _load_config(config_path: Path, error_tracker: ErrorTracker, console: Consol
         raise
 
 
-def _display_sources_table(enabled_sources: list, console: Console) -> None:
+def _display_sources_table(enabled_sources: list[CorpusSource], console: Console) -> None:
     """Display table of enabled sources.
 
     Args:
@@ -134,11 +136,11 @@ def _display_sources_table(enabled_sources: list, console: Console) -> None:
 
 
 def _process_all_sources(
-    enabled_sources: list,
+    enabled_sources: list[CorpusSource],
     config_dir: Path,
     output: Path,
     corpus_config: CorpusConfig,
-    existing_docs: dict,
+    existing_docs: dict[str, tuple[str, datetime]],
     force: bool,
     error_tracker: ErrorTracker,
     console: Console,
@@ -195,7 +197,7 @@ def _process_all_sources(
 
 
 def _resolve_source_path(
-    source_cfg, config_dir: Path, error_tracker: ErrorTracker, console: Console
+    source_cfg: CorpusSource, config_dir: Path, error_tracker: ErrorTracker, console: Console
 ) -> Path | None:
     """Resolve and validate source path.
 
@@ -231,11 +233,11 @@ def _resolve_source_path(
 
 
 def _process_source(
-    source_cfg,
+    source_cfg: CorpusSource,
     resolved_path: Path,
     output: Path,
     corpus_config: CorpusConfig,
-    existing_docs: dict,
+    existing_docs: dict[str, tuple[str, datetime]],
     force: bool,
     error_tracker: ErrorTracker,
     console: Console,
@@ -330,9 +332,9 @@ def _collect_source_files(resolved_path: Path, corpus_config: CorpusConfig) -> l
 
 def _extract_source_files(
     files: list[Path],
-    source_cfg,
+    source_cfg: CorpusSource,
     output: Path,
-    existing_docs: dict,
+    existing_docs: dict[str, tuple[str, datetime]],
     force: bool,
     error_tracker: ErrorTracker,
     console: Console,
@@ -376,6 +378,9 @@ def _extract_source_files(
                 if frontmatter and "tags" in frontmatter:
                     doc_tags.extend(frontmatter["tags"])
 
+                # Calculate content checksum for incremental indexing
+                content_checksum = calculate_content_checksum(text)
+
                 # Create document with source metadata
                 doc = Document(
                     id=str(uuid.uuid4()),
@@ -389,6 +394,7 @@ def _extract_source_files(
                     word_count=count_words(text),
                     source_name=source_cfg.name,
                     voice_notes=source_cfg.voice_notes,
+                    content_checksum=content_checksum,
                 )
 
                 # Save extracted text

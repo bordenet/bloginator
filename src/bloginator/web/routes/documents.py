@@ -1,6 +1,7 @@
 """Document generation API routes."""
 
 from pathlib import Path
+from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -11,7 +12,7 @@ from bloginator.generation.outline_generator import OutlineGenerator
 from bloginator.generation.refinement_engine import RefinementEngine
 from bloginator.models.draft import Draft
 from bloginator.models.outline import Outline
-from bloginator.search import Searcher
+from bloginator.search import CorpusSearcher
 
 
 router = APIRouter()
@@ -64,7 +65,7 @@ class RefineRequest(BaseModel):
 
 
 @router.post("/search")
-async def search_corpus(request: SearchRequest):
+async def search_corpus(request: SearchRequest) -> dict[str, list[SearchResult]]:
     """Search the corpus.
 
     Args:
@@ -78,7 +79,7 @@ async def search_corpus(request: SearchRequest):
         raise HTTPException(status_code=404, detail="Index not found")
 
     try:
-        searcher = Searcher(persist_directory=str(index_path))
+        searcher = CorpusSearcher(index_dir=index_path)
         results = searcher.search(
             query=request.query,
             n_results=request.n_results,
@@ -100,7 +101,7 @@ async def search_corpus(request: SearchRequest):
 
 
 @router.post("/outline/generate")
-async def generate_outline(request: OutlineRequest):
+async def generate_outline(request: OutlineRequest) -> dict[str, Any]:
     """Generate document outline.
 
     Args:
@@ -114,7 +115,7 @@ async def generate_outline(request: OutlineRequest):
         raise HTTPException(status_code=404, detail="Index not found")
 
     try:
-        searcher = Searcher(persist_directory=str(index_path))
+        searcher = CorpusSearcher(index_dir=index_path)
         llm_client = create_llm_client(model=request.llm_model)
 
         generator = OutlineGenerator(
@@ -122,7 +123,8 @@ async def generate_outline(request: OutlineRequest):
             searcher=searcher,
         )
 
-        outline = generator.generate_outline(
+        # OutlineGenerator.generate() is the correct method name
+        outline = generator.generate(
             title=request.title,
             keywords=request.keywords,
             thesis=request.thesis or "",
@@ -139,7 +141,7 @@ async def generate_outline(request: OutlineRequest):
 
 
 @router.post("/draft/generate")
-async def generate_draft(request: DraftRequest):
+async def generate_draft(request: DraftRequest) -> dict[str, Any]:
     """Generate document draft from outline.
 
     Args:
@@ -158,7 +160,7 @@ async def generate_draft(request: DraftRequest):
         outline_data = json.loads(request.outline_json)
         outline = Outline(**outline_data)
 
-        searcher = Searcher(persist_directory=str(index_path))
+        searcher = CorpusSearcher(index_dir=index_path)
         llm_client = create_llm_client(model=request.llm_model)
 
         generator = DraftGenerator(
@@ -166,10 +168,11 @@ async def generate_draft(request: DraftRequest):
             searcher=searcher,
         )
 
-        draft = generator.generate_draft(
+        # DraftGenerator.generate() is the correct method name
+        # Note: validate_safety and score_voice are handled separately in CLI
+        # Web API currently doesn't support these features
+        draft = generator.generate(
             outline=outline,
-            validate_safety=request.validate_safety,
-            score_voice=request.score_voice,
         )
 
         return {
@@ -183,7 +186,7 @@ async def generate_draft(request: DraftRequest):
 
 
 @router.post("/draft/refine")
-async def refine_draft(request: RefineRequest):
+async def refine_draft(request: RefineRequest) -> dict[str, Any]:
     """Refine a draft with feedback.
 
     Args:
@@ -202,7 +205,7 @@ async def refine_draft(request: RefineRequest):
         draft_data = json.loads(request.draft_json)
         draft = Draft(**draft_data)
 
-        searcher = Searcher(persist_directory=str(index_path))
+        searcher = CorpusSearcher(index_dir=index_path)
         llm_client = create_llm_client(model=request.llm_model)
 
         engine = RefinementEngine(
@@ -232,7 +235,7 @@ async def export_draft(
     draft_id: str,
     format: str = "markdown",
     include_citations: bool = True,
-):
+) -> dict[str, Any]:
     """Export draft to various formats.
 
     Args:

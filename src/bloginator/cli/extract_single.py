@@ -2,6 +2,7 @@
 
 import os
 import uuid
+from datetime import datetime
 from pathlib import Path
 
 from rich.console import Console
@@ -121,7 +122,7 @@ def _process_files(
     output: Path,
     quality: str,
     tag_list: list[str],
-    existing_docs: dict,
+    existing_docs: dict[str, tuple[str, datetime]],
     force: bool,
     error_tracker: ErrorTracker,
     console: Console,
@@ -197,9 +198,10 @@ def _process_files(
             skipped_count += 1
         elif status == "failed":
             # Categorize and track error
-            category = error_tracker.categorize_exception(error, file_path)
-            error_tracker.record_error(category, file_path.name, error)
-            console.print(f"[red]✗ {file_path.name}: {type(error).__name__}[/red]")
+            if error is not None:
+                category = error_tracker.categorize_exception(error, file_path)
+                error_tracker.record_error(category, file_path.name, error)
+                console.print(f"[red]✗ {file_path.name}: {type(error).__name__}[/red]")
             failed_count += 1
 
     return extracted_count, skipped_count, failed_count
@@ -210,7 +212,7 @@ def _process_files_sequential(
     output: Path,
     quality: str,
     tag_list: list[str],
-    existing_docs: dict,
+    existing_docs: dict[str, tuple[str, datetime]],
     force: bool,
     error_tracker: ErrorTracker,
     console: Console,
@@ -310,6 +312,8 @@ def _extract_and_save_document(
         tags=frontmatter.get("tags", tag_list) if frontmatter else tag_list,
         word_count=count_words(text),
         content_checksum=content_checksum,
+        source_name=None,
+        voice_notes=None,
     )
 
     # Save extracted text

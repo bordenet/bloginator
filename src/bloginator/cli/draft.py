@@ -323,7 +323,12 @@ def draft(
         console.print("[red]⚠️ Blocklist Violations Detected[/red]")
         console.print()
 
-        for violation in draft_obj.blocklist_validation_result.get("violations", []):
+        violations = (
+            draft_obj.blocklist_validation_result.get("violations", [])
+            if draft_obj.blocklist_validation_result
+            else []
+        )
+        for violation in violations:
             console.print(
                 f"  • Pattern '{violation['pattern']}' in '{violation.get('section_title', 'Unknown')}'"
             )
