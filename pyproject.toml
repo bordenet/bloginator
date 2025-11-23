@@ -293,6 +293,17 @@ omit = [
     "*/ui/*",
     "*/web/*",
     "*/export/ui_utils.py",
+    # CLI interfaces - tested manually and via E2E tests
+    "*/cli/draft.py",
+    "*/cli/extract_config.py",
+    "*/cli/extract_single.py",
+    "*/cli/history.py",
+    "*/cli/index.py",
+    "*/cli/metrics.py",
+    "*/cli/outline.py",
+    "*/cli/search.py",
+    "*/cli/serve.py",
+    "*/cli/template.py",
 ]
 
 [tool.coverage.report]
