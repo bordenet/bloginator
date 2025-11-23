@@ -300,6 +300,139 @@ class TestCreateLLMClient:
                 os.environ["BLOGINATOR_LLM_MOCK"] = original_value
 
 
+class TestMockLLMClient:
+    """Tests for MockLLMClient."""
+
+    def test_initialization(self):
+        """Test mock client initialization."""
+        client = MockLLMClient(model="test-model", verbose=False)
+
+        assert client.model == "test-model"
+        assert client.verbose is False
+
+    def test_initialization_defaults(self):
+        """Test default initialization."""
+        client = MockLLMClient()
+
+        assert client.model == "mock-model"
+        assert client.verbose is False
+
+    def test_is_available(self):
+        """Test that mock client is always available."""
+        client = MockLLMClient()
+        assert client.is_available() is True
+
+    def test_generate_outline_request(self):
+        """Test generating mock outline."""
+        client = MockLLMClient()
+        response = client.generate(
+            prompt="Create an outline for a blog post about testing best practices"
+        )
+
+        assert response.content
+        assert "## Introduction" in response.content
+        assert "## Conclusion" in response.content
+        assert response.model == "mock-model"
+        assert response.prompt_tokens > 0
+        assert response.completion_tokens > 0
+        assert response.finish_reason == "stop"
+
+    def test_generate_draft_request(self):
+        """Test generating mock draft content."""
+        client = MockLLMClient()
+        response = client.generate(prompt="Write a paragraph about code review practices")
+
+        assert response.content
+        assert len(response.content) > 100  # Should be substantial content
+        assert response.model == "mock-model"
+        assert response.prompt_tokens > 0
+        assert response.completion_tokens > 0
+
+    def test_generate_generic_request(self):
+        """Test generating generic response."""
+        client = MockLLMClient()
+        response = client.generate(prompt="Hello, how are you?")
+
+        assert response.content
+        assert "mock response" in response.content.lower()
+        assert response.model == "mock-model"
+
+    def test_generate_with_temperature(self):
+        """Test that temperature parameter is accepted (but ignored)."""
+        client = MockLLMClient()
+        response = client.generate(prompt="Test", temperature=0.5)
+
+        assert response.content
+        # Temperature is ignored in mock, but should not cause errors
+
+    def test_generate_with_max_tokens(self):
+        """Test that max_tokens parameter is accepted (but ignored)."""
+        client = MockLLMClient()
+        response = client.generate(prompt="Test", max_tokens=100)
+
+        assert response.content
+        # max_tokens is ignored in mock, but should not cause errors
+
+    def test_generate_with_system_prompt(self):
+        """Test that system_prompt parameter is accepted (but ignored)."""
+        client = MockLLMClient()
+        response = client.generate(
+            prompt="Test",
+            system_prompt="You are a helpful assistant",
+        )
+
+        assert response.content
+        # system_prompt is ignored in mock, but should not cause errors
+
+    def test_token_count_estimation(self):
+        """Test that token counts are estimated correctly."""
+        client = MockLLMClient()
+        prompt = "a" * 100  # 100 characters
+        response = client.generate(prompt=prompt)
+
+        # Token count should be roughly len(text) // 4
+        assert response.prompt_tokens == 100 // 4
+        assert response.completion_tokens > 0
+
+    def test_outline_detection_keywords(self):
+        """Test outline request detection with various keywords."""
+        client = MockLLMClient()
+
+        outline_prompts = [
+            "Create an outline for...",
+            "Generate a section structure for...",
+            "Organize the table of contents...",
+        ]
+
+        for prompt in outline_prompts:
+            response = client.generate(prompt=prompt)
+            assert "## Introduction" in response.content, f"Failed for: {prompt}"
+
+    def test_draft_detection_keywords(self):
+        """Test draft request detection with various keywords."""
+        client = MockLLMClient()
+
+        draft_prompts = [
+            "Write a paragraph about testing",
+            "Expand on this topic in detail",
+        ]
+
+        for prompt in draft_prompts:
+            response = client.generate(prompt=prompt)
+            assert len(response.content) > 200, f"Failed for: {prompt}"
+            # Draft responses should be paragraphs, not outlines
+            assert response.content.count("##") < 3, f"Too many headers for: {prompt}"
+
+    def test_verbose_mode(self, capsys):
+        """Test verbose mode prints request/response."""
+        client = MockLLMClient(verbose=True)
+        client.generate(prompt="Test prompt")
+
+        captured = capsys.readouterr()
+        # Verbose mode should print something (exact format may vary)
+        assert len(captured.out) > 0 or len(captured.err) > 0
+
+
 class TestLLMClientInterface:
     """Tests for LLM client abstract interface."""
 
@@ -311,4 +444,9 @@ class TestLLMClientInterface:
     def test_ollama_implements_interface(self):
         """Test that OllamaClient implements LLMClient."""
         client = OllamaClient()
+        assert isinstance(client, LLMClient)
+
+    def test_mock_implements_interface(self):
+        """Test that MockLLMClient implements LLMClient."""
+        client = MockLLMClient()
         assert isinstance(client, LLMClient)
