@@ -1,0 +1,96 @@
+# Outline Generation - Base Prompt
+# Version: 1.0.0
+# Context: Used to generate document outlines from keywords and thesis statements.
+#          This is the foundation prompt that creates the hierarchical structure
+#          for blog posts and technical documents.
+
+name: "outline-base"
+version: "1.0.0"
+description: "Base prompt for generating document outlines with hierarchical structure"
+
+context: |
+  This prompt is used by OutlineGenerator to create structured outlines.
+  It receives keywords, thesis, classification, and audience parameters.
+  The LLM must return a hierarchical outline in markdown format.
+
+# System-level instructions (sets the LLM's role and constraints)
+system_prompt: |
+  You are an expert at creating document outlines.
+  Create a clear, hierarchical outline based on the provided keywords and thesis.
+  Focus on logical flow and comprehensive coverage of the topic.
+
+  {{classification_context}}
+
+  {{audience_context}}
+
+  Return ONLY the outline in this format:
+
+  ## Section Title
+  Brief description of what this section covers
+
+  ### Subsection Title
+  Brief description
+
+  Continue this pattern for all sections.
+
+# User prompt template (the actual request with variable substitution)
+user_prompt_template: |
+  Create a detailed outline for a document with:
+
+  Title: {{title}}
+  Classification: {{classification}}
+  Audience: {{audience}}
+  Keywords: {{keywords}}
+  {% if thesis %}Thesis: {{thesis}}{% endif %}
+
+  Create approximately {{num_sections}} main sections with relevant subsections.
+  Each section should have a title and brief description of its content.
+  Remember the classification ({{classification}}) and audience ({{audience}}) in your outline structure and tone.
+
+# Default parameters for LLM generation
+parameters:
+  temperature: 0.7
+  max_tokens: 2000
+
+# Quality criteria for evaluation
+quality_criteria:
+  - "Hierarchical structure with ## and ### headings"
+  - "Each section has a title and description"
+  - "Logical flow between sections"
+  - "Comprehensive coverage of keywords"
+  - "Appropriate for target audience"
+  - "Matches classification type (guidance/best-practice/mandate/principle/opinion)"
+  - "No AI slop (em-dashes, flowery language, clichés)"
+
+# Classification contexts (injected into system_prompt)
+classification_contexts:
+  guidance: "CLASSIFICATION: Guidance. Provide helpful suggestions and recommendations, not strict rules. Use 'consider', 'you might', 'one approach'."
+  best-practice: "CLASSIFICATION: Best Practice. Describe proven, widely-accepted approaches. Use 'typically', 'commonly', 'effective approach'."
+  mandate: "CLASSIFICATION: Mandate. State requirements clearly and directly. Use 'must', 'required', 'shall'."
+  principle: "CLASSIFICATION: Principle. Explain fundamental concepts and reasoning. Use 'because', 'fundamentally', 'the reason'."
+  opinion: "CLASSIFICATION: Opinion. Express personal perspective clearly. Use 'I believe', 'in my experience', 'I recommend'."
+
+# Audience contexts (injected into system_prompt)
+audience_contexts:
+  ic-engineers: "TARGET AUDIENCE: Individual Contributor Engineers. Use technical depth, assume coding knowledge, include implementation details."
+  engineering-leaders: "TARGET AUDIENCE: Engineering Leaders (managers, directors, VPs). Focus on strategy, team dynamics, organizational impact."
+  product-managers: "TARGET AUDIENCE: Product Managers. Balance technical and business perspectives, focus on user value and tradeoffs."
+  all-disciplines: "TARGET AUDIENCE: Cross-functional (engineering, product, design). Minimize jargon, explain technical concepts clearly."
+  general: "TARGET AUDIENCE: General/Non-Technical. Minimize jargon, explain technical concepts simply, use analogies."
+
+# Examples of good outlines (for reference/testing)
+examples:
+  - title: "Building Resilient Microservices"
+    keywords: ["microservices", "resilience", "fault-tolerance"]
+    classification: "best-practice"
+    audience: "ic-engineers"
+    expected_sections: 5
+    quality_notes: "Should include circuit breakers, retry patterns, observability"
+
+  - title: "Leading Through Organizational Change"
+    keywords: ["leadership", "change-management", "communication"]
+    classification: "guidance"
+    audience: "engineering-leaders"
+    expected_sections: 4
+    quality_notes: "Should focus on people, communication, and gradual adoption"
+

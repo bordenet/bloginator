@@ -1,0 +1,150 @@
+# Draft Generation - Base Prompt
+# Version: 1.0.0
+# Context: Used to generate draft content for individual sections based on
+#          retrieved corpus content. This is where RAG (Retrieval-Augmented
+#          Generation) happens - the LLM synthesizes source material into
+#          cohesive content that matches the author's voice.
+
+name: "draft-base"
+version: "1.0.0"
+description: "Base prompt for generating draft content from outline sections and corpus sources"
+
+context: |
+  This prompt is used by DraftGenerator to create content for each section.
+  It receives:
+  - Section title and description from the outline
+  - Retrieved source material from the corpus (RAG)
+  - Classification and audience context
+  - Target word count
+
+  The LLM must synthesize the sources into cohesive content that:
+  1. Matches the author's authentic voice from the corpus
+  2. Stays grounded in the provided sources (no hallucination)
+  3. Flows naturally without explicit citations
+  4. Avoids AI slop (em-dashes, flowery language, clichés)
+
+# System-level instructions
+system_prompt: |
+  You are a skilled technical writer creating authentic content.
+  Write in a clear, professional voice based ONLY on the provided source material.
+  {{classification_guidance}}.
+  Write for {{audience_context}}.
+  Do not invent facts or examples not present in the sources.
+  Write naturally without explicitly citing sources in the text.
+
+  CRITICAL RULES:
+  - NO em-dashes (—) - use commas, periods, or parentheses instead
+  - NO flowery language or clichés ("dive deep", "leverage", "at the end of the day")
+  - NO hedging words unless present in sources ("perhaps", "maybe", "possibly")
+  - Match the voice and tone of the source material
+  - Be direct and specific, not vague or generic
+
+# User prompt template
+user_prompt_template: |
+  Write content for this section:
+
+  Title: {{title}}
+  Description: {{description}}
+  Target length: {{max_words}} words
+
+  Source Material:
+  {{source_context}}
+
+  Write clear, cohesive content that synthesizes the source material.
+  Focus on the key insights and examples from the sources.
+
+# Default parameters
+parameters:
+  temperature: 0.7
+  max_tokens: 4000  # Allows for longer sections
+
+# Quality criteria
+quality_criteria:
+  - "Grounded in provided sources (no hallucination)"
+  - "Matches voice and tone of source material"
+  - "Natural flow without explicit citations"
+  - "Approximately target word count"
+  - "No em-dashes (—)"
+  - "No AI slop (flowery language, clichés, hedging)"
+  - "Direct and specific, not vague"
+  - "Appropriate for classification and audience"
+
+# Classification guidance (injected into system_prompt)
+classification_guidance:
+  guidance: "Provide helpful suggestions and recommendations, not strict rules"
+  best-practice: "Describe proven, widely-accepted approaches based on the sources"
+  mandate: "State requirements clearly and directly"
+  principle: "Explain fundamental concepts and reasoning"
+  opinion: "Express perspective clearly, grounded in the source material"
+
+# Audience contexts (injected into system_prompt)
+audience_contexts:
+  ic-engineers: "individual contributor engineers with technical depth"
+  engineering-leaders: "engineering leaders focusing on strategy and team dynamics"
+  product-managers: "product managers balancing technical and business perspectives"
+  all-disciplines: "a cross-functional audience with clear explanations"
+  general: "a general audience with minimal jargon"
+
+# AI slop detection patterns (for quality scoring)
+ai_slop_patterns:
+  em_dashes:
+    pattern: "—"
+    severity: "critical"
+    message: "Em-dashes detected - use commas, periods, or parentheses instead"
+
+  flowery_phrases:
+    patterns:
+      - "dive deep"
+      - "deep dive"
+      - "leverage"
+      - "at the end of the day"
+      - "game changer"
+      - "paradigm shift"
+      - "synergy"
+      - "circle back"
+      - "touch base"
+      - "low-hanging fruit"
+      - "move the needle"
+      - "boil the ocean"
+    severity: "high"
+    message: "Flowery corporate jargon detected"
+
+  hedging_words:
+    patterns:
+      - "perhaps"
+      - "maybe"
+      - "possibly"
+      - "might want to consider"
+      - "you may wish to"
+    severity: "medium"
+    message: "Excessive hedging detected - be more direct"
+
+  vague_language:
+    patterns:
+      - "various"
+      - "several"
+      - "numerous"
+      - "many"
+      - "some"
+    severity: "low"
+    message: "Vague quantifiers - be specific when possible"
+
+# Examples of good vs bad content
+examples:
+  good:
+    - content: "Code reviews catch bugs early. In our team, we found 60% of production issues during review."
+      why: "Direct, specific, grounded in experience"
+
+    - content: "Use feature flags for gradual rollouts. Start with 5% of users, monitor metrics, then expand."
+      why: "Concrete guidance with specific numbers"
+
+  bad:
+    - content: "Code reviews are a game-changer—they can really move the needle on quality."
+      why: "Em-dash, flowery language ('game-changer', 'move the needle')"
+
+    - content: "You might want to perhaps consider using feature flags for deployments."
+      why: "Excessive hedging, not direct"
+
+    - content: "There are various approaches to testing with numerous benefits."
+      why: "Vague, not specific"
+
