@@ -33,7 +33,28 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          pytest --cov=src/bloginator --cov-report=term-missing --cov-report=xml
+          pytest --cov=src/bloginator --cov-report=term-missing --cov-report=xml --cov-report=json
+
+      - name: Check coverage threshold
+        run: |
+          # Extract coverage percentage from JSON report
+          COVERAGE=$(python -c "import json; print(json.load(open('coverage.json'))['totals']['percent_covered'])")
+          echo "Current coverage: ${COVERAGE}%"
+
+          # Set minimum coverage threshold (progressive target)
+          # Current: 46.3%, Pass 4 Target: 46%, Pass 5 Target: 70%, Final Target: 85%
+          # Using 46% to prevent regressions while we expand coverage
+          MIN_COVERAGE=46.0
+
+          # Compare coverage (using bc for floating point comparison)
+          if (( $(echo "$COVERAGE < $MIN_COVERAGE" | bc -l) )); then
+            echo "❌ Coverage ${COVERAGE}% is below minimum threshold ${MIN_COVERAGE}%"
+            echo "Progressive targets: Pass 4: 46%, Pass 5: 70%, Final: 85%"
+            exit 1
+          else
+            echo "✅ Coverage ${COVERAGE}% meets minimum threshold ${MIN_COVERAGE}%"
+            echo "Progressive targets: Pass 4: 46%, Pass 5: 70%, Final: 85%"
+          fi
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
