@@ -1,5 +1,6 @@
 """Tests for LLM client."""
 
+import os
 from unittest.mock import Mock, patch
 
 import pytest
@@ -9,6 +10,7 @@ from bloginator.generation.llm_client import (
     LLMClient,
     LLMProvider,
     LLMResponse,
+    MockLLMClient,
     OllamaClient,
     create_llm_client,
 )
@@ -229,6 +231,73 @@ class TestCreateLLMClient:
         # Note: This would require adding a new provider to the enum
         # For now, all enum values are supported
         pass
+
+    def test_create_mock_client_via_env_var(self):
+        """Test creating MockLLMClient via BLOGINATOR_LLM_MOCK environment variable."""
+        # Save original env var
+        original_value = os.environ.get("BLOGINATOR_LLM_MOCK")
+
+        try:
+            # Set environment variable
+            os.environ["BLOGINATOR_LLM_MOCK"] = "true"
+
+            # Should return MockLLMClient regardless of provider parameter
+            client = create_llm_client(provider=LLMProvider.OLLAMA, model="llama3")
+
+            assert isinstance(client, MockLLMClient)
+            assert client.model == "llama3"
+        finally:
+            # Restore original env var
+            if original_value is None:
+                os.environ.pop("BLOGINATOR_LLM_MOCK", None)
+            else:
+                os.environ["BLOGINATOR_LLM_MOCK"] = original_value
+
+    def test_create_mock_client_case_insensitive(self):
+        """Test that BLOGINATOR_LLM_MOCK is case-insensitive."""
+        original_value = os.environ.get("BLOGINATOR_LLM_MOCK")
+
+        try:
+            # Test various case variations
+            for value in ["TRUE", "True", "true", "TrUe"]:
+                os.environ["BLOGINATOR_LLM_MOCK"] = value
+                client = create_llm_client()
+                assert isinstance(client, MockLLMClient), f"Failed for value: {value}"
+        finally:
+            if original_value is None:
+                os.environ.pop("BLOGINATOR_LLM_MOCK", None)
+            else:
+                os.environ["BLOGINATOR_LLM_MOCK"] = original_value
+
+    def test_create_normal_client_when_env_var_false(self):
+        """Test that normal client is created when BLOGINATOR_LLM_MOCK is not 'true'."""
+        original_value = os.environ.get("BLOGINATOR_LLM_MOCK")
+
+        try:
+            # Test various non-true values
+            for value in ["false", "False", "0", "", "yes", "1"]:
+                os.environ["BLOGINATOR_LLM_MOCK"] = value
+                client = create_llm_client(provider=LLMProvider.OLLAMA)
+                assert isinstance(client, OllamaClient), f"Failed for value: {value}"
+        finally:
+            if original_value is None:
+                os.environ.pop("BLOGINATOR_LLM_MOCK", None)
+            else:
+                os.environ["BLOGINATOR_LLM_MOCK"] = original_value
+
+    def test_create_normal_client_when_env_var_unset(self):
+        """Test that normal client is created when BLOGINATOR_LLM_MOCK is not set."""
+        original_value = os.environ.get("BLOGINATOR_LLM_MOCK")
+
+        try:
+            # Ensure env var is not set
+            os.environ.pop("BLOGINATOR_LLM_MOCK", None)
+
+            client = create_llm_client(provider=LLMProvider.OLLAMA)
+            assert isinstance(client, OllamaClient)
+        finally:
+            if original_value is not None:
+                os.environ["BLOGINATOR_LLM_MOCK"] = original_value
 
 
 class TestLLMClientInterface:
