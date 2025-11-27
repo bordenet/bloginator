@@ -153,6 +153,18 @@ test-corpus/
 *.db
 *.sqlite3
 
+# CRITICAL: Generated blog content (NEVER PUSH TO GITHUB)
+# These patterns protect any user-generated blog posts from accidental commits
+drafts/
+blogs/
+generated/
+*_blog.md
+*_draft.md
+*_outline.json
+behavioral_*.md
+hiring_*.md
+interview_*.md
+
 # CRITICAL: Local corpus materials (NEVER PUSH TO GITHUB)
 corpus/local/
 corpus/personal/
