@@ -3,6 +3,28 @@
 This document defines coding conventions and quality standards that MUST be followed
 without exception for all work on this repository.
 
+## CRITICAL: Repository Cleanliness
+
+**NEVER commit temporary scripts or one-off files to the repository root.**
+
+### Temporary Files Policy
+
+- ALL temporary/experimental scripts go in `tmp/` directory (git-ignored)
+- ALL blog generation outputs go in `blogs/` directory (git-ignored)
+- ALL prompt experiments go in `prompts/experimentation/` (git-ignored)
+- NEVER create shell scripts or markdown files in the repository root
+- Exception: Only permanent, maintained scripts/docs belong in root
+
+### Pre-commit Hook Enforcement
+
+A pre-commit hook scrutinizes:
+
+- New shell scripts in root (blocked unless explicitly maintained)
+- New markdown files in root (blocked unless documentation)
+- Ensures tmp/, blogs/, prompts/experimentation/ are git-ignored
+
+**Violating this will fail CI and waste everyone's time.**
+
 ## CRITICAL: LLM Mode Configuration
 
 **CLAUDE IS ALWAYS THE LLM FOR BLOG GENERATION**
