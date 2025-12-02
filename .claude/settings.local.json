@@ -52,7 +52,14 @@
       "Bash(\"Sprint Planning: Setting Teams Up for Success\" )",
       "Bash(\"Effective sprint planning balances team capacity with realistic commitments and clear objectives\" )",
       "Bash(\"sprint,planning,agile,scrum,estimation,story,points,capacity,commitment,velocity\" )",
-      "Bash(\"blog2-sprint-planning-outline.json\")"
+      "Bash(\"blog2-sprint-planning-outline.json\")",
+      "Bash(do echo \"=== $venv_dir ===\")",
+      "Bash($venv_dir/bin/python -c \"import chromadb; print(''''chromadb OK'''')\")",
+      "Bash(venv311/bin/python:*)",
+      "Bash(pip install:*)",
+      "Bash(python:*)",
+      "Bash(bash:*)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []
