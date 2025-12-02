@@ -253,7 +253,9 @@ htmlcov/
 .lmstudio/
 
 # Prompt optimization experiment results (temporary test data)
-prompt_optimization*/
+# Prompt optimization experiments - kept in prompts/experimentation/
+prompts/experimentation/*
+!prompts/experimentation/.gitkeep
 optimization_run.log
 
 #Ignore vscode AI rules
