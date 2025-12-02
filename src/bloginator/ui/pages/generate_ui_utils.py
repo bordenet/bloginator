@@ -91,9 +91,18 @@ def run_bloginator_command(cmd: list[str], timeout: int = 600) -> tuple[bool, st
     Returns:
         Tuple of (success, stdout, stderr).
     """
+    st.info(f"Running command: `{' '.join(cmd)}`")
     try:
         # nosec B603 - subprocess without shell=True is safe, cmd is built from controlled inputs
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)  # nosec B603
+
+        st.info(f"Command finished with return code: `{result.returncode}`")
+        if result.stdout:
+            with st.expander("Command stdout"):
+                st.code(result.stdout, language="text")
+        if result.stderr:
+            with st.expander("Command stderr"):
+                st.code(result.stderr, language="text")
 
         if result.returncode == 0:
             return True, result.stdout, result.stderr

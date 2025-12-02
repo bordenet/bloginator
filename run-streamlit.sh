@@ -142,12 +142,9 @@ if [ -z "${VIRTUAL_ENV:-}" ]; then
         echo "Activate with:"
         echo "  source $VENV_PATH/bin/activate"
         echo ""
-        read -p "Activate now? [y/N] " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            # shellcheck disable=SC1091
-            source "$VENV_PATH/bin/activate"
-        fi
+        echo "Automatically activating in 3 seconds..."
+        sleep 3
+        source "$VENV_PATH/bin/activate"
     else
         echo "No virtual environment found. Create one with:"
         echo "  python3 -m venv venv311"
@@ -191,4 +188,5 @@ if ! $OPEN_BROWSER; then
 fi
 
 # Run streamlit
+set -x
 exec ${STREAMLIT_CMD}
