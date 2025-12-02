@@ -66,6 +66,10 @@ mkdir -p "$CACHE_DIR"
 # Helper Functions
 ################################################################################
 
+print_error() {
+    echo -e "${C_RED}✗ Error: $*${C_RESET}" >&2
+}
+
 # Check if package is cached
 is_cached() {
     local pkg="$1"
