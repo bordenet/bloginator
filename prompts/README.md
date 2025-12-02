@@ -1,6 +1,6 @@
 # LLM Prompts
 
-This directory contains all LLM prompts used by Bloginator for content generation.
+This directory contains **ALL** LLM prompts used by Bloginator for content generation.
 
 ## Purpose
 
@@ -14,11 +14,31 @@ Externalizing prompts enables:
 
 ```
 prompts/
-├── outline/          # Outline generation prompts
-├── draft/            # Draft generation prompts
-├── refinement/       # Content refinement prompts
+├── outline/          # Outline generation prompts (RUNTIME)
+├── draft/            # Draft generation prompts (RUNTIME)
+├── refinement/       # Content refinement prompts (RUNTIME)
+├── optimization/     # Meta-prompts for optimization experiments
+├── experimentation/  # Prompt tuning experiments and results
 └── README.md         # This file
 ```
+
+## CRITICAL: Runtime vs Experimentation
+
+### Runtime Prompts (outline/, draft/, refinement/)
+
+These are the **ACTUAL PROMPTS** used by the application at runtime to generate blogs.
+
+- Loaded by `PromptLoader` in production code
+- Versioned and tracked in git
+- Modified through careful testing and validation
+
+### Experimentation (experimentation/)
+
+Prompt tuning experiments, mutations, and optimization results go here.
+
+- **NEVER** litter the repository root with `prompt_optimization_*` files
+- All experiment artifacts belong in `prompts/experimentation/`
+- This keeps the repo clean and experiments organized
 
 ## Format
 
