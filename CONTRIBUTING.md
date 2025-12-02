@@ -145,7 +145,7 @@ pytest -m "not slow" -v        # Skip slow tests
 
 - Never commit API keys, credentials, or proprietary content
 - Use `.env` files for local configuration (gitignored)
-- Report security vulnerabilities privately to matt@bordenet.com
+- Report security vulnerabilities privately to mattbordenet@hotmail.com
 - Run `bandit` and `gitleaks` before committing
 
 ## Questions?

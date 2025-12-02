@@ -156,15 +156,43 @@ test-corpus/
 
 # CRITICAL: Generated blog content (NEVER PUSH TO GITHUB)
 # These patterns protect any user-generated blog posts from accidental commits
+# ESPECIALLY: Outlines and generated files contain corpus context and internal IPs
 drafts/
 blogs/
 generated/
+output/extracted/
+output/generated/
+output/index/
 *_blog.md
 *_draft.md
 *_outline.json
+*_outline.md
+blog*.md
+blog*.json
+outline*.md
+outline*.json
 behavioral_*.md
 hiring_*.md
 interview_*.md
+
+# CRITICAL: Local examples and templates (NEVER PUSH TO GITHUB)
+# These contain internal job descriptions, processes, and organizational details
+docs/examples/
+*_job_description.md
+*_template.md
+*_career_ladder.md
+principal_*.md
+senior_*.md
+staff_*.md
+change_management_*.md
+teams-channel-*.md
+
+# CRITICAL: Internal utility scripts (NEVER PUSH TO GITHUB)
+# These are development utilities that contain internal processes and automation
+scripts/auto_respond.py
+scripts/generate_remaining_blogs.sh
+scripts/generate_blog_improved.sh
+scripts/analyze_optimization.py
 
 # CRITICAL: Local corpus materials (NEVER PUSH TO GITHUB)
 corpus/local/
