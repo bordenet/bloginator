@@ -59,7 +59,15 @@
       "Bash(pip install:*)",
       "Bash(python:*)",
       "Bash(bash:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(git rm:*)",
+      "Bash(./scripts/check-root-cleanliness.sh:*)",
+      "Bash(EXIT_CODE=$?)",
+      "Bash(exit $EXIT_CODE)",
+      "Bash(gitleaks detect:*)",
+      "Bash(timeout 5 streamlit run:*)",
+      "Bash(timeout 8 streamlit run:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []
