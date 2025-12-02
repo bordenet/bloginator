@@ -57,6 +57,12 @@ repos:
   # Fast quality gate (runs on commit)
   - repo: local
     hooks:
+      - id: check-root-cleanliness
+        name: Repository Root Cleanliness
+        entry: ./scripts/check-root-cleanliness.sh
+        language: system
+        pass_filenames: false
+        always_run: true
       - id: mypy-selected
         name: MyPy (selected modules)
         entry: bash -c 'mypy src/bloginator/utils/parallel.py src/bloginator/indexing/indexer.py src/bloginator/generation/version_manager.py src/bloginator/generation/voice_scorer.py src/bloginator/generation/refinement_engine.py'
