@@ -125,21 +125,34 @@ fi
 if [ -z "${VIRTUAL_ENV:-}" ]; then
     echo -e "${YELLOW}⚠ No virtual environment detected${NC}"
     echo ""
-    if [ -d ".venv" ]; then
+
+    # Check for venv311, venv, or .venv (in that order of preference)
+    if [ -d "venv311" ]; then
+        VENV_PATH="venv311"
+    elif [ -d "venv" ]; then
+        VENV_PATH="venv"
+    elif [ -d ".venv" ]; then
+        VENV_PATH=".venv"
+    else
+        VENV_PATH=""
+    fi
+
+    if [ -n "$VENV_PATH" ]; then
+        echo "Found virtual environment: $VENV_PATH"
         echo "Activate with:"
-        echo "  source .venv/bin/activate"
+        echo "  source $VENV_PATH/bin/activate"
         echo ""
         read -p "Activate now? [y/N] " -n 1 -r
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             # shellcheck disable=SC1091
-            source .venv/bin/activate
+            source "$VENV_PATH/bin/activate"
         fi
     else
-        echo "Create and activate with:"
-        echo "  python3 -m venv .venv"
-        echo "  source .venv/bin/activate"
-        echo "  pip install -e '.[all]'"
+        echo "No virtual environment found. Create one with:"
+        echo "  python3 -m venv venv311"
+        echo "  source venv311/bin/activate"
+        echo "  pip install -e '.[web]'"
         exit 1
     fi
 fi
