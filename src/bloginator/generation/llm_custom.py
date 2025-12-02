@@ -2,7 +2,7 @@
 
 import json
 
-import requests
+import requests  # type: ignore[import-untyped]
 
 from bloginator.generation.llm_base import (
     LLMClient,
@@ -154,6 +154,6 @@ class CustomLLMClient(LLMClient):
             # Try to hit the models endpoint
             url = f"{self.base_url}/models"
             response = requests.get(url, headers=self.headers, timeout=5)
-            return response.status_code == 200
+            return bool(response.status_code == 200)
         except requests.exceptions.RequestException:
             return False

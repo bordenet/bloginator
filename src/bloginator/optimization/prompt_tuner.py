@@ -14,7 +14,7 @@ import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import yaml
 from jinja2 import Template
@@ -485,7 +485,7 @@ class PromptTuner:
                 content = content.split("```")[1].split("```")[0].strip()
 
             evaluation = json.loads(content)
-            return evaluation
+            return cast(dict[str, Any], evaluation)
         except (json.JSONDecodeError, IndexError) as e:
             logger.error(f"Failed to parse AI evaluation: {e}")
             logger.error(f"Response content: {response.content[:500]}")

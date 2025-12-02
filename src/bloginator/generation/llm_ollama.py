@@ -2,7 +2,7 @@
 
 import json
 
-import requests
+import requests  # type: ignore[import-untyped]
 
 from bloginator.generation.llm_base import (
     LLMClient,

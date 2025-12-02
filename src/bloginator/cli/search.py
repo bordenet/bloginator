@@ -106,19 +106,20 @@ def search(
         console.print("[dim]Type your query (or 'quit' to exit)[/dim]\n")
 
         while True:
-            query = click.prompt("Search", default="", show_default=False)
+            query_input = click.prompt("Search", default="", show_default=False)
 
-            if query.lower() in ["quit", "exit", "q"]:
+            # Ensure query_input is a string (click.prompt with default should return str)
+            if not query_input or query_input.lower() in ["quit", "exit", "q"]:
                 console.print("[dim]Goodbye![/dim]")
                 break
 
-            if not query.strip():
+            if not query_input.strip():
                 continue
 
             _display_results(
                 console,
                 searcher,
-                query,
+                query_input,
                 num_results,
                 recency_weight,
                 quality_weight,
