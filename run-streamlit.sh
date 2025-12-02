@@ -138,13 +138,33 @@ if [ -z "${VIRTUAL_ENV:-}" ]; then
     fi
 
     if [ -n "$VENV_PATH" ]; then
-        echo "Found virtual environment: $VENV_PATH"
+        echo "Found virtual environment: ${YELLOW}${VENV_PATH}${NC}"
         echo "Activate with:"
-        echo "  source $VENV_PATH/bin/activate"
+        echo "  source ${VENV_PATH}/bin/activate"
         echo ""
-        echo "Automatically activating in 3 seconds..."
-        sleep 3
-        source "$VENV_PATH/bin/activate"
+        echo -e -n "Automatically activate virtual environment '${YELLOW}${VENV_PATH}${NC}'? ${GREEN}[Y/n]${NC} (Timeout 3s) "
+
+        # Clear REPLY before reading to prevent previous values from affecting timeout
+        REPLY=""
+        # Disable echo to prevent user input from being displayed
+        stty -echo
+        # Read a single character with a 3-second timeout
+        # -t 3: timeout after 3 seconds
+        # -n 1: read only 1 character
+        # -r: raw input (backslashes do not act as escape characters)
+        read -t 3 -n 1 -r REPLY || true # || true to prevent script from exiting on timeout
+        # Re-enable echo
+        stty echo
+        echo # Add a newline after the prompt
+
+        if [[ "$REPLY" =~ ^[nN]$ ]]; then
+            echo -e "${YELLOW}Virtual environment activation skipped.${NC}"
+            echo -e "${YELLOW}Please activate it manually if needed: source ${VENV_PATH}/bin/activate${NC}"
+            exit 1
+        else
+            echo -e "${GREEN}Activating virtual environment...${NC}"
+            source "$VENV_PATH/bin/activate"
+        fi
     else
         echo "No virtual environment found. Create one with:"
         echo "  python3 -m venv venv311"
@@ -158,6 +178,66 @@ fi
 if [ ! -f "src/bloginator/ui/app.py" ]; then
     echo -e "${RED}✗ UI module not found at src/bloginator/ui/app.py${NC}"
     exit 1
+fi
+
+# Check for chromadb and other critical Python dependencies
+if ! python -c "import chromadb" &> /dev/null || \
+   ! python -c "import streamlit" &> /dev/null; then # Added streamlit check for completeness
+    echo -e "${YELLOW}⚠ Missing critical Python dependencies (e.g., chromadb, streamlit).${NC}"
+    echo -e -n "Install them using 'pip install -e '.[web]'? ${GREEN}[Y/n]${NC} (Timeout 3s) "
+
+    REPLY=""
+    stty -echo
+    read -t 3 -n 1 -r REPLY || true
+    stty echo
+    echo # Add a newline after the prompt
+
+    if [[ "$REPLY" =~ ^[nN]$ ]]; then
+        echo -e "${YELLOW}Dependency installation skipped. Please install manually if needed: pip install -e '.[web]'${NC}"
+        exit 1
+    else
+        echo -e "${GREEN}Installing dependencies...${NC}"
+        if pip install -e '.[web]'; then
+            echo -e "${GREEN}✓ Dependencies installed successfully.${NC}"
+        else
+            echo -e "${RED}✗ Failed to install dependencies. Please try running 'pip install -e '.[web]'' manually.${NC}"
+            exit 1
+        fi
+    fi
+fi
+
+# Define the required Streamlit version based on pyproject.toml
+REQUIRED_STREAMLIT_VERSION="1.28.0"
+
+# Get the currently installed Streamlit version
+CURRENT_STREAMLIT_VERSION=""
+if python -c "import streamlit; print(streamlit.__version__)" &> /dev/null; then
+    CURRENT_STREAMLIT_VERSION=$(python -c "import streamlit; print(streamlit.__version__)")
+fi
+
+if [[ "$CURRENT_STREAMLIT_VERSION" != "$REQUIRED_STREAMLIT_VERSION" ]]; then
+    echo -e "${YELLOW}⚠ Streamlit version mismatch.${NC}"
+    echo -e "${YELLOW}Required: ${REQUIRED_STREAMLIT_VERSION}, Installed: ${CURRENT_STREAMLIT_VERSION:-'None'}${NC}"
+    echo -e -n "Install Streamlit version ${REQUIRED_STREAMLIT_VERSION}? ${GREEN}[Y/n]${NC} (Timeout 3s) "
+
+    REPLY=""
+    stty -echo
+    read -t 3 -n 1 -r REPLY || true
+    stty echo
+    echo # Add a newline after the prompt
+
+    if [[ "$REPLY" =~ ^[nN]$ ]]; then
+        echo -e "${YELLOW}Streamlit version change skipped. Please ensure a compatible version is installed manually.${NC}"
+        exit 1
+    else
+        echo -e "${GREEN}Installing Streamlit==${REQUIRED_STREAMLIT_VERSION}...${NC}"
+        if pip install "streamlit==${REQUIRED_STREAMLIT_VERSION}"; then
+            echo -e "${GREEN}✓ Streamlit ${REQUIRED_STREAMLIT_VERSION} installed successfully.${NC}"
+        else
+            echo -e "${RED}✗ Failed to install Streamlit==${REQUIRED_STREAMLIT_VERSION}. Please try manually.${NC}"
+            exit 1
+        fi
+    fi
 fi
 
 echo -e "${GREEN}✓ Environment ready${NC}"
@@ -188,5 +268,4 @@ if ! $OPEN_BROWSER; then
 fi
 
 # Run streamlit
-set -x
 exec ${STREAMLIT_CMD}

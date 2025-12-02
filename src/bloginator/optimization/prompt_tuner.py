@@ -485,7 +485,7 @@ class PromptTuner:
                 content = content.split("```")[1].split("```")[0].strip()
 
             evaluation = json.loads(content)
-            return cast(dict[str, Any], evaluation)
+            return cast("dict[str, Any]", evaluation)
         except (json.JSONDecodeError, IndexError) as e:
             logger.error(f"Failed to parse AI evaluation: {e}")
             logger.error(f"Response content: {response.content[:500]}")
