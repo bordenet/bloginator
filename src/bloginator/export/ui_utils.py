@@ -42,6 +42,9 @@ def show_export_buttons(document_path: Path, document_type: str = "draft") -> No
         "Plain Text": ExportFormat.TEXT,
     }
 
+    if export_format is None:
+        return
+
     selected_format = format_map[export_format]
 
     with col2:

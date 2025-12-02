@@ -143,7 +143,7 @@ class CorpusIndexer:
             ids=[chunk.id for chunk in chunks],
             embeddings=embeddings.tolist(),
             documents=contents,
-            metadatas=metadatas,  # type: ignore[arg-type]
+            metadatas=metadatas,
         )
 
     def get_total_chunks(self) -> int:
@@ -152,7 +152,7 @@ class CorpusIndexer:
         Returns:
             Number of chunks in collection
         """
-        return self.collection.count()
+        return int(self.collection.count())
 
     def delete_document(self, document_id: str) -> None:
         """Delete all chunks for a document from the index.

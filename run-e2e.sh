@@ -187,13 +187,12 @@ done
 start_timer
 
 # Handle restart flag
-if $RESTART; then
-    print_info "Clearing previous state..."
-    clear_state
-    print_success "State cleared. Starting from beginning."
-    echo ""
-fi
-
+    if $RESTART; then
+        print_info "Clearing previous state..."
+        clear_state
+        print_success "State cleared. Starting from beginning."
+        echo ""
+    fi
 # Show resume status if applicable
 if $RESUME; then
     show_resume_status
@@ -214,7 +213,7 @@ if ! $SKIP_BUILD && ! ($RESUME && is_step_completed "setup"); then
     print_info "Installing bloginator..."
     # shellcheck disable=SC1091
     source venv/bin/activate
-    pip install -q -e ".[all]"
+    pip install -q -e .[dev]
     print_success "Bloginator installed"
 
     save_state "setup"

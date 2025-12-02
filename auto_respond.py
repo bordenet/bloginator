@@ -169,16 +169,16 @@ def auto_respond_to_requests(requests_dir, responses_dir):
         section_desc = ""
         target_length = 300
 
+        from contextlib import suppress
+
         for line in lines:
             if line.startswith("Title:"):
                 section_title = line.replace("Title:", "").strip()
             elif line.startswith("Description:"):
                 section_desc = line.replace("Description:", "").strip()
             elif "Target length:" in line:
-                try:
+                with suppress(ValueError, IndexError):
                     target_length = int(line.split(":")[-1].strip().split()[0])
-                except (ValueError, IndexError):  # noqa: SIM105
-                    pass
 
         # Generate response
         content = get_response_for_section(section_title, section_desc, target_length)

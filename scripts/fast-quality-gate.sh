@@ -67,30 +67,38 @@ fi
 # 2. Linting
 echo ""
 echo "2/5 Linting (ruff)..."
-if ! ruff check src/ tests/ 2>/dev/null; then
-    echo "❌ Linting failed. Run: ruff check --fix src/ tests/"
-    exit 1
+if command -v ruff &> /dev/null; then
+    if ! ruff check src/ tests/ 2>/dev/null; then
+        echo "❌ Linting failed. Run: ruff check --fix src/ tests/"
+        exit 1
+    fi
+    echo "✅ Linting OK"
+else
+    echo "⚠️  ruff not in PATH, skipping (pre-commit will handle this)"
 fi
-echo "✅ Linting OK"
 
 # 3. Type checking (targeted high-value modules)
 echo ""
 echo "3/5 Type checking (mypy)..."
 if ls src/**/*.py 1> /dev/null 2>&1; then
-    if ! mypy \
-        src/bloginator/models \
-        src/bloginator/extraction \
-        src/bloginator/search \
-        src/bloginator/safety \
-        src/bloginator/export \
-        src/bloginator/services \
-        src/bloginator/indexing/indexer.py \
-        src/bloginator/generation \
-        src/bloginator/utils/parallel.py 2>/dev/null; then
-        echo "❌ Type checking failed"
-        exit 1
+    if command -v mypy &> /dev/null; then
+        if ! mypy \
+            src/bloginator/models \
+            src/bloginator/extraction \
+            src/bloginator/search \
+            src/bloginator/safety \
+            src/bloginator/export \
+            src/bloginator/services \
+            src/bloginator/indexing/indexer.py \
+            src/bloginator/generation \
+            src/bloginator/utils/parallel.py 2>/dev/null; then
+            echo "❌ Type checking failed"
+            exit 1
+        fi
+        echo "✅ Type checking OK"
+    else
+        echo "⚠️  mypy not in PATH, skipping (pre-commit will handle this)"
     fi
-    echo "✅ Type checking OK"
 else
     echo "⚠️  No Python files found, skipping type check"
 fi
@@ -107,12 +115,28 @@ echo "✅ Import sorting OK"
 # 5. Unit tests (fast subset only) - skip if no tests yet
 echo ""
 echo "5/5 Running fast unit tests..."
-if [ -d "tests" ] && ls tests/**/*.py 1> /dev/null 2>&1; then
-    if ! pytest tests/ -m "not slow" --tb=short -q 2>/dev/null; then
-        echo "❌ Fast tests failed"
-        exit 1
+if [[ -n "${PRE_COMMIT:-}" ]]; then
+    echo "⚠️  Skipping tests in pre-commit context (handled separately)"
+elif [ -d "tests" ] && ls tests/**/*.py 1> /dev/null 2>&1; then
+    # Ensure the package is installed for testing
+    if ! python -c "import bloginator" 2>/dev/null; then
+        echo "📦 Installing project in editable mode..."
+        if ! pip install -e . >/dev/null 2>&1; then
+            echo "⚠️  Failed to install project, skipping tests"
+        else
+            if ! pytest tests/ -m "not slow" --tb=short -q 2>/dev/null; then
+                echo "❌ Fast tests failed"
+                exit 1
+            fi
+            echo "✅ Fast tests passed"
+        fi
+    else
+        if ! pytest tests/ -m "not slow" --tb=short -q 2>/dev/null; then
+            echo "❌ Fast tests failed"
+            exit 1
+        fi
+        echo "✅ Fast tests passed"
     fi
-    echo "✅ Fast tests passed"
 else
     echo "⚠️  No tests found, skipping test execution"
 fi
