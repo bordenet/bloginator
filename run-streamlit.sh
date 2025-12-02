@@ -17,12 +17,14 @@
 # OPTIONS:
 #   --port PORT     Port to run on (default: 8501)
 #   --no-browser    Don't open browser automatically
+#   -v, --verbose   Show detailed output
 #   -h, --help      Display help message
 #
 # EXAMPLES:
 #   ./run-streamlit.sh              # Launch on port 8501 with browser
 #   ./run-streamlit.sh --port 8080  # Launch on custom port
 #   ./run-streamlit.sh --no-browser # Launch without opening browser
+#   ./run-streamlit.sh -v           # Verbose output
 #
 # DEPENDENCIES:
 #   - Python 3.10+
@@ -59,10 +61,15 @@ VENV_DIR="${SCRIPT_DIR}/.venv"
 PORT="${STREAMLIT_PORT:-8501}"
 OPEN_BROWSER=true
 REQUIRED_STREAMLIT_VERSION="1.28.0"
+VERBOSE=${VERBOSE:-0}
 
 ################################################################################
 # Helper Functions
 ################################################################################
+
+print_error() {
+    echo -e "${C_RED}✗ Error: $*${C_RESET}" >&2
+}
 
 confirm() {
     local prompt="$1"
@@ -97,12 +104,14 @@ DESCRIPTION
 OPTIONS
     --port PORT     Port to run on (default: 8501)
     --no-browser    Don't open browser automatically
+    -v, --verbose   Show detailed output
     -h, --help      Display this help
 
 EXAMPLES
     ./run-streamlit.sh              # Launch on port 8501 with browser
     ./run-streamlit.sh --port 8080  # Launch on custom port
     ./run-streamlit.sh --no-browser # Launch without browser
+    ./run-streamlit.sh -v           # Verbose output
 
 INITIALIZATION TIME
     First run: ~10-15 seconds (model downloads)
@@ -115,8 +124,9 @@ parse_args() {
         case $1 in
             --port) PORT="$2"; shift 2 ;;
             --no-browser) OPEN_BROWSER=false; shift ;;
+            -v|--verbose) export VERBOSE=1; shift ;;
             -h|--help) show_help; exit 0 ;;
-            *) echo "Unknown option: $1"; exit 1 ;;
+            *) print_error "Unknown option: $1"; exit 1 ;;
         esac
     done
 }
