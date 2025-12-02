@@ -120,6 +120,9 @@ if index_dir.exists():
             st.sidebar.metric("Indexed Chunks", f"{chunk_count:,}")
         else:
             st.sidebar.warning("⚠ Index Empty")
+    except ImportError:
+        st.sidebar.error("✗ ChromaDB not installed")
+        st.sidebar.caption("Install with: pip install -e '.[web]'")
     except Exception as e:
         st.sidebar.error(f"✗ Index Error: {str(e)[:50]}")
 else:
