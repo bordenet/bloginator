@@ -11,7 +11,7 @@ When running Bloginator to generate blogs:
 - The `.env` file MUST have `BLOGINATOR_LLM_MOCK=assistant`
 - The `.env` file MUST have `BLOGINATOR_LLM_PROVIDER=mock`
 - Claude (the AI assistant) acts as the LLM by responding to requests in `.bloginator/llm_responses/`
-- Use `auto_respond.py` to automatically generate LLM responses
+- Use `scripts/auto_respond.py` to automatically generate LLM responses
 - NEVER switch to Ollama or other LLMs without explicit user request
 - The user wants Claude to BE the LLM, not to USE an external LLM
 

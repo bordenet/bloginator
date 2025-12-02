@@ -36,7 +36,7 @@
       "Bash(bloginator draft:*)",
       "Bash(python3:*)",
       "Bash(for i in {1..50})",
-      "Bash(do python3 .//auto_respond.py)",
+      "Bash(do python3 .//scripts/auto_respond.py)",
       "Bash(ollama list:*)",
       "Bash(pkill:*)",
       "Bash(xargs:*)",
@@ -46,7 +46,13 @@
       "Bash(do python3:*)",
       "Bash(done)",
       "Bash(cat:*)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(./scripts/generate_blog_improved.sh:*)",
+      "Bash(\"blog2-sprint-planning.md\" )",
+      "Bash(\"Sprint Planning: Setting Teams Up for Success\" )",
+      "Bash(\"Effective sprint planning balances team capacity with realistic commitments and clear objectives\" )",
+      "Bash(\"sprint,planning,agile,scrum,estimation,story,points,capacity,commitment,velocity\" )",
+      "Bash(\"blog2-sprint-planning-outline.json\")"
     ],
     "deny": [],
     "ask": []
