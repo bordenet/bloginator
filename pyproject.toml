@@ -50,16 +50,15 @@ dependencies = [
     "jinja2>=3.1.2",
     "cryptography>=43.0.1",
     "psutil>=5.9.0",
+    # Core RAG dependencies (required by searcher.py, indexer.py)
+    "chromadb==0.5.5",
+    "sentence-transformers==3.1.1",
 ]
 
 [project.optional-dependencies]
 
 rag = [
-
-    "chromadb==0.5.5",
-
-    "sentence-transformers==3.1.1",
-
+    # RAG dependencies moved to base (required by core modules)
 ]
 
 dev = [
@@ -123,12 +122,6 @@ web = [
     "python-multipart>=0.0.6",
 
     "aiofiles>=23.2.1",
-
-    # Web UI needs chromadb for corpus status display
-
-    "chromadb==0.5.5",
-
-    "sentence-transformers==3.1.1",
 
 ]
 
