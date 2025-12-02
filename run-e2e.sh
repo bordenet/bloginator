@@ -1,367 +1,384 @@
 #!/usr/bin/env bash
+
 ################################################################################
-# Script Name: run-e2e.sh
+# Bloginator End-to-End Workflow Demo
 ################################################################################
-# PURPOSE: End-to-end workflow demo for Bloginator (extract → index → outline → draft)
-# USAGE: ./run-e2e.sh [OPTIONS]
-# PLATFORM: Cross-platform (Linux/macOS)
+# PURPOSE: Run complete workflow demo (extract → index → outline → draft)
+#   - Setup Python environment and dependencies
+#   - Extract documents from corpus
+#   - Build semantic search index
+#   - Search indexed corpus
+#   - Generate blog outline from corpus
+#   - Generate full draft from outline
+#   - Optionally launch Streamlit UI
 #
-# This script has been refactored for maintainability (<400 lines).
-# Shared functionality moved to scripts/e2e-lib.sh
-#
-# QUICK START (Automated):
-#   ./run-e2e.sh                           # Full demo
-#   ./run-e2e.sh --resume                  # Continue from last step
-#   ./run-e2e.sh --restart                 # Start over
-#
-# MANUAL WALKTHROUGH (Run these commands yourself):
-#
-#   # Step 1: Setup
-#   python3 -m venv venv
-#   source venv/bin/activate
-#   pip install -e ".[dev]"
-#
-#   # Step 2: Start Ollama (if using local LLM)
-#   ollama serve
-#   ollama run mixtral:8x7b    # Then type /bye to exit
-#
-#   # Step 3: Extract documents
-#   bloginator extract -o output/extracted --config corpus/corpus.yaml
-#
-#   # Step 4: Build search index
-#   bloginator index output/extracted/ -o .bloginator/chroma
-#
-#   # Step 5: Search corpus
-#   bloginator search .bloginator/chroma "kubernetes devops" -n 5
-#
-#   # Step 6: Generate outline
-#   bloginator outline --index .bloginator/chroma \
-#     --title "Building a DevOps Culture at Scale" \
-#     --keywords "devops,kubernetes,automation" \
-#     --sections 5 --output output/outline --format both
-#
-#   # Step 7: Generate draft
-#   bloginator draft --index .bloginator/chroma \
-#     --outline output/outline.json \
-#     --output output/draft.md
+# USAGE:
+#   ./run-e2e.sh [OPTIONS]
+#   ./run-e2e.sh --help
 #
 # OPTIONS:
-#   --skip-build    Skip build/setup (assumes already installed)
-#   --skip-ollama   Skip Ollama checks (assumes already running)
-#   --clean         Clean outputs before running
-#   --resume        Continue from last completed step
-#   --restart       Clear state and start over
-#   --verbose, -v   Show LLM prompts and responses
-#   --gui           Launch Streamlit UI after completion
-#   --ollama-host   Ollama server URL (e.g., http://192.168.5.53:11434)
-#   --ollama-model  Ollama model name (default: mixtral:8x7b)
-#   --help, -h      Show detailed help
+#   -y, --yes         Auto-confirm all prompts
+#   -v, --verbose     Show detailed output
+#   --skip-build      Skip build/setup (assumes already installed)
+#   --skip-ollama     Skip Ollama checks
+#   --clean           Clean outputs before running
+#   --resume          Resume from last completed step
+#   --restart         Clear state and start over
+#   --gui             Launch Streamlit UI after completion
+#   --ollama-host     Ollama server URL (default: http://localhost:11434)
+#   --ollama-model    Ollama model name (default: mixtral:8x7b)
+#   -h, --help        Display help message
+#
+# EXAMPLES:
+#   ./run-e2e.sh                        # Full demo from scratch
+#   ./run-e2e.sh -y                     # Non-interactive
+#   ./run-e2e.sh --skip-build -v        # Run demo, verbose
+#   ./run-e2e.sh --clean --restart      # Start completely fresh
+#   ./run-e2e.sh --gui                  # Run demo then launch UI
+#
+# WORKFLOW
+#   1. Environment setup (Python venv, dependencies)
+#   2. Ollama service check (if needed)
+#   3. Extract documents from corpus
+#   4. Build semantic search index
+#   5. Perform sample search
+#   6. Generate blog outline
+#   7. Generate blog draft
+#   8. Optional: launch Streamlit UI
+#
+# REQUIREMENTS
+#   - Python 3.10+
+#   - Ollama with mixtral:8x7b model
+#   - Corpus configured in corpus/corpus.yaml
 ################################################################################
 
-# Source shared library
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+set -euo pipefail
+
+# Resolve symlinks to get actual script location
+SCRIPT_PATH="${BASH_SOURCE[0]}"
+while [ -L "$SCRIPT_PATH" ]; do
+    SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+    SCRIPT_PATH="$(readlink "$SCRIPT_PATH")"
+    [[ "$SCRIPT_PATH" != /* ]] && SCRIPT_PATH="$SCRIPT_DIR/$SCRIPT_PATH"
+done
+SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+
+# shellcheck source=scripts/lib/compact.sh
+source "$SCRIPT_DIR/scripts/lib/compact.sh"
+
 # shellcheck source=scripts/e2e-lib.sh
 source "$SCRIPT_DIR/scripts/e2e-lib.sh"
 
-# Setup timer cleanup on exit
-trap stop_timer EXIT
+cd "$SCRIPT_DIR"
 
 ################################################################################
-# Script-Specific Configuration
+# Configuration
 ################################################################################
 
-SKIP_BUILD=false
-SKIP_OLLAMA=false
-CLEAN=false
-VERBOSE=false
-LAUNCH_GUI=false
-RESUME=false
-RESTART=false
-OLLAMA_HOST="${OLLAMA_HOST:-http://localhost:11434}"
-OLLAMA_MODEL="${OLLAMA_MODEL:-mixtral:8x7b}"
+export AUTO_YES=false
+export VERBOSE=${VERBOSE:-0}
+
+export SKIP_BUILD=false
+export SKIP_OLLAMA=false
+export CLEAN=false
+export LAUNCH_GUI=false
+export RESUME=false
+export RESTART=false
+export OLLAMA_HOST="${OLLAMA_HOST:-http://localhost:11434}"
+export OLLAMA_MODEL="${OLLAMA_MODEL:-mixtral:8x7b}"
 
 ################################################################################
-# Parse Arguments
+# Argument Parsing
 ################################################################################
 
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        --skip-build)
-            SKIP_BUILD=true
-            shift
-            ;;
-        --skip-ollama)
-            SKIP_OLLAMA=true
-            shift
-            ;;
-        --clean)
-            CLEAN=true
-            shift
-            ;;
-        --verbose|-v)
-            VERBOSE=true
-            shift
-            ;;
-        --gui)
-            LAUNCH_GUI=true
-            shift
-            ;;
-        --ollama-host)
-            OLLAMA_HOST="$2"
-            shift 2
-            ;;
-        --ollama-model)
-            OLLAMA_MODEL="$2"
-            shift 2
-            ;;
-        --resume)
-            RESUME=true
-            shift
-            ;;
-        --restart)
-            RESTART=true
-            shift
-            ;;
-        --help|-h)
-            cat << 'EOF'
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Bloginator - End-to-End Workflow Demo
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+show_help() {
+    cat << 'EOF'
+NAME
+    run-e2e.sh - End-to-end workflow demo
 
-Demonstrates the complete workflow:
-  1. Build and setup environment
-  2. Extract documents from corpus
-  3. Index content with semantic embeddings
-  4. Search the indexed corpus
-  5. Generate blog outline from corpus
-  6. Generate full draft from outline
+SYNOPSIS
+    ./run-e2e.sh [OPTIONS]
 
-Usage:
-  ./run-e2e.sh [OPTIONS]
+DESCRIPTION
+    Runs the complete Bloginator workflow: extract corpus, build search index,
+    generate outline, and generate blog draft.
 
-Options:
-  --skip-build          Skip build/setup (assumes already installed)
-  --skip-ollama         Skip Ollama checks (assumes already running)
-  --clean               Clean outputs directory before running
-  --resume              Resume from last completed step (auto-detects state)
-  --restart             Clear state and start from beginning
-  --verbose, -v         Show LLM interactions (prompts and responses)
-  --gui                 Launch Streamlit UI after completing workflow
-  --ollama-host <url>   Ollama server URL (e.g., http://192.168.5.53:11434)
-  --ollama-model <name> Ollama model name (default: mixtral:8x7b)
-  --help, -h            Show this help message
+OPTIONS
+    -y, --yes         Auto-confirm all prompts
+    -v, --verbose     Show detailed output
+    --skip-build      Skip environment setup (assumes installed)
+    --skip-ollama     Skip Ollama service checks
+    --clean           Clean outputs before running
+    --resume          Resume from last completed step
+    --restart         Clear state and start over
+    --gui             Launch Streamlit UI after completion
+    --ollama-host     Ollama server URL (default: http://localhost:11434)
+    --ollama-model    Ollama model (default: mixtral:8x7b)
+    -h, --help        Display this help
 
-Examples:
-  ./run-e2e.sh                  # Full demo from scratch
-  ./run-e2e.sh --skip-build     # Run demo (already installed)
-  ./run-e2e.sh --clean          # Start fresh (delete old outputs)
-  ./run-e2e.sh -v               # Verbose output (show LLM interactions)
-  ./run-e2e.sh --gui            # Run demo then launch Streamlit UI
-  ./run-e2e.sh --resume         # Continue from where it stopped
-  ./run-e2e.sh --restart        # Clear state, start over
+EXAMPLES
+    ./run-e2e.sh              # Full demo from scratch
+    ./run-e2e.sh -y -v        # Non-interactive, verbose
+    ./run-e2e.sh --skip-build # Run demo (already installed)
+    ./run-e2e.sh --clean      # Clean outputs before running
+    ./run-e2e.sh --gui        # Run demo then launch Streamlit
 
-  # Use remote Ollama server
-  ./run-e2e.sh --ollama-host http://192.168.5.53:11434
-  ./run-e2e.sh --ollama-host http://192.168.5.53:11434 --ollama-model mixtral:8x7b -v
+WORKFLOW
+    1. Setup environment (Python venv, dependencies)
+    2. Check Ollama service and model availability
+    3. Extract documents from corpus
+    4. Build semantic search index with embeddings
+    5. Perform sample search demonstration
+    6. Generate blog outline from corpus
+    7. Generate full blog draft from outline
+    8. (Optional) Launch Streamlit web UI
 
-Requirements:
-  - Python 3.10+
-  - Ollama with mixtral:8x7b model (for generation)
-  - Corpus configured in corpus/corpus.yaml
+REQUIREMENTS
+    - Python 3.10+
+    - Ollama with mixtral:8x7b (or compatible) model
+    - Corpus configured in corpus/corpus.yaml
 EOF
-            exit 0
-            ;;
-        *)
-            echo -e "${RED}Unknown option: $1${NC}"
-            echo "Use --help for usage information"
-            exit 1
-            ;;
-    esac
-done
+}
 
-################################################################################
-# Main Workflow
-################################################################################
+parse_args() {
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -y|--yes) AUTO_YES=true; shift ;;
+            -v|--verbose) export VERBOSE=1; shift ;;
+            --skip-build) SKIP_BUILD=true; shift ;;
+            --skip-ollama) SKIP_OLLAMA=true; shift ;;
+            --clean) CLEAN=true; shift ;;
+            --resume) RESUME=true; shift ;;
+            --restart) RESTART=true; shift ;;
+            --gui) LAUNCH_GUI=true; shift ;;
+            --ollama-host) OLLAMA_HOST="$2"; shift 2 ;;
+            --ollama-model) OLLAMA_MODEL="$2"; shift 2 ;;
+            -h|--help) show_help; exit 0 ;;
+            *) echo "Unknown option: $1"; exit 1 ;;
+        esac
+    done
+}
 
-# Start timer
-start_timer
-
-# Handle restart flag
-    if $RESTART; then
-        print_info "Clearing previous state..."
-        clear_state
-        print_success "State cleared. Starting from beginning."
+confirm() {
+    local prompt="$1"
+    local default="${2:-y}"
+    
+    if [[ "$AUTO_YES" == "true" ]]; then
+        verbose "$prompt [auto-confirming]"
+        return 0
+    fi
+    
+    local response
+    if read -t 3 -p "$prompt [$default, auto-yes in 3s]: " -r response 2>/dev/null; then
+        response="${response:-$default}"
+    else
+        response="$default"
         echo ""
     fi
-# Show resume status if applicable
-if $RESUME; then
-    show_resume_status
-fi
+    [[ "$response" =~ ^[Yy]$ ]]
+}
 
-print_header "Bloginator E2E Workflow Demo"
+################################################################################
+# Workflow Tasks
+################################################################################
 
-# Step 1: Environment Setup
-if ! $SKIP_BUILD && ! ($RESUME && is_step_completed "setup"); then
-    print_step "Step 1: Environment Setup"
-
-    if [ ! -d "venv" ]; then
-        print_info "Creating Python virtual environment..."
-        python3 -m venv venv
-        print_success "Virtual environment created"
+step_setup_environment() {
+    task_start "Setting up environment"
+    
+    if [[ ! -d "venv" ]]; then
+        verbose "Creating Python virtual environment..."
+        python3 -m venv venv > /dev/null 2>&1
+        verbose "Created venv"
     fi
-
-    print_info "Installing bloginator..."
-    # shellcheck disable=SC1091
+    
+    # shellcheck source=/dev/null
     source venv/bin/activate
-    pip install -q -e .[dev]
-    print_success "Bloginator installed"
-
-    save_state "setup"
-elif $RESUME && is_step_completed "setup"; then
-    print_info "Skipping setup (already completed)"
-fi
-
-# Step 2: Ollama Check
-if ! $SKIP_OLLAMA && ! ($RESUME && is_step_completed "ollama"); then
-    print_step "Step 2: Ollama Check"
-
-    if check_ollama_service "$OLLAMA_HOST"; then
-        print_success "Ollama server is running at $OLLAMA_HOST"
-
-        if check_ollama_model "$OLLAMA_HOST" "$OLLAMA_MODEL"; then
-            print_success "Model $OLLAMA_MODEL is available"
-        else
-            print_warning "Model $OLLAMA_MODEL not found. Available models:"
-            list_ollama_models "$OLLAMA_HOST"
-            print_error "Please pull the model: ollama pull $OLLAMA_MODEL"
-            exit 1
-        fi
-    else
-        print_error "Ollama server not reachable at $OLLAMA_HOST"
-        print_info "Start Ollama with: ollama serve"
+    
+    verbose "Installing bloginator..."
+    if ! python -m pip install -q -e ".[dev]" 2>/dev/null; then
+        task_fail "Failed to install dependencies"
         exit 1
     fi
+    
+    verbose "Environment ready"
+    task_ok "Environment setup complete"
+}
 
-    save_state "ollama"
-elif $RESUME && is_step_completed "ollama"; then
-    print_info "Skipping Ollama check (already completed)"
-fi
-
-# Step 3: Clean (Optional)
-if $CLEAN && ! ($RESUME && is_step_completed "clean"); then
-    print_step "Step 3: Clean Previous Outputs"
-    rm -rf "$OUTPUT_DIR" "$INDEX_DIR"
-    print_success "Cleaned output and index directories"
-    save_state "clean"
-fi
-
-# Step 4: Extract Corpus
-if ! ($RESUME && is_step_completed "extract"); then
-    print_step "Step 4: Extract Corpus"
-
-    if [ ! -f "$CORPUS_CONFIG" ]; then
-        print_error "Corpus config not found: $CORPUS_CONFIG"
+step_check_ollama() {
+    task_start "Checking Ollama service"
+    
+    verbose "Ollama host: $OLLAMA_HOST"
+    verbose "Ollama model: $OLLAMA_MODEL"
+    
+    if ! check_ollama_service "$OLLAMA_HOST" 2>/dev/null; then
+        task_fail "Ollama not reachable at $OLLAMA_HOST"
+        echo ""
+        echo "Start Ollama with: ollama serve"
         exit 1
     fi
+    
+    verbose "Ollama is running"
+    
+    if ! check_ollama_model "$OLLAMA_HOST" "$OLLAMA_MODEL" 2>/dev/null; then
+        task_fail "Model $OLLAMA_MODEL not available"
+        echo ""
+        echo "Pull the model with: ollama pull $OLLAMA_MODEL"
+        exit 1
+    fi
+    
+    verbose "Model $OLLAMA_MODEL is available"
+    task_ok "Ollama service verified"
+}
 
-    bloginator extract -o "$EXTRACTED_DIR" --config "$CORPUS_CONFIG" ${VERBOSE:+--verbose}
-    print_success "Corpus extracted to $EXTRACTED_DIR"
+step_extract_corpus() {
+    task_start "Extracting corpus"
+    
+    if [[ ! -f corpus/corpus.yaml ]]; then
+        task_fail "Corpus config not found: corpus/corpus.yaml"
+        exit 1
+    fi
+    
+    verbose "Extracting documents..."
+    if ! bloginator extract -o output/extracted --config corpus/corpus.yaml > /dev/null 2>&1; then
+        task_fail "Failed to extract corpus"
+        exit 1
+    fi
+    
+    verbose "Extraction complete"
+    task_ok "Corpus extracted"
+}
 
-    save_state "extract"
-elif $RESUME && is_step_completed "extract"; then
-    print_info "Skipping extraction (already completed)"
-fi
+step_build_index() {
+    task_start "Building search index"
+    
+    verbose "Indexing extracted documents..."
+    if ! bloginator index output/extracted -o .bloginator/chroma > /dev/null 2>&1; then
+        task_fail "Failed to build index"
+        exit 1
+    fi
+    
+    verbose "Index complete"
+    task_ok "Search index built"
+}
 
-# Step 5: Index Content
-if ! ($RESUME && is_step_completed "index"); then
-    print_step "Step 5: Index Content"
+step_search_demo() {
+    task_start "Running search demo"
+    
+    verbose "Searching for 'kubernetes devops'..."
+    if ! bloginator search .bloginator/chroma "kubernetes devops" -n 5 > /dev/null 2>&1; then
+        task_warn "Search query failed (non-fatal)"
+    fi
+    
+    task_ok "Search demo complete"
+}
 
-    bloginator index "$EXTRACTED_DIR" -o "$INDEX_DIR"
-    print_success "Index built at $INDEX_DIR"
-
-    save_state "index"
-elif $RESUME && is_step_completed "index"; then
-    print_info "Skipping indexing (already completed)"
-fi
-
-# Step 6: Search Demo
-if ! ($RESUME && is_step_completed "search"); then
-    print_step "Step 6: Search Demo"
-
-    print_info "Searching for 'kubernetes devops'..."
-    bloginator search "$INDEX_DIR" "kubernetes devops" -n 5
-    print_success "Search completed"
-
-    save_state "search"
-elif $RESUME && is_step_completed "search"; then
-    print_info "Skipping search demo (already completed)"
-fi
-
-# Step 7: Generate Outline
-if ! ($RESUME && is_step_completed "outline"); then
-    print_step "Step 7: Generate Outline"
-
-    mkdir -p "$GENERATED_DIR"
-    OUTLINE_PATH="$GENERATED_DIR/outline"
-
-    bloginator outline \
-        --index "$INDEX_DIR" \
+step_generate_outline() {
+    task_start "Generating blog outline"
+    
+    mkdir -p output/generated
+    
+    verbose "Creating outline..."
+    if ! bloginator outline \
+        --index .bloginator/chroma \
         --title "Building a DevOps Culture at Scale" \
         --keywords "devops,kubernetes,automation,culture" \
-        --thesis "Effective DevOps culture requires both technical infrastructure AND organizational transformation" \
+        --thesis "Effective DevOps requires technical infrastructure AND organizational transformation" \
         --sections 5 \
-        --output "$OUTLINE_PATH" \
-        --format both \
-        ${VERBOSE:+--verbose}
-
-    print_success "Outline generated at $OUTLINE_PATH.md and $OUTLINE_PATH.json"
-
-    save_state "outline"
-elif $RESUME && is_step_completed "outline"; then
-    print_info "Skipping outline generation (already completed)"
-fi
-
-# Step 8: Generate Draft
-if ! ($RESUME && is_step_completed "draft"); then
-    print_step "Step 8: Generate Draft"
-
-    OUTLINE_JSON="$GENERATED_DIR/outline.json"
-    DRAFT_PATH="$GENERATED_DIR/draft.md"
-
-    if [ ! -f "$OUTLINE_JSON" ]; then
-        print_error "Outline not found: $OUTLINE_JSON"
+        --output output/generated/outline \
+        --format both > /dev/null 2>&1; then
+        task_fail "Failed to generate outline"
         exit 1
     fi
+    
+    verbose "Outline generated"
+    task_ok "Blog outline complete"
+}
 
-    bloginator draft \
-        --index "$INDEX_DIR" \
-        --outline "$OUTLINE_JSON" \
-        --output "$DRAFT_PATH" \
-        ${VERBOSE:+--verbose}
+step_generate_draft() {
+    task_start "Generating blog draft"
+    
+    if [[ ! -f output/generated/outline.json ]]; then
+        task_fail "Outline JSON not found"
+        exit 1
+    fi
+    
+    verbose "Creating draft..."
+    if ! bloginator draft \
+        --index .bloginator/chroma \
+        --outline output/generated/outline.json \
+        --output output/generated/draft.md > /dev/null 2>&1; then
+        task_fail "Failed to generate draft"
+        exit 1
+    fi
+    
+    verbose "Draft generated"
+    task_ok "Blog draft complete"
+}
 
-    print_success "Draft generated at $DRAFT_PATH"
+step_cleanup_state() {
+    task_start "Cleaning state"
+    
+    if [[ -d ".bloginator/e2e-state" ]]; then
+        rm -rf .bloginator/e2e-state
+        verbose "State cleared"
+    fi
+    
+    task_ok "Ready to run"
+}
 
-    save_state "draft"
-elif $RESUME && is_step_completed "draft"; then
-    print_info "Skipping draft generation (already completed)"
-fi
+################################################################################
+# Main
+################################################################################
 
-# Summary
-END_TIME=$(date +%s)
-ELAPSED=$((END_TIME - SCRIPT_START_TIME))
+main() {
+    parse_args "$@"
+    
+    print_header "Bloginator E2E Workflow"
+    echo ""
+    
+    # Handle restart flag
+    if [[ "$RESTART" == "true" ]]; then
+        step_cleanup_state
+    fi
+    
+    # Run workflow steps
+    if [[ "$SKIP_BUILD" != "true" ]]; then
+        step_setup_environment
+    else
+        verbose "Skipping environment setup (--skip-build)"
+    fi
+    
+    if [[ "$SKIP_OLLAMA" != "true" ]]; then
+        step_check_ollama
+    else
+        verbose "Skipping Ollama check (--skip-ollama)"
+    fi
+    
+    if [[ "$CLEAN" == "true" ]]; then
+        task_start "Cleaning previous outputs"
+        rm -rf output generated .bloginator/chroma
+        task_ok "Outputs cleaned"
+    fi
+    
+    step_extract_corpus
+    step_build_index
+    step_search_demo
+    step_generate_outline
+    step_generate_draft
+    
+    echo ""
+    print_header "✓ Workflow complete! $(get_elapsed_time)"
+    echo ""
+    echo "Generated files:"
+    echo "  - Outline: output/generated/outline.md"
+    echo "  - Draft:   output/generated/draft.md"
+    echo ""
+    
+    if [[ "$LAUNCH_GUI" == "true" ]]; then
+        echo "Launching Streamlit UI..."
+        echo ""
+        exec ./run-streamlit.sh --no-browser
+    fi
+}
 
-print_header "E2E Workflow Complete!"
-
-print_success "All steps completed successfully"
-print_info "Total time: ${ELAPSED}s"
-echo ""
-print_info "Generated files:"
-echo "  - Outline: $GENERATED_DIR/outline.md"
-echo "  - Draft:   $GENERATED_DIR/draft.md"
-echo ""
-
-# Launch Streamlit UI (Optional)
-if $LAUNCH_GUI; then
-    print_step "Launching Streamlit UI..."
-    streamlit run src/bloginator/ui/app.py
-fi
+main "$@"
