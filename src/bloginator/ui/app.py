@@ -9,6 +9,8 @@ from pathlib import Path
 
 import streamlit as st
 
+from bloginator import config
+
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -20,6 +22,10 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+# Initialize session state for Ollama host if not already set
+if "ollama_host" not in st.session_state:
+    st.session_state.ollama_host = config.LLM_BASE_URL
 
 # Custom CSS for better styling
 st.markdown(
