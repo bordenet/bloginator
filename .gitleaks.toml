@@ -35,6 +35,17 @@ paths = [
     '''\.vscode/''',
     '''\.idea/''',
     '''\.DS_Store''',
+
+    # CRITICAL: Git-ignored directories that should never be committed
+    # These contain generated content and sensitive data
+    '''blogs/''',
+    '''\.bloginator/''',
+    '''output/''',
+    '''tmp/''',
+    '''prompts/experimentation/''',
+    '''corpus/local/''',
+    '''corpus/personal/''',
+    '''corpus/proprietary/''',
 ]
 
 # Exclude specific file patterns
@@ -42,3 +53,35 @@ regexes = [
     # Test files with example credentials
     '''test.*\.py.*password.*=.*['"]test''',
 ]
+
+# CRITICAL: Custom rules to detect blog content leakage
+[[rules]]
+id = "blog-content-in-root"
+description = "Detect blog files in repository root (should be in blogs/)"
+regex = '''^(blog.*\.(md|json)|.*_blog\.md|.*_outline\.(md|json)|outline.*\.(md|json))$'''
+path = '''.*'''
+tags = ["blog-leakage", "content-leak"]
+
+[[rules]]
+id = "blog-directory-committed"
+description = "Detect blogs/ directory being committed (should be git-ignored)"
+path = '''blogs/.*'''
+tags = ["blog-leakage", "directory-leak"]
+
+[[rules]]
+id = "llm-requests-responses"
+description = "Detect LLM request/response files (contain corpus context)"
+path = '''\.bloginator/(llm_requests|llm_responses)/.*'''
+tags = ["blog-leakage", "llm-data"]
+
+[[rules]]
+id = "corpus-local-committed"
+description = "Detect local/personal corpus being committed"
+path = '''corpus/(local|personal|proprietary)/.*'''
+tags = ["corpus-leakage", "sensitive-data"]
+
+[[rules]]
+id = "prompt-experiments"
+description = "Detect prompt optimization experiments in wrong location"
+path = '''(prompt_optimization_.*|.*_experiment\.json)'''
+tags = ["experiment-leakage", "clutter"]
