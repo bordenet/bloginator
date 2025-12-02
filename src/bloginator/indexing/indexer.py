@@ -4,13 +4,13 @@ from pathlib import Path
 from typing import Any, TypeAlias, cast
 
 import chromadb
-from chromadb.api.types import SparseVector
 from sentence_transformers import SentenceTransformer
 
 from bloginator.models import Chunk, Document
 
 
-MetadataValue: TypeAlias = str | int | float | bool | SparseVector | None
+# ChromaDB 0.5.5 metadata value types
+MetadataValue: TypeAlias = str | int | float | bool | None
 
 
 class CorpusIndexer:
