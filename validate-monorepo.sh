@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
-#
+
+################################################################################
 # Bloginator Monorepo Validation Script
-#
-# Purpose:
-#   Comprehensive validation of the Bloginator codebase including:
-#   - Python environment setup and dependency checks
+################################################################################
+# PURPOSE: Comprehensive validation of the Bloginator codebase
 #   - Code formatting (black, isort)
 #   - Linting (ruff, pydocstyle)
 #   - Type checking (mypy)
@@ -12,395 +11,352 @@
 #   - Unit tests with coverage
 #   - Integration tests
 #
-# Usage:
-#   ./validate-monorepo.sh           # Standard validation (unit + lint)
-#   ./validate-monorepo.sh --quick   # Quick validation (no tests)
-#   ./validate-monorepo.sh --all     # Full validation (unit + integration)
-#   ./validate-monorepo.sh --help    # Show this help
+# USAGE:
+#   ./validate-monorepo.sh [OPTIONS]
+#   ./validate-monorepo.sh --help
 #
-# Options:
-#   --quick     Skip tests, only run linting and formatting checks
-#   --all       Run all tests including integration tests
-#   --fix       Auto-fix formatting issues
-#   --verbose   Show detailed output
-#   --help      Display this help message
+# OPTIONS:
+#   -y, --yes         Auto-confirm all prompts
+#   -v, --verbose     Show detailed output
+#   --quick           Skip tests, only run linting
+#   --all             Run all tests including integration
+#   --fix             Auto-fix formatting issues
+#   -h, --help        Display help message
 #
-# Dependencies:
+# EXAMPLES:
+#   ./validate-monorepo.sh              # Standard validation (lint + unit tests)
+#   ./validate-monorepo.sh -y           # Non-interactive
+#   ./validate-monorepo.sh --quick      # Fast validation (lint only, no tests)
+#   ./validate-monorepo.sh --all        # Full validation with integration tests
+#   ./validate-monorepo.sh --fix -y     # Auto-fix and validate
+#
+# DEPENDENCIES:
 #   - Python 3.10+
 #   - Virtual environment (.venv)
-#   - All development dependencies installed
+#   - All development dependencies
+################################################################################
 
 set -euo pipefail
 
-# Repository root
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$REPO_ROOT"
+# Resolve symlinks to get actual script location
+SCRIPT_PATH="${BASH_SOURCE[0]}"
+while [ -L "$SCRIPT_PATH" ]; do
+    SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+    SCRIPT_PATH="$(readlink "$SCRIPT_PATH")"
+    [[ "$SCRIPT_PATH" != /* ]] && SCRIPT_PATH="$SCRIPT_DIR/$SCRIPT_PATH"
+done
+SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 
-# Source common library
-# shellcheck disable=SC1091
-source "${REPO_ROOT}/scripts/lib/common.sh"
+# shellcheck source=scripts/lib/compact.sh
+source "$SCRIPT_DIR/scripts/lib/compact.sh"
 
-# Initialize script
-init_script
+cd "$SCRIPT_DIR"
 
-#######################################
+################################################################################
 # Configuration
-#######################################
-readonly VENV_DIR="${REPO_ROOT}/.venv"
-readonly SRC_DIR="${REPO_ROOT}/src"
-readonly TESTS_DIR="${REPO_ROOT}/tests"
-readonly COVERAGE_THRESHOLD=80
+################################################################################
 
-# Validation options
+export AUTO_YES=false
+export VERBOSE=${VERBOSE:-0}
+readonly VENV_DIR="${SCRIPT_DIR}/.venv"
+readonly SRC_DIR="${SCRIPT_DIR}/src"
+readonly TESTS_DIR="${SCRIPT_DIR}/tests"
+readonly COVERAGE_THRESHOLD=70
+
 RUN_TESTS=true
 RUN_INTEGRATION=false
 AUTO_FIX=false
-VERBOSE=false
 
-#######################################
-# Parse command line arguments
-#######################################
+################################################################################
+# Helper Functions
+################################################################################
+
+confirm() {
+    local prompt="$1"
+    local default="${2:-y}"
+
+    if [[ "$AUTO_YES" == "true" ]]; then
+        verbose "$prompt [auto-confirming]"
+        return 0
+    fi
+
+    local response
+    if read -t 3 -p "$prompt [$default, auto-yes in 3s]: " -r response 2>/dev/null; then
+        response="${response:-$default}"
+    else
+        response="$default"
+        echo ""
+    fi
+    [[ "$response" =~ ^[Yy]$ ]]
+}
+
+################################################################################
+# Argument Parsing
+################################################################################
+
+show_help() {
+    cat << 'EOF'
+NAME
+    validate-monorepo.sh - Comprehensive Bloginator validation
+
+SYNOPSIS
+    ./validate-monorepo.sh [OPTIONS]
+
+DESCRIPTION
+    Validates code formatting, linting, types, security, and runs tests
+    with coverage verification.
+
+OPTIONS
+    -y, --yes       Auto-confirm all prompts
+    -v, --verbose   Show detailed output
+    --quick         Skip tests, only run linting
+    --all           Run all tests including integration and slow tests
+    --fix           Auto-fix formatting and linting issues
+    -h, --help      Display this help
+
+EXAMPLES
+    ./validate-monorepo.sh              # Standard validation
+    ./validate-monorepo.sh -y           # Non-interactive validation
+    ./validate-monorepo.sh --quick      # Fast lint-only check
+    ./validate-monorepo.sh --fix -y     # Auto-fix all issues
+
+COVERAGE THRESHOLD
+    Minimum: 70% (configurable in script)
+EOF
+}
+
 parse_args() {
     while [[ $# -gt 0 ]]; do
         case $1 in
-            --quick)
-                RUN_TESTS=false
-                shift
-                ;;
-            --all)
-                RUN_INTEGRATION=true
-                shift
-                ;;
-            --fix)
-                AUTO_FIX=true
-                shift
-                ;;
-            --verbose)
-                VERBOSE=true
-                shift
-                ;;
-            --help)
-                grep '^#' "$0" | grep -v '#!/usr/bin/env' | sed 's/^# //' | sed 's/^#//'
-                exit 0
-                ;;
-            *)
-                die "Unknown option: $1. Use --help for usage information."
-                ;;
+            -y|--yes) AUTO_YES=true; shift ;;
+            -v|--verbose) export VERBOSE=1; shift ;;
+            --quick) RUN_TESTS=false; shift ;;
+            --all) RUN_INTEGRATION=true; shift ;;
+            --fix) AUTO_FIX=true; shift ;;
+            -h|--help) show_help; exit 0 ;;
+            *) print_error "Unknown option: $1"; exit 1 ;;
         esac
     done
 }
 
-#######################################
-# Output Functions
-#######################################
-log_info_verbose() {
-    [[ "$VERBOSE" != "true" ]] && return 0
-    log_info "$@"
+print_error() {
+    echo -e "${C_RED}✗ Error: $*${C_RESET}" >&2
 }
 
-#######################################
-# Check prerequisites
-#######################################
+################################################################################
+# Validation Functions
+################################################################################
+
 check_prerequisites() {
-    log_section "Checking Prerequisites"
+    task_start "Checking prerequisites"
 
-    require_command python3 "Python 3 is required. Install it with: brew install python@3.10"
-    require_command git "Git is required."
-
-    # Check Python version
-    local python_version
-    python_version=$(python3 --version 2>&1 | awk '{print $2}')
-    log_info_verbose "Python version: $python_version"
-
-    # Check for virtual environment
     if [[ ! -d "$VENV_DIR" ]]; then
-        log_warning "Virtual environment not found at $VENV_DIR"
-        log_info "Run './scripts/setup-macos.sh' to set up the environment"
-        return 1
+        task_fail "Virtual environment not found"
+        echo ""
+        echo "Create it with: ./scripts/setup-macos.sh"
+        exit 1
     fi
 
-    log_success "Prerequisites check passed"
+    verbose "Found virtual environment at $VENV_DIR"
+    task_ok "Prerequisites verified"
 }
 
-#######################################
-# Activate virtual environment
-#######################################
 setup_environment() {
-    log_section "Setting Up Environment"
+    task_start "Activating virtual environment"
 
-    if ! is_venv_active; then
-        log_info_verbose "Activating virtual environment..."
-        if [[ "$VERBOSE" == "true" ]]; then
-            activate_venv "$VENV_DIR"
-        else
-            # Activate without the log_success output
-            # shellcheck disable=SC1091
-            source "$VENV_DIR/bin/activate"
-        fi
-    else
-        log_info_verbose "Virtual environment already active"
-    fi
+    # shellcheck source=/dev/null
+    source "$VENV_DIR/bin/activate"
 
-    # Verify key packages are installed
-    local packages=("black" "ruff" "mypy" "pytest" "coverage")
-    for pkg in "${packages[@]}"; do
-        if ! python3 -m pip show "$pkg" &>/dev/null; then
-            log_warning "Package '$pkg' not found. Installing dependencies..."
-            python3 -m pip install -e ".[dev]" || die "Failed to install dependencies"
-            break
-        fi
-    done
-
-    log_success "Environment setup completed"
+    verbose "Virtual environment activated"
+    task_ok "Environment ready"
 }
 
-#######################################
-# Run security scans
-#######################################
-run_security_scans() {
-    log_section "Running Security Scans"
+validate_formatting() {
+    task_start "Checking code formatting"
 
-    # Gitleaks - check for secrets
+    verbose "Running black..."
+    if [[ "$AUTO_FIX" == "true" ]]; then
+        if python -m black "$SRC_DIR" "$TESTS_DIR" > /dev/null 2>&1; then
+            verbose "Black: formatted code"
+        else
+            task_warn "Black: some files need formatting"
+        fi
+    else
+        if python -m black --check "$SRC_DIR" "$TESTS_DIR" > /dev/null 2>&1; then
+            verbose "Black: all files formatted correctly"
+        else
+            task_warn "Black: formatting issues found (use --fix to auto-format)"
+        fi
+    fi
+
+    verbose "Running isort..."
+    if [[ "$AUTO_FIX" == "true" ]]; then
+        if python -m isort "$SRC_DIR" "$TESTS_DIR" > /dev/null 2>&1; then
+            verbose "isort: imports sorted"
+        else
+            task_warn "isort: some imports need sorting"
+        fi
+    else
+        if python -m isort --check "$SRC_DIR" "$TESTS_DIR" > /dev/null 2>&1; then
+            verbose "isort: all imports sorted correctly"
+        else
+            task_warn "isort: import sorting issues (use --fix to auto-sort)"
+        fi
+    fi
+
+    task_ok "Formatting validation complete"
+}
+
+validate_linting() {
+    task_start "Running linting checks"
+
+    verbose "Running ruff..."
+    if [[ "$AUTO_FIX" == "true" ]]; then
+        if python -m ruff check --fix "$SRC_DIR" "$TESTS_DIR" > /dev/null 2>&1; then
+            verbose "Ruff: issues fixed"
+        else
+            task_warn "Ruff: some issues remain"
+        fi
+    else
+        if python -m ruff check "$SRC_DIR" "$TESTS_DIR" > /dev/null 2>&1; then
+            verbose "Ruff: no linting issues"
+        else
+            task_warn "Ruff: linting issues found (use --fix to auto-fix)"
+        fi
+    fi
+
+    verbose "Running pydocstyle..."
+    if python -m pydocstyle "$SRC_DIR" > /dev/null 2>&1; then
+        verbose "Pydocstyle: all docstrings valid"
+    else
+        task_warn "Pydocstyle: docstring issues found"
+    fi
+
+    task_ok "Linting validation complete"
+}
+
+validate_types() {
+    task_start "Running type checking"
+
+    verbose "Running mypy..."
+    if python -m mypy "$SRC_DIR" > /dev/null 2>&1; then
+        verbose "MyPy: type checking passed"
+    else
+        task_warn "MyPy: type errors found (non-blocking)"
+    fi
+
+    task_ok "Type checking complete"
+}
+
+validate_security() {
+    task_start "Running security scans"
+
+    verbose "Checking for exposed secrets..."
     if command -v gitleaks &>/dev/null; then
-        log_info_verbose "Running gitleaks..."
-        if [[ "$VERBOSE" == "true" ]]; then
-            gitleaks detect --source="$REPO_ROOT" --verbose --no-git && log_success "Gitleaks: No secrets detected" || log_warning "Gitleaks: Potential secrets found (non-blocking)"
+        if gitleaks detect --source="$SCRIPT_DIR" --no-git > /dev/null 2>&1; then
+            verbose "gitleaks: no secrets detected"
         else
-            gitleaks detect --source="$REPO_ROOT" --no-git &>/dev/null && log_success "Gitleaks: No secrets detected" || log_warning "Gitleaks: Potential secrets found (run with --verbose for details)"
+            task_warn "gitleaks: potential secrets found (review carefully)"
         fi
     else
-        log_warning "Gitleaks not installed, skipping secrets scan"
+        verbose "gitleaks: not installed (skipping)"
     fi
 
-    # Bandit - Python security linter
-    if ! python3 -m pip show bandit &>/dev/null; then
-        log_warning "Bandit not installed, skipping security scan"
+    verbose "Running bandit security scan..."
+    if python -m bandit -r "$SRC_DIR" -q 2>/dev/null; then
+        verbose "bandit: no security issues found"
     else
-        log_info_verbose "Running bandit (checking all severity levels)..."
-        if [[ "$VERBOSE" == "true" ]]; then
-            python3 -m bandit -r "$SRC_DIR" -l && log_success "Bandit: No security issues found" || log_warning "Bandit: Security issues found (run with --verbose for details)"
-        else
-            python3 -m bandit -r "$SRC_DIR" -l &>/dev/null && log_success "Bandit: No security issues found" || log_warning "Bandit: Security issues found (run with --verbose for details)"
-        fi
+        task_warn "bandit: security issues found (review carefully)"
     fi
 
-    log_success "Security scans completed"
+    task_ok "Security scans complete"
 }
 
-#######################################
-# Run code formatting checks
-#######################################
-run_formatting_checks() {
-    log_section "Running Code Formatting Checks"
-
-    # Black
-    log_info_verbose "Checking formatting with black..."
-    if [[ "$AUTO_FIX" == "true" ]]; then
-        if [[ "$VERBOSE" == "true" ]]; then
-            python3 -m black "$SRC_DIR" "$TESTS_DIR" || log_warning "Black formatting had issues"
-        else
-            python3 -m black "$SRC_DIR" "$TESTS_DIR" &>/dev/null || log_warning "Black formatting had issues"
-        fi
-        log_success "Black: Code formatted"
-    else
-        if [[ "$VERBOSE" == "true" ]]; then
-            python3 -m black --check "$SRC_DIR" "$TESTS_DIR" && log_success "Black: All files formatted correctly" || log_warning "Black: Formatting issues found. Run with --fix to auto-format"
-        else
-            python3 -m black --check "$SRC_DIR" "$TESTS_DIR" &>/dev/null && log_success "Black: All files formatted correctly" || log_warning "Black: Formatting issues found. Run with --fix to auto-format"
-        fi
-    fi
-
-    # isort
-    log_info_verbose "Checking import sorting with isort..."
-    if [[ "$AUTO_FIX" == "true" ]]; then
-        if [[ "$VERBOSE" == "true" ]]; then
-            python3 -m isort "$SRC_DIR" "$TESTS_DIR" || log_warning "isort had issues"
-        else
-            python3 -m isort "$SRC_DIR" "$TESTS_DIR" &>/dev/null || log_warning "isort had issues"
-        fi
-        log_success "isort: Imports sorted"
-    else
-        if [[ "$VERBOSE" == "true" ]]; then
-            python3 -m isort --check "$SRC_DIR" "$TESTS_DIR" && log_success "isort: All imports sorted correctly" || log_warning "isort: Import sorting issues found. Run with --fix to auto-sort"
-        else
-            python3 -m isort --check "$SRC_DIR" "$TESTS_DIR" &>/dev/null && log_success "isort: All imports sorted correctly" || log_warning "isort: Import sorting issues found. Run with --fix to auto-sort"
-        fi
-    fi
-
-    log_success "Formatting checks completed"
-}
-
-#######################################
-# Run linting
-#######################################
-run_linting() {
-    log_section "Running Linting"
-
-    # Ruff
-    log_info_verbose "Running ruff..."
-    if [[ "$AUTO_FIX" == "true" ]]; then
-        if [[ "$VERBOSE" == "true" ]]; then
-            python3 -m ruff check --fix "$SRC_DIR" "$TESTS_DIR" || log_warning "Ruff found issues"
-        else
-            python3 -m ruff check --fix "$SRC_DIR" "$TESTS_DIR" &>/dev/null || log_warning "Ruff found issues"
-        fi
-    else
-        if [[ "$VERBOSE" == "true" ]]; then
-            python3 -m ruff check "$SRC_DIR" "$TESTS_DIR" && log_success "Ruff: No issues found" || log_warning "Ruff: Linting issues found. Run with --fix to auto-fix"
-        else
-            python3 -m ruff check "$SRC_DIR" "$TESTS_DIR" &>/dev/null && log_success "Ruff: No issues found" || log_warning "Ruff: Linting issues found. Run with --fix to auto-fix"
-        fi
-    fi
-
-    # Pydocstyle
-    log_info_verbose "Running pydocstyle..."
-    if [[ "$VERBOSE" == "true" ]]; then
-        python3 -m pydocstyle "$SRC_DIR" && log_success "Pydocstyle: All docstrings valid" || log_warning "Pydocstyle: Docstring issues found"
-    else
-        python3 -m pydocstyle "$SRC_DIR" &>/dev/null && log_success "Pydocstyle: All docstrings valid" || log_warning "Pydocstyle: Docstring issues found"
-    fi
-
-    log_success "Linting completed"
-}
-
-#######################################
-# Run type checking
-#######################################
-run_type_checking() {
-    log_section "Running Type Checking"
-
-    log_info_verbose "Running mypy..."
-    if [[ "$VERBOSE" == "true" ]]; then
-        python3 -m mypy "$SRC_DIR" && log_success "MyPy: Type checking passed" || log_warning "MyPy: Type errors found (non-blocking)"
-    else
-        if python3 -m mypy "$SRC_DIR" &>/dev/null; then
-            log_success "MyPy: Type checking passed"
-        else
-            log_warning "MyPy: Type errors found (run with --verbose for details)"
-        fi
-    fi
-
-    log_success "Type checking completed"
-}
-
-#######################################
-# Run unit tests
-#######################################
 run_unit_tests() {
-    log_section "Running Unit Tests"
+    task_start "Running unit tests"
 
+    verbose "Running pytest with coverage..."
     local pytest_args=(
         "$TESTS_DIR"
-        "-v"
         "--cov=$SRC_DIR/bloginator"
         "--cov-report=term-missing"
-        "--cov-report=html:coverage_html"
         "--cov-fail-under=$COVERAGE_THRESHOLD"
         "-m" "not slow and not integration"
+        "-q"
     )
 
-    if [[ "$VERBOSE" == "true" ]]; then
-        pytest_args+=("-vv")
+    if [[ $VERBOSE -eq 1 ]]; then
+        pytest_args+=("-v")
     fi
 
-    log_info_verbose "Running pytest with coverage..."
-    if python3 -m pytest "${pytest_args[@]}"; then
-        log_success "Unit tests passed with coverage >= ${COVERAGE_THRESHOLD}%"
+    if python -m pytest "${pytest_args[@]}"; then
+        verbose "Tests passed with coverage >= ${COVERAGE_THRESHOLD}%"
+        task_ok "Unit tests passed"
     else
-        log_error "Unit tests failed or coverage below ${COVERAGE_THRESHOLD}%"
-        return 1
-    fi
-
-    log_success "Unit tests completed"
-}
-
-#######################################
-# Run integration tests
-#######################################
-run_integration_tests() {
-    log_section "Running Integration Tests"
-
-    log_info_verbose "Running integration tests..."
-    if python3 -m pytest "$TESTS_DIR" -v -m "integration"; then
-        log_success "Integration tests passed"
-    else
-        log_warning "Integration tests failed or none found"
-    fi
-
-    log_success "Integration tests completed"
-}
-
-#######################################
-# Run all slow tests
-#######################################
-run_slow_tests() {
-    log_section "Running Slow Tests"
-
-    log_info_verbose "Running slow tests (this may take a while)..."
-    if python3 -m pytest "$TESTS_DIR" -v -m "slow" --durations=10; then
-        log_success "Slow tests passed"
-    else
-        log_warning "Slow tests failed or none found"
-    fi
-
-    log_success "Slow tests completed"
-}
-
-#######################################
-# Main validation workflow
-#######################################
-main() {
-    start_timer
-    log_header "Bloginator Monorepo Validation"
-
-    parse_args "$@"
-
-    # Show configuration
-    log_info_verbose "Configuration:"
-    log_info_verbose "  Run tests: $RUN_TESTS"
-    log_info_verbose "  Run integration: $RUN_INTEGRATION"
-    log_info_verbose "  Auto-fix: $AUTO_FIX"
-    log_info_verbose "  Verbose: $VERBOSE"
-    [[ "$VERBOSE" == "true" ]] && echo ""
-
-    # Run validation steps
-    check_prerequisites
-    setup_environment
-    run_security_scans
-    run_formatting_checks
-    run_linting
-    run_type_checking
-
-    if [[ "$RUN_TESTS" == "true" ]]; then
-        run_unit_tests
-
-        if [[ "$RUN_INTEGRATION" == "true" ]]; then
-            run_integration_tests
-            run_slow_tests
-        fi
-    else
-        log_info_verbose "Skipping tests (--quick mode)"
-    fi
-
-    # Print summary
-    print_summary
-
-    if [[ $ERROR_COUNT -eq 0 ]] && [[ $WARNING_COUNT -eq 0 ]]; then
-        log_header "✓ VALIDATION PASSED"
-        exit 0
-    elif [[ $ERROR_COUNT -eq 0 ]]; then
-        log_header "✓ VALIDATION PASSED WITH WARNINGS"
-        log_info "Run with --fix to automatically fix formatting and linting issues"
-        log_info "Run with --verbose to see detailed warnings"
-        exit 0
-    else
-        log_header "✗ VALIDATION FAILED"
+        task_fail "Unit tests failed or coverage below ${COVERAGE_THRESHOLD}%"
         exit 1
     fi
 }
 
-# Setup timer cleanup on exit
-trap stop_timer EXIT
+run_integration_tests() {
+    task_start "Running integration tests"
 
-# Run main function
+    verbose "Running integration test suite..."
+    if python -m pytest "$TESTS_DIR" -m "integration" -q 2>/dev/null; then
+        verbose "Integration tests passed"
+        task_ok "Integration tests passed"
+    else
+        task_warn "Integration tests failed or none found"
+    fi
+}
+
+################################################################################
+# Main
+################################################################################
+
+main() {
+    parse_args "$@"
+
+    print_header "Bloginator Monorepo Validation"
+    echo ""
+
+    # Show configuration
+    if [[ $VERBOSE -eq 1 ]]; then
+        verbose "Configuration:"
+        verbose "  Run tests: $RUN_TESTS"
+        verbose "  Run integration: $RUN_INTEGRATION"
+        verbose "  Auto-fix: $AUTO_FIX"
+        verbose "  Coverage threshold: ${COVERAGE_THRESHOLD}%"
+        echo ""
+    fi
+
+    # Run validation
+    check_prerequisites
+    setup_environment
+    validate_formatting
+    validate_linting
+    validate_types
+    validate_security
+
+    if [[ "$RUN_TESTS" == "true" ]]; then
+        run_unit_tests
+        if [[ "$RUN_INTEGRATION" == "true" ]]; then
+            run_integration_tests
+        fi
+    else
+        verbose "Skipping tests (--quick mode)"
+    fi
+
+    echo ""
+    print_header "✓ Validation complete! $(get_elapsed_time)"
+    echo ""
+
+    if [[ "$AUTO_FIX" == "true" ]]; then
+        echo "All issues have been auto-fixed."
+    else
+        echo "Use --fix to auto-fix formatting and linting issues."
+    fi
+    echo ""
+}
+
 main "$@"

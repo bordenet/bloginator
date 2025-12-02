@@ -9,7 +9,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from bloginator import config
+from bloginator.config import config
 
 
 # Add parent directory to path for imports
@@ -23,9 +23,10 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Initialize session state for Ollama host if not already set
-if "ollama_host" not in st.session_state:
-    st.session_state.ollama_host = config.LLM_BASE_URL
+with st.spinner("Initializing Bloginator..."):
+    # Initialize session state for Ollama host if not already set
+    if "ollama_host" not in st.session_state:
+        st.session_state.ollama_host = config.LLM_BASE_URL
 
 # Custom CSS for better styling
 st.markdown(
@@ -111,37 +112,38 @@ st.sidebar.markdown("---")
 # Display corpus status in sidebar
 st.sidebar.subheader("Corpus Status")
 
-# Check if index exists
-index_dir = Path(".bloginator/chroma")
-if index_dir.exists():
-    try:
-        import chromadb
+with st.spinner("Checking corpus status..."):
+    # Check if index exists
+    index_dir = Path(".bloginator/chroma")
+    if index_dir.exists():
+        try:
+            import chromadb
 
-        client = chromadb.PersistentClient(path=str(index_dir))
-        collections = client.list_collections()
-        if collections:
-            collection = collections[0]
-            chunk_count = collection.count()
-            st.sidebar.success("✓ Index Ready")
-            st.sidebar.metric("Indexed Chunks", f"{chunk_count:,}")
-        else:
-            st.sidebar.warning("⚠ Index Empty")
-    except ImportError:
-        st.sidebar.error("✗ ChromaDB not installed")
-        st.sidebar.caption("Install with: pip install -e '.[web]'")
-    except Exception as e:
-        st.sidebar.error(f"✗ Index Error: {str(e)[:50]}")
-else:
-    st.sidebar.info("ℹ No Index Found")
-    st.sidebar.caption("Extract and index your corpus first")
+            client = chromadb.PersistentClient(path=str(index_dir))
+            collections = client.list_collections()
+            if collections:
+                collection = collections[0]
+                chunk_count = collection.count()
+                st.sidebar.success("✓ Index Ready")
+                st.sidebar.metric("Indexed Chunks", f"{chunk_count:,}")
+            else:
+                st.sidebar.warning("⚠ Index Empty")
+        except ImportError:
+            st.sidebar.error("✗ ChromaDB not installed")
+            st.sidebar.caption("Install with: pip install -e '.[web]'")
+        except Exception as e:
+            st.sidebar.error(f"✗ Index Error: {str(e)[:50]}")
+    else:
+        st.sidebar.info("ℹ No Index Found")
+        st.sidebar.caption("Extract and index your corpus first")
 
-# Check extracted files
-extracted_dir = Path("output/extracted")
-if extracted_dir.exists():
-    json_files = list(extracted_dir.glob("*.json"))
-    st.sidebar.metric("Extracted Files", len(json_files))
-else:
-    st.sidebar.caption("No extracted files yet")
+    # Check extracted files
+    extracted_dir = Path("output/extracted")
+    if extracted_dir.exists():
+        json_files = list(extracted_dir.glob("*.json"))
+        st.sidebar.metric("Extracted Files", len(json_files))
+    else:
+        st.sidebar.caption("No extracted files yet")
 
 st.sidebar.markdown("---")
 st.sidebar.caption("Bloginator v0.1.0")
