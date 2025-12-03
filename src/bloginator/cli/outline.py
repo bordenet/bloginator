@@ -1,6 +1,7 @@
 """CLI command for generating outlines."""
 
 import logging
+import sys
 from pathlib import Path
 
 import click
@@ -193,7 +194,7 @@ def outline(
 
     if not keyword_list:
         console.print("[red]✗[/red] No keywords provided")
-        return
+        sys.exit(1)
 
     # Initialize components
     with Progress(
@@ -280,7 +281,7 @@ def outline(
         except Exception as e:
             logger.error(f"Failed to generate outline: {e}", exc_info=True)
             console.print(f"[red]✗[/red] Failed to generate outline: {e}")
-            return
+            sys.exit(1)
         progress.update(task, completed=True)
 
     # Display results
@@ -359,7 +360,7 @@ def outline(
         except Exception as e:
             logger.error(f"Failed to save outline: {e}")
             console.print(f"[red]✗[/red] Failed to save outline: {e}")
-            return
+            sys.exit(1)
     else:
         # Display markdown preview
         console.print("[bold]Markdown Preview:[/bold]")
