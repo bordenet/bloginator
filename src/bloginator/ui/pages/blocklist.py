@@ -61,6 +61,7 @@ def show_manage_entries(manager: BlocklistManager):
         "Filter by Category",
         options=categories,
         index=0,
+        key="blocklist_category_filter",
         help="Filter entries by category",
     )
 
@@ -68,7 +69,9 @@ def show_manage_entries(manager: BlocklistManager):
     if selected_category == "All":
         entries = manager.entries
     else:
-        entries = manager.get_entries_by_category(selected_category)
+        # Convert string back to enum for filtering
+        category_enum = BlocklistCategory(selected_category)
+        entries = manager.get_entries_by_category(category_enum)
 
     if not entries:
         st.info("No blocklist entries found. Add your first entry in the 'Add New Entry' tab.")
@@ -124,6 +127,7 @@ def show_add_entry(manager: BlocklistManager):
         pattern = st.text_input(
             "Pattern to Block *",
             placeholder="e.g., Acme Corp, Project Falcon, etc.",
+            key="blocklist_pattern_input",
             help="The exact term, phrase, or regex pattern to block",
         )
 
@@ -140,6 +144,7 @@ def show_add_entry(manager: BlocklistManager):
                 BlocklistPatternType.CASE_INSENSITIVE: "Case-Insensitive Match",
                 BlocklistPatternType.REGEX: "Regular Expression",
             }[x],
+            key="blocklist_pattern_type",
             help="How to match the pattern in text",
         )
 
@@ -148,6 +153,7 @@ def show_add_entry(manager: BlocklistManager):
             "Category *",
             options=list(BlocklistCategory),
             format_func=lambda x: x.value.replace("_", " ").title(),
+            key="blocklist_entry_category",
             help="Type of content being blocked",
         )
 
@@ -155,6 +161,7 @@ def show_add_entry(manager: BlocklistManager):
         notes = st.text_area(
             "Notes (optional)",
             placeholder="Explain why this term should be blocked...",
+            key="blocklist_entry_notes",
             help="Optional explanation for why this pattern is blocked",
             max_chars=500,
         )
@@ -220,6 +227,7 @@ def show_check_content(manager: BlocklistManager):
         "Content to Check",
         placeholder="Paste content here to check for blocklist violations...",
         height=200,
+        key="blocklist_check_content",
         help="Enter any text to validate against the blocklist",
     )
 
