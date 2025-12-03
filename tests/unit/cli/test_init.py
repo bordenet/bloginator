@@ -82,3 +82,40 @@ def test_init_model_download_failure(runner):
         # Verify
         assert result.exit_code != 0
         assert "Error" in result.output or "Failed" in result.output
+
+
+def test_init_idempotent(runner):
+    """Test that running init twice doesn't break."""
+    with patch("bloginator.cli.init._get_embedding_model") as mock_get_model:
+        # Setup mock
+        mock_model = Mock()
+        mock_get_model.return_value = mock_model
+
+        # Run command twice
+        result1 = runner.invoke(init)
+        result2 = runner.invoke(init)
+
+        # Both should succeed
+        assert result1.exit_code == 0
+        assert result2.exit_code == 0
+        # Model should be loaded twice (no caching in init command)
+        assert mock_get_model.call_count == 2
+
+
+def test_init_shows_progress_feedback(runner):
+    """Test that init provides progress feedback to user."""
+    with patch("bloginator.cli.init._get_embedding_model") as mock_get_model:
+        mock_model = Mock()
+        mock_get_model.return_value = mock_model
+
+        result = runner.invoke(init)
+
+        # Should show some kind of progress or feedback
+        assert result.exit_code == 0
+        assert len(result.output) > 0  # Should output something
+        # Check for common progress indicators
+        has_feedback = any(
+            word in result.output.lower()
+            for word in ["loading", "downloading", "initializing", "complete", "success"]
+        )
+        assert has_feedback, f"Expected progress feedback, got: {result.output}"

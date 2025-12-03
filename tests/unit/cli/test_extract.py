@@ -138,3 +138,69 @@ class TestExtractCLI:
 
             assert result.exit_code == 0
             assert temp_output.exists()
+
+    def test_extract_with_invalid_directory(self, runner, temp_output):
+        """Test extract with non-existent source directory."""
+        nonexistent = temp_output.parent / "nonexistent"
+
+        result = runner.invoke(
+            extract,
+            [str(nonexistent), "-o", str(temp_output)],
+        )
+
+        # Should fail with error message
+        assert result.exit_code != 0
+        assert "not found" in result.output.lower() or "does not exist" in result.output.lower()
+
+    def test_extract_with_file_instead_of_directory(self, runner, tmp_path, temp_output):
+        """Test extract rejects file path when directory expected."""
+        file_path = tmp_path / "file.txt"
+        file_path.write_text("content")
+
+        result = runner.invoke(
+            extract,
+            [str(file_path), "-o", str(temp_output)],
+        )
+
+        # Should handle gracefully
+        assert result.exit_code != 0
+
+    @patch("bloginator.cli.extract.extract_single_source")
+    def test_extract_with_no_supported_files(
+        self, mock_extract_single, runner, tmp_path, temp_output
+    ):
+        """Test extract with directory containing no supported files."""
+        empty_source = tmp_path / "empty"
+        empty_source.mkdir()
+
+        # Create unsupported file
+        (empty_source / "image.jpg").write_bytes(b"fake image")
+
+        result = runner.invoke(
+            extract,
+            [str(empty_source), "-o", str(temp_output)],
+        )
+
+        # Should succeed but potentially warn
+        assert result.exit_code == 0
+
+    @patch("bloginator.cli.extract.extract_single_source")
+    def test_extract_handles_special_characters_in_filenames(
+        self, mock_extract_single, runner, tmp_path, temp_output
+    ):
+        """Test extract with special characters in filenames."""
+        source = tmp_path / "source"
+        source.mkdir()
+
+        # Create files with special characters
+        (source / "file with spaces.md").write_text("content")
+        (source / "file-with-dashes.txt").write_text("content")
+        (source / "file_with_underscores.md").write_text("content")
+
+        result = runner.invoke(
+            extract,
+            [str(source), "-o", str(temp_output)],
+        )
+
+        assert result.exit_code == 0
+        mock_extract_single.assert_called_once()
