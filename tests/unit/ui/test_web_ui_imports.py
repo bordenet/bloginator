@@ -43,7 +43,9 @@ class TestWebUIImports:
             # it means the dependency chain is broken
             import importlib.util
 
-            spec = importlib.util.spec_from_file_location("home", "src/bloginator/ui/pages/home.py")
+            spec = importlib.util.spec_from_file_location(
+                "home", "src/bloginator/ui/_pages/home.py"
+            )
             # Don't actually execute the module (would need streamlit)
             # Just verify it can be loaded
             assert spec is not None, "home.py module spec created"
@@ -96,19 +98,17 @@ class TestWebUIImports:
         # Verify it has expected streamlit imports
         content = app_path.read_text()
         assert "import streamlit" in content, "app.py doesn't import streamlit"
-        assert "from bloginator.ui.pages" in content, "app.py doesn't import pages"
+        assert "from bloginator.ui._pages" in content, "app.py doesn't import _pages"
 
     def test_all_ui_page_modules_exist(self):
         """Test that all referenced UI page modules exist."""
         expected_pages = [
-            "src/bloginator/ui/pages/home.py",
-            "src/bloginator/ui/pages/corpus.py",
-            "src/bloginator/ui/pages/search.py",
-            "src/bloginator/ui/pages/generate.py",
-            "src/bloginator/ui/pages/history.py",
-            "src/bloginator/ui/pages/analytics.py",
-            "src/bloginator/ui/pages/blocklist.py",
-            "src/bloginator/ui/pages/settings.py",
+            "src/bloginator/ui/_pages/home.py",
+            "src/bloginator/ui/_pages/corpus.py",
+            "src/bloginator/ui/_pages/search.py",
+            "src/bloginator/ui/_pages/generate.py",
+            "src/bloginator/ui/_pages/history.py",
+            "src/bloginator/ui/_pages/settings.py",
         ]
 
         missing = []
