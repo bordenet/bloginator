@@ -152,8 +152,11 @@ class TestExtractCLI:
         assert result.exit_code != 0
         assert "not found" in result.output.lower() or "does not exist" in result.output.lower()
 
-    def test_extract_with_file_instead_of_directory(self, runner, tmp_path, temp_output):
-        """Test extract rejects file path when directory expected."""
+    @patch("bloginator.cli.extract.extract_single_source")
+    def test_extract_with_file_instead_of_directory(
+        self, mock_extract_single, runner, tmp_path, temp_output
+    ):
+        """Test extract accepts file path (single file mode)."""
         file_path = tmp_path / "file.txt"
         file_path.write_text("content")
 
@@ -162,8 +165,9 @@ class TestExtractCLI:
             [str(file_path), "-o", str(temp_output)],
         )
 
-        # Should handle gracefully
-        assert result.exit_code != 0
+        # Should succeed - extract supports single files
+        assert result.exit_code == 0
+        mock_extract_single.assert_called_once()
 
     @patch("bloginator.cli.extract.extract_single_source")
     def test_extract_with_no_supported_files(
