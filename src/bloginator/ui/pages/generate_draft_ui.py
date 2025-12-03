@@ -51,6 +51,7 @@ def show_draft_generation() -> None:
             max_value=1.0,
             value=0.7,
             step=0.1,
+            key="draft_temperature",
             help="Higher = more creative, Lower = more deterministic",
         )
 
@@ -60,6 +61,7 @@ def show_draft_generation() -> None:
             min_value=1,
             max_value=10,
             value=5,
+            key="draft_sources_per_section",
             help="How many source documents to use per section",
         )
 
@@ -69,6 +71,7 @@ def show_draft_generation() -> None:
         max_value=1000,
         value=300,
         step=50,
+        key="draft_max_section_words",
         help="Target word count for each section",
     )
 

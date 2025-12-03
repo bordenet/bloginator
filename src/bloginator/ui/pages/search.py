@@ -46,6 +46,7 @@ def show():
             min_value=1,
             max_value=20,
             value=5,
+            key="search_num_results",
             help="How many results to return",
         )
 
@@ -54,6 +55,7 @@ def show():
             "Quality Filter",
             options=["All", "Preferred", "Standard", "Deprecated"],
             index=0,
+            key="search_quality_filter",
             help="Filter by quality rating",
         )
 
@@ -64,6 +66,7 @@ def show():
             max_value=1.0,
             value=0.2,
             step=0.1,
+            key="search_recency_weight",
             help="How much to favor recent documents (0=ignore, 1=heavily favor)",
         )
 

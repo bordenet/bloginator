@@ -146,6 +146,7 @@ def show_outline_generation() -> None:
             min_value=3,
             max_value=10,
             value=5,
+            key="outline_num_sections",
             help="How many main sections in the outline",
         )
 
@@ -156,6 +157,7 @@ def show_outline_generation() -> None:
             max_value=1.0,
             value=0.7,
             step=0.1,
+            key="outline_temperature",
             help="Higher = more creative, Lower = more deterministic",
         )
 
@@ -165,6 +167,7 @@ def show_outline_generation() -> None:
             min_value=1,
             max_value=10,
             value=2,
+            key="outline_min_coverage",
             help="Minimum number of source documents per section",
         )
 
