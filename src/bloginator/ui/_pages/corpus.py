@@ -6,6 +6,8 @@ from pathlib import Path
 import streamlit as st
 import yaml
 
+from bloginator.corpus_config import CorpusConfigManager
+
 
 def show():
     """Display the corpus management page."""
@@ -109,30 +111,20 @@ def show_extraction_tab():
                         key=f"delete_source_{idx}",
                         use_container_width=True,
                     ):
-                        # Find and remove source by name (safer than by index)
+                        # Safe deletion using CorpusConfigManager
+                        source_id = source.get("id", "")
                         source_name = source.get("name", "")
-                        source_path = source.get("path", "")
 
-                        # Remove from config by matching name and path
-                        sources_copy = config.get("sources", [])
-                        config["sources"] = [
-                            s
-                            for s in sources_copy
-                            if not (s.get("name") == source_name and s.get("path") == source_path)
-                        ]
-
-                        # Save config
                         try:
-                            with corpus_config.open("w") as f:
-                                yaml.dump(
-                                    config,
-                                    f,
-                                    default_flow_style=False,
-                                    sort_keys=False,
-                                    allow_unicode=True,
-                                )
-                            st.success(f"✓ Deleted source: {source_name}")
-                            st.rerun()
+                            manager = CorpusConfigManager(corpus_config)
+                            success = manager.delete_source_by_id(source_id)
+
+                            if success:
+                                st.success(f"✓ Deleted source: {source_name}")
+                                st.info(f"Backup saved to: {manager.backup_dir}")
+                                st.rerun()
+                            else:
+                                st.error(f"Source not found: {source_id}")
                         except Exception as e:
                             st.error(f"Failed to delete source: {e}")
 
@@ -232,8 +224,11 @@ def show_extraction_tab():
                 # Parse tags
                 tags_list = [t.strip() for t in new_source_tags.split(",") if t.strip()]
 
-                # Create new source
+                # Create new source with unique ID
+                from uuid import uuid4
+
                 new_source = {
+                    "id": str(uuid4()),
                     "name": new_source_name,
                     "path": new_source_path,
                     "type": "directory",
@@ -245,10 +240,10 @@ def show_extraction_tab():
 
                 config["sources"].append(new_source)
 
-                # Save config
+                # Save config using safe manager
                 try:
-                    with corpus_config.open("w") as f:
-                        yaml.dump(config, f, default_flow_style=False, sort_keys=False)
+                    manager = CorpusConfigManager(corpus_config)
+                    manager.save_config(config)
                     st.success(f"✓ Added source: {new_source_name}")
                     st.rerun()
                 except Exception as e:
