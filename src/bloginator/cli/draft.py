@@ -181,11 +181,11 @@ def draft(
         logger.info(f"Outline loaded: {outline_obj.title}")
     except json.JSONDecodeError as e:
         logger.error(f"Failed to load outline: {e}")
-        console.print(f"[red]✗[/red] Invalid JSON in outline file: {e}", err=True)
+        console.print(f"[red]✗[/red] Invalid JSON in outline file: {e}")
         sys.exit(1)
     except Exception as e:
         logger.error(f"Failed to load outline: {e}")
-        console.print(f"[red]✗[/red] Failed to load outline: {e}", err=True)
+        console.print(f"[red]✗[/red] Failed to load outline: {e}")
         sys.exit(1)
 
     console.print(f"[bold cyan]Generating draft: {outline_obj.title}[/bold cyan]")
@@ -205,7 +205,7 @@ def draft(
             logger.info("Index loaded successfully")
         except Exception as e:
             logger.error(f"Failed to load index: {e}")
-            console.print(f"[red]✗[/red] Failed to load index: {e}", err=True)
+            console.print(f"[red]✗[/red] Failed to load index: {e}")
             sys.exit(1)
         progress.update(task, completed=True)
 
@@ -221,7 +221,7 @@ def draft(
             logger.error(f"Failed to connect to LLM: {e}")
             console.print(f"[red]✗[/red] Failed to connect to LLM: {e}")
             console.print("[dim]Make sure Ollama is running and check .env configuration[/dim]")
-            return
+            sys.exit(1)
         progress.update(task, completed=True)
 
         # Pre-validate inputs if safety validation enabled
@@ -247,7 +247,7 @@ def draft(
                     )
                 console.print()
                 console.print("[dim]Fix these violations before generating content[/dim]")
-                return
+                sys.exit(1)
 
             progress.update(task, completed=True)
 
@@ -290,7 +290,7 @@ def draft(
         except Exception as e:
             logger.error(f"Failed to generate draft: {e}", exc_info=True)
             console.print(f"[red]✗[/red] Failed to generate draft: {e}")
-            return
+            sys.exit(1)
         progress.update(task, completed=total_sections)
 
         # Validate safety if requested
@@ -301,7 +301,7 @@ def draft(
                 validator.validate_draft(draft_obj)
             except Exception as e:
                 console.print(f"[red]✗[/red] Safety validation failed: {e}")
-                return
+                sys.exit(1)
             progress.update(task, completed=True)
 
         # Score voice if requested
@@ -439,7 +439,7 @@ def draft(
     except Exception as e:
         logger.error(f"Failed to save draft: {e}")
         console.print(f"[red]✗[/red] Failed to save draft: {e}")
-        return
+        sys.exit(1)
 
     # Final recommendations
     if draft_obj.has_blocklist_violations:

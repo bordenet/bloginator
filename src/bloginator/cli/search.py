@@ -94,8 +94,8 @@ def search(
     try:
         searcher = CorpusSearcher(index_dir=index_dir)
     except Exception as e:
-        console.print(f"[red]Error: {e}[/red]", err=True)
-        console.print("[dim]Run 'bloginator index' to create an index first.[/dim]", err=True)
+        console.print(f"[red]Error: {e}[/red]")
+        console.print("[dim]Run 'bloginator index' to create an index first.[/dim]")
         sys.exit(1)
 
     # Parse tags

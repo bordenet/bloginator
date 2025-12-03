@@ -58,15 +58,28 @@ class TestDraftCLI:
         result = runner.invoke(draft, [])
         assert result.exit_code != 0
 
+    @patch("bloginator.cli.draft.CorpusSearcher")
     @patch("bloginator.cli.draft.DraftGenerator")
+    @patch("bloginator.cli.draft.create_llm_from_config")
     def test_draft_basic_generation(
-        self, mock_generator_class, runner, temp_outline, temp_index, temp_output
+        self, mock_llm, mock_generator_class, mock_searcher_class, runner, temp_outline, temp_index, temp_output
     ):
         """Test basic draft generation."""
-        # Setup mock
+        # Setup mocks
+        mock_searcher = Mock()
+        mock_searcher_class.return_value = mock_searcher
+
+        mock_llm.return_value = Mock()
+
         mock_generator = Mock()
         mock_draft = Mock()
         mock_draft.content = "# Test Document\n\nContent here."
+        mock_draft.total_words = 100
+        mock_draft.total_citations = 5
+        mock_draft.get_all_sections.return_value = []
+        mock_draft.to_markdown.return_value = "# Test\n\nContent"
+        mock_draft.voice_score = 0.8
+        mock_draft.has_blocklist_violations = False
         mock_generator.generate.return_value = mock_draft
         mock_generator_class.return_value = mock_generator
 
@@ -80,9 +93,11 @@ class TestDraftCLI:
         assert result.exit_code == 0
         assert temp_output.exists()
 
+    @patch("bloginator.cli.draft.CorpusSearcher")
     @patch("bloginator.cli.draft.DraftGenerator")
+    @patch("bloginator.cli.draft.create_llm_from_config")
     def test_draft_with_invalid_outline(
-        self, mock_generator_class, runner, tmp_path, temp_index, temp_output
+        self, mock_llm, mock_generator_class, mock_searcher_class, runner, tmp_path, temp_index, temp_output
     ):
         """Test draft with invalid outline file."""
         invalid_outline = tmp_path / "invalid.json"
@@ -96,9 +111,11 @@ class TestDraftCLI:
         # Should fail with error
         assert result.exit_code != 0
 
+    @patch("bloginator.cli.draft.CorpusSearcher")
     @patch("bloginator.cli.draft.DraftGenerator")
+    @patch("bloginator.cli.draft.create_llm_from_config")
     def test_draft_with_missing_outline(
-        self, mock_generator_class, runner, temp_index, temp_output
+        self, mock_llm, mock_generator_class, mock_searcher_class, runner, temp_index, temp_output
     ):
         """Test draft with missing outline file."""
         missing_outline = Path("/nonexistent/outline.json")
@@ -111,43 +128,70 @@ class TestDraftCLI:
         # Should fail with error
         assert result.exit_code != 0
 
+    @patch("bloginator.cli.draft.CorpusSearcher")
     @patch("bloginator.cli.draft.DraftGenerator")
-    @patch("bloginator.cli.draft.Blocklist")
+    @patch("bloginator.cli.draft.create_llm_from_config")
+    @patch("bloginator.cli.draft.SafetyValidator")
     def test_draft_blocklist_violation_prevents_output(
-        self, mock_blocklist_class, mock_generator_class, runner, temp_outline, temp_index, temp_output
+        self, mock_validator_class, mock_llm, mock_generator_class, mock_searcher_class, runner, temp_outline, temp_index, temp_output
     ):
         """Test that blocklist violations prevent draft output."""
+        # Setup mocks
+        mock_searcher = Mock()
+        mock_searcher_class.return_value = mock_searcher
+        mock_llm.return_value = Mock()
+
         # Setup generator mock
         mock_generator = Mock()
         mock_draft = Mock()
         mock_draft.content = "Content with BlockedTerm here."
+        mock_draft.total_words = 100
+        mock_draft.total_citations = 5
+        mock_draft.get_all_sections.return_value = []
+        mock_draft.to_markdown.return_value = "# Test\n\nContent"
+        mock_draft.voice_score = 0.8
+        mock_draft.has_blocklist_violations = False
         mock_generator.generate.return_value = mock_draft
         mock_generator_class.return_value = mock_generator
 
-        # Setup blocklist mock
-        mock_blocklist = Mock()
-        mock_violation = Mock()
-        mock_violation.term = "BlockedTerm"
-        mock_blocklist.validate_text.return_value = [mock_violation]
-        mock_blocklist_class.return_value = mock_blocklist
+        # Setup validator mock - return validation failure
+        mock_validator = Mock()
+        mock_validator.validate_before_generation.return_value = {
+            "is_valid": False,
+            "violations": [{"pattern": "BlockedTerm", "matches": ["BlockedTerm"]}]
+        }
+        mock_validator_class.return_value = mock_validator
 
         result = runner.invoke(
             draft,
-            ["--index", str(temp_index), "--outline", str(temp_outline), "-o", str(temp_output)],
+            ["--index", str(temp_index), "--outline", str(temp_outline), "-o", str(temp_output), "--validate-safety"],
         )
 
-        # Should fail with blocklist error
+        # Should fail with validation error
         assert result.exit_code != 0
-        assert "blocklist" in result.output.lower() or "blocked" in result.output.lower()
+        assert "validation failed" in result.output.lower() or "violation" in result.output.lower()
 
+    @patch("bloginator.cli.draft.CorpusSearcher")
     @patch("bloginator.cli.draft.DraftGenerator")
+    @patch("bloginator.cli.draft.create_llm_from_config")
     def test_draft_with_citations(
-        self, mock_generator_class, runner, temp_outline, temp_index, temp_output
+        self, mock_llm, mock_generator_class, mock_searcher_class, runner, temp_outline, temp_index, temp_output
     ):
         """Test draft generation with citations enabled."""
+        # Setup mocks
+        mock_searcher = Mock()
+        mock_searcher_class.return_value = mock_searcher
+        mock_llm.return_value = Mock()
+
         mock_generator = Mock()
         mock_draft = Mock()
         mock_draft.content = "Content with citation[^1]."
+        mock_draft.total_words = 100
+        mock_draft.total_citations = 5
+        mock_draft.get_all_sections.return_value = []
+        mock_draft.to_markdown.return_value = "# Test\n\nContent"
+        mock_draft.voice_score = 0.8
+        mock_draft.has_blocklist_violations = False
         mock_generator.generate.return_value = mock_draft
         mock_generator_class.return_value = mock_generator
 
@@ -166,14 +210,27 @@ class TestDraftCLI:
 
         assert result.exit_code == 0
 
+    @patch("bloginator.cli.draft.CorpusSearcher")
     @patch("bloginator.cli.draft.DraftGenerator")
+    @patch("bloginator.cli.draft.create_llm_from_config")
     def test_draft_with_voice_similarity_threshold(
-        self, mock_generator_class, runner, temp_outline, temp_index, temp_output
+        self, mock_llm, mock_generator_class, mock_searcher_class, runner, temp_outline, temp_index, temp_output
     ):
         """Test draft with voice similarity threshold."""
+        # Setup mocks
+        mock_searcher = Mock()
+        mock_searcher_class.return_value = mock_searcher
+        mock_llm.return_value = Mock()
+
         mock_generator = Mock()
         mock_draft = Mock()
         mock_draft.content = "Test content."
+        mock_draft.total_words = 100
+        mock_draft.total_citations = 5
+        mock_draft.get_all_sections.return_value = []
+        mock_draft.to_markdown.return_value = "# Test\n\nContent"
+        mock_draft.voice_score = 0.8
+        mock_draft.has_blocklist_violations = False
         mock_generator.generate.return_value = mock_draft
         mock_generator_class.return_value = mock_generator
 
@@ -193,11 +250,18 @@ class TestDraftCLI:
 
         assert result.exit_code == 0
 
+    @patch("bloginator.cli.draft.CorpusSearcher")
     @patch("bloginator.cli.draft.DraftGenerator")
+    @patch("bloginator.cli.draft.create_llm_from_config")
     def test_draft_handles_llm_timeout(
-        self, mock_generator_class, runner, temp_outline, temp_index, temp_output
+        self, mock_llm, mock_generator_class, mock_searcher_class, runner, temp_outline, temp_index, temp_output
     ):
         """Test draft handles LLM timeout gracefully."""
+        # Setup mocks
+        mock_searcher = Mock()
+        mock_searcher_class.return_value = mock_searcher
+        mock_llm.return_value = Mock()
+
         mock_generator = Mock()
         mock_generator.generate.side_effect = TimeoutError("LLM timeout")
         mock_generator_class.return_value = mock_generator
@@ -211,11 +275,18 @@ class TestDraftCLI:
         assert result.exit_code != 0
         assert "timeout" in result.output.lower() or "error" in result.output.lower()
 
+    @patch("bloginator.cli.draft.CorpusSearcher")
     @patch("bloginator.cli.draft.DraftGenerator")
+    @patch("bloginator.cli.draft.create_llm_from_config")
     def test_draft_handles_llm_rate_limiting(
-        self, mock_generator_class, runner, temp_outline, temp_index, temp_output
+        self, mock_llm, mock_generator_class, mock_searcher_class, runner, temp_outline, temp_index, temp_output
     ):
         """Test draft handles LLM rate limiting."""
+        # Setup mocks
+        mock_searcher = Mock()
+        mock_searcher_class.return_value = mock_searcher
+        mock_llm.return_value = Mock()
+
         mock_generator = Mock()
         mock_generator.generate.side_effect = Exception("Rate limit exceeded")
         mock_generator_class.return_value = mock_generator
