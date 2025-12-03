@@ -476,11 +476,11 @@ If upload feature causes issues:
 
 ---
 
-## Success Criteria
+## Success Criteria (Acceptance)
 
-- ✅ Users can upload files without editing YAML
-- ✅ Metadata is collected and stored in corpus.yaml
-- ✅ All uploaded files are accessible to extraction pipeline
-- ✅ No data corruption or loss
-- ✅ Clear error messages for all failure scenarios
-- ✅ <30 second upload time for typical scenarios
+- [ ] Users can upload files without editing YAML
+- [ ] Metadata is collected and stored in corpus.yaml
+- [ ] All uploaded files are accessible to extraction pipeline
+- [ ] No data corruption or loss
+- [ ] Clear error messages for all failure scenarios
+- [ ] Upload completes in <30 seconds for typical scenarios

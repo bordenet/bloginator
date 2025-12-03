@@ -393,7 +393,6 @@ class NotionPlugin(BloginatorPlugin):
 ### Code Quality
 - Reduce files >400 lines (2 remaining: extract_config.py, draft.py)
 - Increase type hint coverage to 100%
-- Remove deprecated code and TODOs
 - Improve error messages and logging
 - Add docstring coverage enforcement
 
