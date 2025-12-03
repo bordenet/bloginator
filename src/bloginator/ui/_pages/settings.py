@@ -280,14 +280,14 @@ def show_about():
         st.markdown("**Python Packages:**")
 
         try:
-            import pkg_resources
+            from importlib.metadata import PackageNotFoundError, version
 
             packages = ["chromadb", "streamlit", "sentence-transformers", "ollama"]
             for package in packages:
                 try:
-                    version = pkg_resources.get_distribution(package).version
-                    st.text(f"{package}: {version}")
-                except pkg_resources.DistributionNotFound:
+                    pkg_version = version(package)
+                    st.text(f"{package}: {pkg_version}")
+                except PackageNotFoundError:
                     st.text(f"{package}: Not installed")
         except ImportError:
             st.text("Cannot determine package versions")
