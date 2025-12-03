@@ -1,5 +1,6 @@
 """CLI command for searching the corpus."""
 
+import sys
 from pathlib import Path
 
 import click
@@ -92,10 +93,10 @@ def search(
 
     try:
         searcher = CorpusSearcher(index_dir=index_dir)
-    except ValueError as e:
-        console.print(f"[red]Error: {e}[/red]")
-        console.print("[dim]Run 'bloginator index' to create an index first.[/dim]")
-        return
+    except Exception as e:
+        console.print(f"[red]Error: {e}[/red]", err=True)
+        console.print("[dim]Run 'bloginator index' to create an index first.[/dim]", err=True)
+        sys.exit(1)
 
     # Parse tags
     tags_filter = [t.strip() for t in tags.split(",")] if tags else None

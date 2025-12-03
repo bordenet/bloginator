@@ -2,6 +2,7 @@
 
 import json
 import logging
+import sys
 from pathlib import Path
 
 import click
@@ -13,6 +14,7 @@ from bloginator.generation import DraftGenerator, SafetyValidator, VoiceScorer
 from bloginator.generation.llm_factory import create_llm_from_config
 from bloginator.models.history import GenerationHistoryEntry, GenerationType
 from bloginator.models.outline import Outline
+from bloginator.safety.blocklist import BlocklistManager
 from bloginator.search import CorpusSearcher
 from bloginator.services.history_manager import HistoryManager
 
@@ -97,6 +99,17 @@ from bloginator.services.history_manager import HistoryManager
     is_flag=True,
     help="Show LLM request/response interactions",
 )
+@click.option(
+    "--citations",
+    is_flag=True,
+    help="Include source citations in generated content",
+)
+@click.option(
+    "--similarity",
+    type=float,
+    default=0.75,
+    help="Voice similarity threshold 0.0-1.0 (default: 0.75)",
+)
 def draft(
     index_dir: Path,
     outline_file: Path,
@@ -111,6 +124,8 @@ def draft(
     config_dir: Path,
     log_file: Path | None,
     verbose: bool,
+    citations: bool,
+    similarity: float,
 ) -> None:
     r"""Generate document draft from outline.
 
@@ -164,10 +179,14 @@ def draft(
         outline_data = json.loads(outline_file.read_text())
         outline_obj = Outline.model_validate(outline_data)
         logger.info(f"Outline loaded: {outline_obj.title}")
+    except json.JSONDecodeError as e:
+        logger.error(f"Failed to load outline: {e}")
+        console.print(f"[red]✗[/red] Invalid JSON in outline file: {e}", err=True)
+        sys.exit(1)
     except Exception as e:
         logger.error(f"Failed to load outline: {e}")
-        console.print(f"[red]✗[/red] Failed to load outline: {e}")
-        return
+        console.print(f"[red]✗[/red] Failed to load outline: {e}", err=True)
+        sys.exit(1)
 
     console.print(f"[bold cyan]Generating draft: {outline_obj.title}[/bold cyan]")
     console.print()
@@ -186,8 +205,8 @@ def draft(
             logger.info("Index loaded successfully")
         except Exception as e:
             logger.error(f"Failed to load index: {e}")
-            console.print(f"[red]✗[/red] Failed to load index: {e}")
-            return
+            console.print(f"[red]✗[/red] Failed to load index: {e}", err=True)
+            sys.exit(1)
         progress.update(task, completed=True)
 
         # Initialize LLM client
