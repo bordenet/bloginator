@@ -206,6 +206,8 @@ proprietary-corpus/
 corpus.local.yaml
 corpus/*.local.yaml
 corpus.*.yaml
+corpus/corpus.yaml
+!corpus/corpus.sample.yaml
 .corpus-config.local.json
 
 # ChromaDB

@@ -1,0 +1,28 @@
+# Sample corpus configuration
+# Copy this file to corpus.yaml and customize for your setup:
+#   cp corpus/corpus.sample.yaml corpus/corpus.yaml
+#
+# IMPORTANT: corpus.yaml is gitignored to protect your local paths
+
+sources:
+  - id: example-blog-posts
+    name: My Blog Posts
+    path: /path/to/your/blog/posts
+    type: directory
+    enabled: true
+    quality: reference
+    tags:
+      - blog
+      - published
+    voice_notes: Personal writing style, conversational tone
+
+  - id: example-documentation
+    name: Technical Documentation
+    path: /path/to/your/docs
+    type: directory
+    enabled: true
+    quality: reference
+    tags:
+      - technical
+      - documentation
+    voice_notes: null
