@@ -67,7 +67,13 @@
       "Bash(gitleaks detect:*)",
       "Bash(timeout 5 streamlit run:*)",
       "Bash(timeout 8 streamlit run:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(git stash:*)",
+      "Bash(git checkout:*)",
+      "Bash(git restore:*)",
+      "Bash(.venv/bin/python:*)",
+      "Bash(python3.11:*)",
+      "Bash(git tag:*)"
     ],
     "deny": [],
     "ask": []

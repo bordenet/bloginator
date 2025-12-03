@@ -249,6 +249,15 @@ def show_extraction_tab():
                     manager = CorpusConfigManager(corpus_config)
                     manager.save_config(config)
                     st.success(f"✓ Added source: {new_source_name}")
+                    # Clear form fields to prevent duplicate submissions
+                    for key in [
+                        "add_source_name",
+                        "add_source_path",
+                        "add_source_tags",
+                        "add_source_notes",
+                    ]:
+                        if key in st.session_state:
+                            del st.session_state[key]
                     st.rerun()
                 except Exception as e:
                     st.error(f"Failed to save configuration: {e}")

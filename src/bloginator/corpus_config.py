@@ -333,12 +333,14 @@ class CorpusConfig(BaseModel):
             return False
 
         # Create new source
+        quality_rating = QualityRating(quality) if isinstance(quality, str) else quality
         new_source = CorpusSource(
             name=name,
             path=path,
             type="directory",
             enabled=enabled,
-            quality=quality,
+            quality=quality_rating,
+            date_range=None,
             voice_notes=voice_notes if voice_notes else None,
             tags=tags or [],
         )
