@@ -65,12 +65,12 @@ repos:
         always_run: true
       - id: mypy-selected
         name: MyPy (selected modules)
-        entry: bash -c 'mypy src/bloginator/utils/parallel.py src/bloginator/indexing/indexer.py src/bloginator/generation/version_manager.py src/bloginator/generation/voice_scorer.py src/bloginator/generation/refinement_engine.py'
+        entry: bash -c 'source venv/bin/activate 2>/dev/null || true; mypy src/bloginator/utils/parallel.py src/bloginator/indexing/indexer.py src/bloginator/generation/version_manager.py src/bloginator/generation/voice_scorer.py src/bloginator/generation/refinement_engine.py'
         language: system
         pass_filenames: false
       - id: fast-quality-gate
         name: Fast Quality Gate
-        entry: bash -c 'if [ -f ./scripts/fast-quality-gate.sh ]; then ./scripts/fast-quality-gate.sh; else echo "Skipping fast-quality-gate (script not found)"; fi'
+        entry: bash -c 'source venv/bin/activate 2>/dev/null || true; if [ -f ./scripts/fast-quality-gate.sh ]; then ./scripts/fast-quality-gate.sh; else echo "Skipping fast-quality-gate (script not found)"; fi'
         language: system
         pass_filenames: false
         always_run: false  # Set to true once script exists
