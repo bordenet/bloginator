@@ -94,8 +94,6 @@ pages = {
     "🔍 Search Corpus": "search",
     "📝 Generate Content": "generate",
     "📜 History": "history",
-    "📊 Analytics": "analytics",
-    "🚫 Blocklist": "blocklist",
     "⚙️ Settings": "settings",
 }
 
@@ -152,34 +150,26 @@ st.sidebar.caption("Bloginator v0.1.0")
 current_page = st.session_state.current_page
 
 if current_page == "home":
-    from bloginator.ui.pages import home
+    from bloginator.ui._pages import home
 
     home.show()
 elif current_page == "corpus":
-    from bloginator.ui.pages import corpus
+    from bloginator.ui._pages import corpus
 
     corpus.show()
 elif current_page == "search":
-    from bloginator.ui.pages import search
+    from bloginator.ui._pages import search
 
     search.show()
 elif current_page == "generate":
-    from bloginator.ui.pages import generate
+    from bloginator.ui._pages import generate
 
     generate.show()
 elif current_page == "history":
-    from bloginator.ui.pages import history
+    from bloginator.ui._pages import history
 
     history.show()
-elif current_page == "analytics":
-    from bloginator.ui.pages import analytics
-
-    analytics.show()
-elif current_page == "blocklist":
-    from bloginator.ui.pages import blocklist
-
-    blocklist.show()
 elif current_page == "settings":
-    from bloginator.ui.pages import settings
+    from bloginator.ui._pages import settings
 
     settings.show()
