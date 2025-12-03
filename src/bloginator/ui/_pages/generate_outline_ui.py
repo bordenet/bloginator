@@ -8,7 +8,7 @@ import streamlit as st
 from bloginator.export.ui_utils import show_export_buttons
 from bloginator.models.template import TemplateType
 from bloginator.services.template_manager import TemplateManager
-from bloginator.ui.pages.generate_ui_utils import (
+from bloginator.ui._pages.generate_ui_utils import (
     AUDIENCE_MAP,
     CLASSIFICATION_MAP,
     create_output_directory,

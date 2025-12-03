@@ -90,6 +90,170 @@ def show_extraction_tab():
                 if voice_notes:
                     st.caption(f"Notes: {voice_notes}")
 
+                st.markdown("---")
+                col1, col2 = st.columns(2)
+
+                with col1:
+                    if st.button(
+                        "✏️ Edit",
+                        key=f"edit_source_{idx}",
+                        use_container_width=True,
+                        disabled=True,
+                        help="Edit functionality coming soon",
+                    ):
+                        pass
+
+                with col2:
+                    if st.button(
+                        "🗑️ Delete",
+                        key=f"delete_source_{idx}",
+                        use_container_width=True,
+                    ):
+                        # Find and remove source by name (safer than by index)
+                        source_name = source.get("name", "")
+                        source_path = source.get("path", "")
+
+                        # Remove from config by matching name and path
+                        sources_copy = config.get("sources", [])
+                        config["sources"] = [
+                            s
+                            for s in sources_copy
+                            if not (s.get("name") == source_name and s.get("path") == source_path)
+                        ]
+
+                        # Save config
+                        try:
+                            with corpus_config.open("w") as f:
+                                yaml.dump(
+                                    config,
+                                    f,
+                                    default_flow_style=False,
+                                    sort_keys=False,
+                                    allow_unicode=True,
+                                )
+                            st.success(f"✓ Deleted source: {source_name}")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Failed to delete source: {e}")
+
+    # Add new source section
+    st.markdown("---")
+    st.subheader("Add New Source")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        new_source_name = st.text_input(
+            "Source Name",
+            key="add_source_name",
+            placeholder="e.g., My Blog Posts",
+            help="Unique identifier for this source",
+        )
+
+    with col2:
+        new_source_path = st.text_input(
+            "Source Path",
+            key="add_source_path",
+            placeholder="e.g., /path/to/documents",
+            help="Local path or URL to documents",
+        )
+
+    # Path helper
+    st.markdown("**Quick path helper:**")
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        if st.button("🏠 Home", key="path_home", use_container_width=True):
+            st.session_state["add_source_path"] = str(Path.home())
+            st.rerun()
+
+    with col2:
+        if st.button("📂 Current Dir", key="path_cwd", use_container_width=True):
+            st.session_state["add_source_path"] = str(Path.cwd())
+            st.rerun()
+
+    with col3:
+        if st.button("📁 Desktop", key="path_desktop", use_container_width=True):
+            desktop = Path.home() / "Desktop"
+            if desktop.exists():
+                st.session_state["add_source_path"] = str(desktop)
+                st.rerun()
+            else:
+                st.warning("Desktop folder not found")
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        new_source_quality = st.selectbox(
+            "Quality Rating",
+            options=["reference", "draft", "archive"],
+            key="add_source_quality",
+            help="Document quality level",
+        )
+
+    with col2:
+        new_source_enabled = st.checkbox(
+            "Enabled",
+            value=True,
+            key="add_source_enabled",
+            help="Process this source during extraction",
+        )
+
+    with col3:
+        new_source_tags = st.text_input(
+            "Tags (comma-separated)",
+            key="add_source_tags",
+            placeholder="e.g., blog, published",
+            help="Optional tags for filtering",
+        )
+
+    new_source_notes = st.text_area(
+        "Voice Notes",
+        key="add_source_notes",
+        placeholder="Style, tone, or other notes about this source...",
+        help="Notes about the writing voice or style",
+        height=80,
+    )
+
+    # Add source button
+    if st.button("➕ Add Source", type="primary", use_container_width=True):
+        if not new_source_name or not new_source_path:
+            st.warning("Please provide both source name and path")
+        else:
+            # Check for exact duplicate path (case-sensitive string match only)
+            existing_paths = [source.get("path", "") for source in config.get("sources", [])]
+            if new_source_path in existing_paths:
+                st.error(f"Source path already exists: {new_source_path}")
+            else:
+                # Add to config
+                if "sources" not in config:
+                    config["sources"] = []
+
+                # Parse tags
+                tags_list = [t.strip() for t in new_source_tags.split(",") if t.strip()]
+
+                # Create new source
+                new_source = {
+                    "name": new_source_name,
+                    "path": new_source_path,
+                    "type": "directory",
+                    "enabled": new_source_enabled,
+                    "quality": new_source_quality,
+                    "tags": tags_list,
+                    "voice_notes": new_source_notes if new_source_notes else None,
+                }
+
+                config["sources"].append(new_source)
+
+                # Save config
+                try:
+                    with corpus_config.open("w") as f:
+                        yaml.dump(config, f, default_flow_style=False, sort_keys=False)
+                    st.success(f"✓ Added source: {new_source_name}")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Failed to save configuration: {e}")
+
     st.markdown("---")
 
     # Extraction options
@@ -168,6 +332,93 @@ def show_indexing_tab():
         This creates vector embeddings and stores them in ChromaDB.
         """
     )
+
+    # Index management section
+    st.markdown("---")
+    st.subheader("Index Management")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("**Prune orphaned documents**")
+        st.markdown(
+            """
+            Remove indexed documents from sources that no longer exist in corpus.yaml.
+            """
+        )
+
+        if st.button("🧹 Prune Index", type="primary", use_container_width=True):
+            try:
+                import chromadb
+
+                index_dir = Path(".bloginator/chroma")
+                client = chromadb.PersistentClient(path=str(index_dir))
+                collections = client.list_collections()
+
+                if not collections:
+                    st.warning("No index collections found")
+                else:
+                    collection = collections[0]
+
+                    # Load corpus config to get configured sources
+                    corpus_config = Path("corpus/corpus.yaml")
+                    if corpus_config.exists():
+                        with corpus_config.open() as f:
+                            config = yaml.safe_load(f)
+                        configured_paths = {
+                            str(source.get("path", "")) for source in config.get("sources", [])
+                        }
+                    else:
+                        configured_paths = set()
+
+                    # Get all documents in index
+                    all_docs = collection.get()
+                    docs_to_delete = []
+
+                    if all_docs["metadatas"]:
+                        for i, metadata in enumerate(all_docs["metadatas"]):
+                            source_path = metadata.get("source_path", "")
+                            # If document's source path is not in configured sources, mark for deletion
+                            if source_path and source_path not in configured_paths:
+                                docs_to_delete.append(all_docs["ids"][i])
+
+                    if docs_to_delete:
+                        # Delete documents from index
+                        collection.delete(ids=docs_to_delete)
+                        st.success(f"✓ Pruned {len(docs_to_delete)} documents from index")
+                    else:
+                        st.info("✓ Index is clean - all documents are from configured sources")
+
+            except ImportError:
+                st.error("ChromaDB not installed")
+            except Exception as e:
+                st.error(f"Error pruning index: {e}")
+
+    with col2:
+        st.markdown("**Delete entire index**")
+        st.markdown(
+            """
+            Remove all indexed documents and rebuild from scratch.
+            Your corpus sources remain intact.
+            """
+        )
+
+        if st.button("🗑️ Delete Index", type="secondary", use_container_width=True):
+            try:
+                import shutil
+
+                index_dir = Path(".bloginator/chroma")
+                if index_dir.exists():
+                    shutil.rmtree(index_dir)
+                    st.success(
+                        "✓ Index deleted. You can now rebuild it with the Build Index button above."
+                    )
+                else:
+                    st.info("No index found to delete")
+            except Exception as e:
+                st.error(f"Failed to delete index: {e}")
+
+    st.markdown("---")
 
     # Check if extracted files exist
     extracted_dir = Path("output/extracted")

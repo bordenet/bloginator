@@ -1,6 +1,5 @@
 """Tests for prompt loader."""
 
-
 import pytest
 
 from bloginator.prompts.loader import PromptLoader, PromptTemplate

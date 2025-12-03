@@ -8,7 +8,17 @@ Active work items and incomplete features.
 
 **Priority**: HIGH
 
-### Corpus Upload Feature (📁 In Design Phase)
+### Corpus Source Management (✅ COMPLETE)
+- ✅ **Add source form** with name, path, quality, tags, voice notes
+- ✅ **Path helper buttons** - Home, Current Dir, Desktop
+- ✅ **Delete source** from corpus.yaml with list filtering
+- ✅ **Prune index** - remove documents from deleted sources
+- ✅ **Delete index** - full reset without losing source config
+- ⚠️ **Write tests** for corpus management UI functions (MISSING)
+
+**Status**: Implemented in `src/bloginator/ui/_pages/corpus.py` but lacks unit/integration tests
+
+### Corpus Upload Feature (📁 Design Phase - BLOCKED)
 - [ ] **Implement corpus_upload_manager.py** service with file validation, storage, and YAML updates
 - [ ] **Add "Add Sources" tab** to Streamlit UI with file uploader and metadata collection
 - [ ] **Add "Manage Sources" section** with delete/edit/view functionality
