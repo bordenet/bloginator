@@ -276,3 +276,69 @@ class CorpusConfig(BaseModel):
             Boost multiplier (default 1.0 if not configured)
         """
         return self.indexing.tag_boosts.get(tag, 1.0)
+
+    def source_path_exists(self, path: str) -> bool:
+        """Check if directory path already exists in corpus.
+
+        Args:
+            path: Path to check (normalized)
+
+        Returns:
+            True if path already exists in corpus
+        """
+        normalized_check = Path(path).resolve()
+        for source in self.sources:
+            try:
+                normalized_source = Path(source.path).resolve()
+                if normalized_check == normalized_source:
+                    return True
+            except (OSError, RuntimeError, ValueError):
+                # Can't resolve one of the paths, compare as strings
+                if Path(path).resolve() == Path(source.path).resolve():
+                    return True
+        return False
+
+    def add_directory_source(
+        self,
+        name: str,
+        path: str,
+        enabled: bool = True,
+        quality: str = "reference",
+        is_external: bool = False,
+        tags: list[str] | None = None,
+        voice_notes: str = "",
+        recursive: bool = True,
+    ) -> bool:
+        """Add directory source to corpus configuration.
+
+        Args:
+            name: Unique name for the source
+            path: Path to the directory
+            enabled: Whether source should be processed
+            quality: Quality rating
+            is_external: Whether source is external
+            tags: Optional list of tags
+            voice_notes: Voice notes
+            recursive: Whether to recurse subdirectories
+
+        Returns:
+            True if added successfully, False if path already exists
+        """
+        # Check for duplicate path
+        if self.source_path_exists(path):
+            return False
+
+        # Create new source
+        new_source = CorpusSource(
+            name=name,
+            path=path,
+            type="directory",
+            enabled=enabled,
+            quality=quality,
+            voice_notes=voice_notes if voice_notes else None,
+            tags=tags or [],
+        )
+
+        # Add to sources
+        self.sources.append(new_source)
+        return True
