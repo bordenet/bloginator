@@ -7,8 +7,7 @@ from typing import Any
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
 
-from bloginator.extraction.extractor import DocumentExtractor
-from bloginator.safety.blocklist_manager import BlocklistManager
+from bloginator.safety.blocklist import BlocklistManager
 
 
 router = APIRouter()
@@ -74,41 +73,14 @@ async def upload_documents(
                 f.write(content)
             file_paths.append(file_path)
 
-        # Extract documents
-        extractor = DocumentExtractor()
-        output_dir = temp_path / "extracted"
-        output_dir.mkdir()
-
-        tag_list = [t.strip() for t in tags.split(",")] if tags else []
-
-        results = []
-        for file_path in file_paths:
-            try:
-                extracted = extractor.extract_file(
-                    file_path=file_path,
-                    output_dir=output_dir,
-                    quality=quality,
-                    tags=tag_list,
-                )
-                results.extend(extracted)
-            except Exception as e:
-                raise HTTPException(
-                    status_code=500,
-                    detail=f"Failed to extract {file_path.name}: {str(e)}",
-                )
-
-        return {
-            "success": True,
-            "extracted_count": len(results),
-            "documents": [
-                {
-                    "filename": r.source_file.name,
-                    "quality": r.quality_rating,
-                    "tags": r.tags,
-                }
-                for r in results
-            ],
-        }
+        # TODO: Implement document extraction for web upload
+        # The DocumentExtractor class referenced in original code doesn't exist.
+        # Should use functions from bloginator.extraction module instead.
+        # See src/bloginator/cli/extract_single.py for reference implementation.
+        raise NotImplementedError(
+            "Document upload and extraction not yet implemented for web API. "
+            "Use CLI: bloginator extract <source> -o <output_dir>"
+        )
 
 
 @router.post("/index/create")
