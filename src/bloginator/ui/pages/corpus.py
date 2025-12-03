@@ -101,6 +101,7 @@ def show_extraction_tab():
         output_dir = st.text_input(
             "Output Directory",
             value="output/extracted",
+            key="extract_output_dir",
             help="Where to save extracted files",
         )
 
@@ -108,6 +109,7 @@ def show_extraction_tab():
         force_extract = st.checkbox(
             "Force Re-extraction",
             value=False,
+            key="extract_force_reextraction",
             help="Re-extract all files, even if already extracted",
         )
 
@@ -194,6 +196,7 @@ def show_indexing_tab():
         index_dir = st.text_input(
             "Index Directory",
             value=".bloginator/chroma",
+            key="index_output_dir",
             help="Where to store the index",
         )
 
