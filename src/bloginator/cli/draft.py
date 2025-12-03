@@ -14,7 +14,6 @@ from bloginator.generation import DraftGenerator, SafetyValidator, VoiceScorer
 from bloginator.generation.llm_factory import create_llm_from_config
 from bloginator.models.history import GenerationHistoryEntry, GenerationType
 from bloginator.models.outline import Outline
-from bloginator.safety.blocklist import BlocklistManager
 from bloginator.search import CorpusSearcher
 from bloginator.services.history_manager import HistoryManager
 
@@ -329,9 +328,7 @@ def draft(
         voice_color = (
             "green"
             if draft_obj.voice_score >= 0.7
-            else "yellow"
-            if draft_obj.voice_score >= 0.5
-            else "red"
+            else "yellow" if draft_obj.voice_score >= 0.5 else "red"
         )
         stats_table.add_row(
             "Voice Score:",

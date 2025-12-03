@@ -1,12 +1,12 @@
 """Tests for outline CLI command."""
 
-from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
 from click.testing import CliRunner
 
 from bloginator.cli.outline import outline
+
 
 # Skip tests that need proper mocking of OutlineGenerator
 pytestmark = pytest.mark.skip(reason="Mock implementation needs proper OutlineGenerator setup")
@@ -42,9 +42,7 @@ class TestOutlineCLI:
         assert result.exit_code != 0 or "Usage" in result.output
 
     @patch("bloginator.cli.outline.OutlineGenerator")
-    def test_outline_with_keywords(
-        self, mock_generator_class, runner, temp_index, temp_output
-    ):
+    def test_outline_with_keywords(self, mock_generator_class, runner, temp_index, temp_output):
         """Test outline generation from keywords."""
         # Setup mock
         mock_generator = Mock()
