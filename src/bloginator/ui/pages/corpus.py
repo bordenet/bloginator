@@ -198,11 +198,13 @@ def show_indexing_tab():
         )
 
     with col2:
-        chunk_strategy = st.selectbox(
-            "Chunking Strategy",
-            options=["paragraph", "semantic", "fixed"],
-            index=0,
-            help="How to split documents into chunks",
+        chunk_size = st.number_input(
+            "Chunk Size",
+            min_value=100,
+            max_value=5000,
+            value=1000,
+            step=100,
+            help="Maximum characters per chunk",
         )
 
     # Run indexing
@@ -215,8 +217,8 @@ def show_indexing_tab():
                     str(extracted_dir),
                     "-o",
                     index_dir,
-                    "--chunk-strategy",
-                    chunk_strategy,
+                    "--chunk-size",
+                    str(chunk_size),
                 ]
 
                 # nosec B603 - subprocess without shell=True is safe, cmd is controlled
