@@ -178,17 +178,14 @@ pre-commit run --all-files  # black, ruff, isort, mypy
 
 ## Code Coverage
 
-Bloginator maintains **50.79% test coverage** with ongoing improvements. The coverage visualization below shows detailed coverage by module:
+Current test coverage: **50.79%**. Target: 80%+
 
 [![Coverage Grid](https://codecov.io/gh/bordenet/bloginator/graphs/tree.svg)](https://codecov.io/gh/bordenet/bloginator)
 
-**What this means:**
-- **Green**: Well-tested code (>80% coverage)
-- **Yellow**: Moderate coverage (60-80%)
-- **Red**: Needs more tests (<60%)
-- **Size**: Larger boxes = more lines of code
-
-Click the image to explore detailed coverage reports on Codecov, including line-by-line coverage, branch coverage, and historical trends.
+Color coding:
+- **Green**: >80% coverage
+- **Yellow**: 60-80% coverage
+- **Red**: <60% coverage (needs improvement)
 
 ---
 
