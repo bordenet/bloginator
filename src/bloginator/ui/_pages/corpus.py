@@ -45,23 +45,25 @@ def show_extraction_tab():
 
     # Check if corpus config exists
     corpus_config = Path("corpus/corpus.yaml")
+    sample_config = Path("corpus/corpus.sample.yaml")
     if not corpus_config.exists():
         st.warning(
             """
             ⚠️ **No corpus configuration found!**
 
-            Create `corpus/corpus.yaml` based on `corpus.yaml.example` to define your document sources.
+            Create `corpus/corpus.yaml` based on `corpus/corpus.sample.yaml` to define your document sources.
+
+            **Note:** `corpus/corpus.yaml` is gitignored to protect your local paths.
             """
         )
 
-        if st.button("Create Example Config"):
-            example_config = Path("corpus.yaml.example")
-            if example_config.exists():
-                corpus_config.write_text(example_config.read_text())
-                st.success("✓ Created corpus/corpus.yaml from example")
+        if st.button("Create Config from Sample"):
+            if sample_config.exists():
+                corpus_config.write_text(sample_config.read_text())
+                st.success("✓ Created corpus/corpus.yaml from sample")
                 st.rerun()
             else:
-                st.error("Example config not found")
+                st.error("Sample config not found at corpus/corpus.sample.yaml")
 
         return
 
