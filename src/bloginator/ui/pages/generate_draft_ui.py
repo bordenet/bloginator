@@ -38,6 +38,7 @@ def show_draft_generation() -> None:
     outline_path = st.text_input(
         "Outline Path (JSON)",
         value=default_outline,
+        key="draft_outline_path",
         help="Path to the outline JSON file",
     )
 

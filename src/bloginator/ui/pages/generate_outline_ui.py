@@ -27,12 +27,14 @@ def show_outline_generation() -> None:
     title = st.text_input(
         "Blog Post Title",
         placeholder="e.g., Building a DevOps Culture at Scale",
+        key="outline_title",
         help="The title of your blog post",
     )
 
     keywords = st.text_input(
         "Keywords (comma-separated)",
         placeholder="e.g., devops, kubernetes, automation, culture",
+        key="outline_keywords",
         help="Keywords to guide content selection from your corpus",
     )
 
@@ -40,6 +42,7 @@ def show_outline_generation() -> None:
         "Main Thesis",
         placeholder="e.g., Effective DevOps culture requires both technical "
         "infrastructure AND organizational transformation",
+        key="outline_thesis",
         help="The main argument or point of your blog post",
         height=100,
     )
@@ -64,6 +67,7 @@ def show_outline_generation() -> None:
             options=range(len(template_options)),
             format_func=lambda i: template_options[i],
             index=0,
+            key="outline_template",
             help="""
             Choose a template to customize the style and tone of your outline:
             - **Technical Writing**: Formal, precise documentation style
@@ -102,6 +106,7 @@ def show_outline_generation() -> None:
                 "Opinion",
             ],
             index=0,
+            key="outline_classification",
             help="""
             **Content authority level:**
             - **Guidance**: Suggestive, non-prescriptive recommendations
@@ -128,6 +133,7 @@ def show_outline_generation() -> None:
                 "General (Non-technical)",
             ],
             index=0,
+            key="outline_audience",
             help="""
             **Target audience affects:**
             - Language level and technical depth
@@ -176,6 +182,7 @@ def show_outline_generation() -> None:
         "Output Format",
         options=["Both (JSON + Markdown)", "JSON only", "Markdown only"],
         index=0,
+        key="outline_output_format",
     )
 
     # Generate button

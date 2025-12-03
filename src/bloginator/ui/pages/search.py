@@ -35,6 +35,7 @@ def show():
     query = st.text_input(
         "Enter your search query",
         placeholder="e.g., kubernetes devops automation culture",
+        key="search_query",
         help="Enter keywords or a natural language question",
     )
 
