@@ -71,6 +71,10 @@ def show_extraction_tab():
 
     st.success(f"✓ Loaded configuration from {corpus_config}")
 
+    # Ensure sources is a list (handle case where YAML has "sources:" with no items)
+    if config.get("sources") is None:
+        config["sources"] = []
+
     # Display configured sources
     if "sources" in config:
         st.subheader(f"Configured Sources ({len(config['sources'])})")
@@ -217,8 +221,8 @@ def show_extraction_tab():
             if new_source_path in existing_paths:
                 st.error(f"Source path already exists: {new_source_path}")
             else:
-                # Add to config
-                if "sources" not in config:
+                # Add to config (ensure sources is a list)
+                if "sources" not in config or config["sources"] is None:
                     config["sources"] = []
 
                 # Parse tags
