@@ -328,9 +328,7 @@ def draft(
         voice_color = (
             "green"
             if draft_obj.voice_score >= 0.7
-            else "yellow"
-            if draft_obj.voice_score >= 0.5
-            else "red"
+            else "yellow" if draft_obj.voice_score >= 0.5 else "red"
         )
         stats_table.add_row(
             "Voice Score:",
