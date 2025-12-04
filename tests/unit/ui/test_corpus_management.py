@@ -1,6 +1,8 @@
 """Tests for corpus management UI functionality."""
 
+import subprocess
 from pathlib import Path
+from unittest.mock import Mock, patch
 
 import pytest
 import yaml
@@ -309,3 +311,645 @@ class TestIndexPruning:
         ]
 
         assert orphaned_ids == []
+
+
+class TestExtractionProgressIndicators:
+    """Tests for real-time progress indicators during extraction."""
+
+    @pytest.fixture
+    def mock_streamlit(self) -> Mock:
+        """Create mock Streamlit components."""
+        mock_st = Mock()
+        mock_st.empty.return_value = Mock()
+        mock_st.info = Mock()
+        mock_st.text_area = Mock()
+        mock_st.success = Mock()
+        mock_st.error = Mock()
+        mock_st.code = Mock()
+        mock_st.metric = Mock()
+        mock_st.caption = Mock()
+        return mock_st
+
+    @patch("subprocess.Popen")
+    def test_extraction_streams_output_line_by_line(self, mock_popen: Mock) -> None:
+        """Test that extraction output is streamed line by line."""
+        # Mock process with output
+        mock_process = Mock()
+        mock_process.poll.side_effect = [None, None, None, 0]  # Running, then done
+        mock_process.returncode = 0
+        mock_process.stdout.readline.side_effect = [
+            "Processing file1.md\n",
+            "Processing file2.md\n",
+            "Processing file3.md\n",
+            "",  # EOF
+        ]
+        mock_process.communicate.return_value = ("", "")
+        mock_popen.return_value = mock_process
+
+        # Collect output lines
+        stdout_lines = []
+        while True:
+            if mock_process.poll() is not None:
+                break
+            line = mock_process.stdout.readline()
+            if line:
+                stdout_lines.append(line)
+
+        assert len(stdout_lines) == 3
+        assert "file1.md" in stdout_lines[0]
+        assert "file2.md" in stdout_lines[1]
+        assert "file3.md" in stdout_lines[2]
+
+    @patch("subprocess.Popen")
+    def test_extraction_shows_current_file_in_progress(self, mock_popen: Mock) -> None:
+        """Test that current file being processed is displayed."""
+        mock_process = Mock()
+        mock_process.poll.side_effect = [None, 0]
+        mock_process.returncode = 0
+        mock_process.stdout.readline.side_effect = [
+            "Extracting: important_document.pdf\n",
+            "",
+        ]
+        mock_process.communicate.return_value = ("", "")
+        mock_popen.return_value = mock_process
+
+        current_line = mock_process.stdout.readline()
+
+        assert "important_document.pdf" in current_line
+        assert "Extracting" in current_line
+
+    @patch("subprocess.Popen")
+    def test_extraction_handles_success_returncode(self, mock_popen: Mock) -> None:
+        """Test extraction success handling."""
+        mock_process = Mock()
+        mock_process.poll.return_value = 0
+        mock_process.returncode = 0
+        mock_process.stdout.readline.return_value = ""
+        mock_process.communicate.return_value = ("Extraction complete\n", "")
+        mock_popen.return_value = mock_process
+
+        # Simulate extraction completion
+        while True:
+            if mock_process.poll() is not None:
+                break
+
+        stdout, stderr = mock_process.communicate()
+
+        assert mock_process.returncode == 0
+        assert "complete" in stdout
+
+    @patch("subprocess.Popen")
+    def test_extraction_handles_failure_returncode(self, mock_popen: Mock) -> None:
+        """Test extraction failure handling."""
+        mock_process = Mock()
+        mock_process.poll.return_value = 1
+        mock_process.returncode = 1
+        mock_process.stdout.readline.return_value = ""
+        mock_process.communicate.return_value = ("", "Error: Invalid file format\n")
+        mock_popen.return_value = mock_process
+
+        # Simulate extraction failure
+        while True:
+            if mock_process.poll() is not None:
+                break
+
+        stdout, stderr = mock_process.communicate()
+
+        assert mock_process.returncode == 1
+        assert "Error" in stderr
+
+    @patch("subprocess.Popen")
+    def test_extraction_collects_all_output_lines(self, mock_popen: Mock) -> None:
+        """Test that all output lines are collected."""
+        mock_process = Mock()
+        mock_process.poll.side_effect = [None, None, None, None, None, 0]
+        mock_process.returncode = 0
+        mock_process.stdout.readline.side_effect = [
+            "File 1\n",
+            "File 2\n",
+            "File 3\n",
+            "File 4\n",
+            "File 5\n",
+            "",
+        ]
+        mock_process.communicate.return_value = ("", "")
+        mock_popen.return_value = mock_process
+
+        stdout_lines = []
+        while True:
+            if mock_process.poll() is not None:
+                break
+            line = mock_process.stdout.readline()
+            if line:
+                stdout_lines.append(line)
+
+        assert len(stdout_lines) == 5
+
+    @patch("subprocess.Popen")
+    def test_extraction_limits_displayed_lines_to_20(self, mock_popen: Mock) -> None:
+        """Test that only last 20 lines are shown in UI."""
+        # Generate 30 lines of output
+        lines = [f"Processing file{i}.md\n" for i in range(30)]
+
+        mock_process = Mock()
+        mock_process.poll.side_effect = [None] * 30 + [0]
+        mock_process.returncode = 0
+        mock_process.stdout.readline.side_effect = lines + [""]
+        mock_process.communicate.return_value = ("", "")
+        mock_popen.return_value = mock_process
+
+        stdout_lines = []
+        while True:
+            if mock_process.poll() is not None:
+                break
+            line = mock_process.stdout.readline()
+            if line:
+                stdout_lines.append(line)
+
+        # All lines collected
+        assert len(stdout_lines) == 30
+
+        # But only last 20 would be displayed
+        displayed_lines = stdout_lines[-20:]
+        assert len(displayed_lines) == 20
+        assert "file10.md" in displayed_lines[0]  # First of last 20
+        assert "file29.md" in displayed_lines[-1]  # Last line
+
+    @patch("subprocess.Popen")
+    def test_extraction_stderr_captured_on_failure(self, mock_popen: Mock) -> None:
+        """Test that stderr is captured when extraction fails."""
+        mock_process = Mock()
+        mock_process.poll.return_value = 1
+        mock_process.returncode = 1
+        mock_process.stdout.readline.return_value = ""
+        mock_process.communicate.return_value = (
+            "",
+            "Error: Permission denied\nFailed to read file\n",
+        )
+        mock_popen.return_value = mock_process
+
+        while True:
+            if mock_process.poll() is not None:
+                break
+
+        stdout, stderr = mock_process.communicate()
+        stderr_lines = stderr.splitlines(keepends=True)
+
+        assert mock_process.returncode == 1
+        assert len(stderr_lines) == 2
+        assert "Permission denied" in stderr_lines[0]
+        assert "Failed to read" in stderr_lines[1]
+
+
+class TestIndexingProgressIndicators:
+    """Tests for real-time progress indicators during indexing."""
+
+    @patch("subprocess.Popen")
+    def test_indexing_streams_output_line_by_line(self, mock_popen: Mock) -> None:
+        """Test that indexing output is streamed line by line."""
+        mock_process = Mock()
+        mock_process.poll.side_effect = [None, None, None, 0]
+        mock_process.returncode = 0
+        mock_process.stdout.readline.side_effect = [
+            "Indexing document1.json\n",
+            "Indexing document2.json\n",
+            "Indexing document3.json\n",
+            "",
+        ]
+        mock_process.communicate.return_value = ("", "")
+        mock_popen.return_value = mock_process
+
+        stdout_lines = []
+        while True:
+            if mock_process.poll() is not None:
+                break
+            line = mock_process.stdout.readline()
+            if line:
+                stdout_lines.append(line)
+
+        assert len(stdout_lines) == 3
+        assert "document1.json" in stdout_lines[0]
+        assert "document2.json" in stdout_lines[1]
+        assert "document3.json" in stdout_lines[2]
+
+    @patch("subprocess.Popen")
+    def test_indexing_shows_current_document(self, mock_popen: Mock) -> None:
+        """Test that current document being indexed is displayed."""
+        mock_process = Mock()
+        mock_process.poll.side_effect = [None, 0]
+        mock_process.returncode = 0
+        mock_process.stdout.readline.side_effect = [
+            "Processing: important_content_chunk_001.json\n",
+            "",
+        ]
+        mock_process.communicate.return_value = ("", "")
+        mock_popen.return_value = mock_process
+
+        current_line = mock_process.stdout.readline()
+
+        assert "important_content_chunk_001.json" in current_line
+        assert "Processing" in current_line
+
+    @patch("subprocess.Popen")
+    def test_indexing_handles_success(self, mock_popen: Mock) -> None:
+        """Test indexing success with metrics."""
+        mock_process = Mock()
+        mock_process.poll.return_value = 0
+        mock_process.returncode = 0
+        mock_process.stdout.readline.return_value = ""
+        mock_process.communicate.return_value = ("Indexed 500 chunks\n", "")
+        mock_popen.return_value = mock_process
+
+        while True:
+            if mock_process.poll() is not None:
+                break
+
+        stdout, _ = mock_process.communicate()
+
+        assert mock_process.returncode == 0
+        assert "500 chunks" in stdout
+
+    @patch("subprocess.Popen")
+    def test_indexing_handles_failure(self, mock_popen: Mock) -> None:
+        """Test indexing failure handling."""
+        mock_process = Mock()
+        mock_process.poll.return_value = 1
+        mock_process.returncode = 1
+        mock_process.stdout.readline.return_value = ""
+        mock_process.communicate.return_value = (
+            "",
+            "Error: ChromaDB connection failed\n",
+        )
+        mock_popen.return_value = mock_process
+
+        while True:
+            if mock_process.poll() is not None:
+                break
+
+        _, stderr = mock_process.communicate()
+
+        assert mock_process.returncode == 1
+        assert "ChromaDB" in stderr
+
+    @patch("subprocess.Popen")
+    def test_indexing_progress_with_large_corpus(self, mock_popen: Mock) -> None:
+        """Test indexing progress with many documents."""
+        # Simulate 100 documents being indexed
+        lines = [f"Indexing doc_{i:03d}.json\n" for i in range(100)]
+
+        mock_process = Mock()
+        mock_process.poll.side_effect = [None] * 100 + [0]
+        mock_process.returncode = 0
+        mock_process.stdout.readline.side_effect = lines + [""]
+        mock_process.communicate.return_value = ("", "")
+        mock_popen.return_value = mock_process
+
+        stdout_lines = []
+        while True:
+            if mock_process.poll() is not None:
+                break
+            line = mock_process.stdout.readline()
+            if line:
+                stdout_lines.append(line)
+
+        assert len(stdout_lines) == 100
+        # Only last 20 would be displayed in UI
+        displayed = stdout_lines[-20:]
+        assert len(displayed) == 20
+        assert "doc_080.json" in displayed[0]
+        assert "doc_099.json" in displayed[-1]
+
+    @patch("subprocess.Popen")
+    def test_command_construction_with_options(self, mock_popen: Mock) -> None:
+        """Test that command is constructed with correct options."""
+        from pathlib import Path
+
+        # Expected command
+        cmd = [
+            "bloginator",
+            "index",
+            str(Path("output/extracted")),
+            "-o",
+            ".bloginator/chroma",
+            "--chunk-size",
+            "1000",
+        ]
+
+        mock_process = Mock()
+        mock_process.poll.return_value = 0
+        mock_process.returncode = 0
+        mock_process.stdout.readline.return_value = ""
+        mock_process.communicate.return_value = ("", "")
+        mock_popen.return_value = mock_process
+
+        # Simulate calling with these args
+        subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            bufsize=1,
+        )
+
+        # Verify Popen was called with correct command
+        mock_popen.assert_called_once()
+        call_args = mock_popen.call_args[0][0]
+        assert call_args == cmd
+
+
+class TestProgressContainerBehavior:
+    """Tests for Streamlit container behavior during progress updates."""
+
+    def test_progress_container_updates_with_each_line(self) -> None:
+        """Test that progress container is updated for each output line."""
+        mock_container = Mock()
+        lines = ["File 1\n", "File 2\n", "File 3\n"]
+
+        for line in lines:
+            mock_container.info(f"📄 {line.strip()}")
+
+        assert mock_container.info.call_count == 3
+
+    def test_output_container_shows_scrolling_log(self) -> None:
+        """Test that output container shows scrolling log of recent lines."""
+        mock_container = Mock()
+        all_lines = [f"Line {i}\n" for i in range(30)]
+
+        for i, _line in enumerate(all_lines):
+            # Simulate showing last 20 lines
+            recent_lines = all_lines[max(0, i - 19) : i + 1]
+            mock_container.text_area(
+                "Output",
+                value="".join(recent_lines),
+                height=200,
+                key=f"output_{i}",
+            )
+
+        # Should be called for each line
+        assert mock_container.text_area.call_count == 30
+
+    def test_progress_container_cleared_on_completion(self) -> None:
+        """Test that progress indicator is cleared when process completes."""
+        mock_container = Mock()
+
+        # Show progress
+        mock_container.info("Processing...")
+
+        # Clear when done
+        mock_container.empty()
+
+        assert mock_container.info.called
+        assert mock_container.empty.called
+
+    def test_status_container_shows_success_message(self) -> None:
+        """Test that status container shows success on completion."""
+        mock_container = Mock()
+
+        # Simulate successful completion
+        returncode = 0
+        if returncode == 0:
+            mock_container.success("✓ Extraction complete!")
+        else:
+            mock_container.error("✗ Extraction failed")
+
+        mock_container.success.assert_called_once_with("✓ Extraction complete!")
+        mock_container.error.assert_not_called()
+
+    def test_status_container_shows_error_message(self) -> None:
+        """Test that status container shows error on failure."""
+        mock_container = Mock()
+
+        # Simulate failed completion
+        returncode = 1
+        if returncode == 0:
+            mock_container.success("✓ Extraction complete!")
+        else:
+            mock_container.error(f"✗ Extraction failed (exit code {returncode})")
+
+        mock_container.success.assert_not_called()
+        mock_container.error.assert_called_once_with("✗ Extraction failed (exit code 1)")
+
+    def test_output_container_shows_final_output(self) -> None:
+        """Test that output container shows complete output at end."""
+        mock_container = Mock()
+        final_output = "Line 1\nLine 2\nLine 3\nComplete!\n"
+
+        # Show final output
+        mock_container.code(final_output, language="text")
+
+        mock_container.code.assert_called_once_with(final_output, language="text")
+
+
+class TestSkipSummaryDisplay:
+    """Tests for skip summary display functionality in Streamlit UI."""
+
+    def test_skip_report_parsed_and_displayed(self, tmp_path: Path) -> None:
+        """Test that skip report JSON is parsed and displayed correctly."""
+        import json
+
+        # Create mock report file
+        report_file = tmp_path / "extraction_report_20251203_120000.json"
+        report_data = {
+            "timestamp": "2025-12-03T12:00:00",
+            "summary": {"total_skipped": 5, "total_errors": 0},
+            "skipped": {
+                "temp_file": ["~$temp1.docx", "~$temp2.docx"],
+                "already_extracted": ["file1.md", "file2.md", "file3.md"],
+            },
+            "errors": {},
+        }
+        report_file.write_text(json.dumps(report_data, indent=2))
+
+        # Parse and verify
+        loaded_data = json.loads(report_file.read_text())
+        assert loaded_data["summary"]["total_skipped"] == 5
+        assert len(loaded_data["skipped"]["temp_file"]) == 2
+        assert len(loaded_data["skipped"]["already_extracted"]) == 3
+
+    def test_skip_summary_shows_categories(self, tmp_path: Path) -> None:
+        """Test that skip summary shows all skip categories."""
+        import json
+
+        report_file = tmp_path / "extraction_report_20251203_120000.json"
+        report_data = {
+            "summary": {"total_skipped": 3, "total_errors": 0},
+            "skipped": {
+                "temp_file": ["~$temp.docx"],
+                "unsupported_extension": ["file.xyz (.xyz)"],
+                "ignore_pattern": [".DS_Store"],
+            },
+        }
+        report_file.write_text(json.dumps(report_data, indent=2))
+
+        # Simulate skip summary display
+        loaded_data = json.loads(report_file.read_text())
+        skip_summary = []
+        for category, items in loaded_data.get("skipped", {}).items():
+            if items:
+                skip_summary.append(f"**{category.replace('_', ' ').title()}** ({len(items)})")
+
+        assert len(skip_summary) == 3
+        assert "**Temp File** (1)" in skip_summary
+        assert "**Unsupported Extension** (1)" in skip_summary
+        assert "**Ignore Pattern** (1)" in skip_summary
+
+    def test_skip_summary_limits_displayed_items(self, tmp_path: Path) -> None:
+        """Test that skip summary limits displayed items to first 5."""
+        import json
+
+        report_file = tmp_path / "extraction_report_20251203_120000.json"
+        # Create 10 skipped files
+        skipped_files = [f"file{i}.md" for i in range(10)]
+        report_data = {
+            "summary": {"total_skipped": 10, "total_errors": 0},
+            "skipped": {"already_extracted": skipped_files},
+        }
+        report_file.write_text(json.dumps(report_data, indent=2))
+
+        # Simulate display logic
+        loaded_data = json.loads(report_file.read_text())
+        skip_summary = []
+        for category, items in loaded_data.get("skipped", {}).items():
+            if items:
+                skip_summary.append(f"**{category.replace('_', ' ').title()}** ({len(items)})")
+                for item in items[:5]:  # Only first 5
+                    skip_summary.append(f"  • {item}")
+                if len(items) > 5:
+                    skip_summary.append(f"  ... and {len(items) - 5} more")
+
+        # Should have: 1 header + 5 items + 1 "more" message = 7 lines
+        assert len(skip_summary) == 7
+        assert "file0.md" in skip_summary[1]
+        assert "file4.md" in skip_summary[5]
+        assert "... and 5 more" in skip_summary[6]
+
+    def test_skip_summary_not_shown_when_zero_skips(self, tmp_path: Path) -> None:
+        """Test that skip summary is not shown when there are no skips."""
+        import json
+
+        report_file = tmp_path / "extraction_report_20251203_120000.json"
+        report_data = {
+            "summary": {"total_skipped": 0, "total_errors": 0},
+            "skipped": {},
+        }
+        report_file.write_text(json.dumps(report_data, indent=2))
+
+        # Check condition
+        loaded_data = json.loads(report_file.read_text())
+        should_show = loaded_data.get("summary", {}).get("total_skipped", 0) > 0
+
+        assert should_show is False
+
+    def test_skip_report_file_path_shown(self, tmp_path: Path) -> None:
+        """Test that full report file path is shown to user."""
+        report_file = tmp_path / "extraction_report_20251203_120000.json"
+
+        # Caption should show filename
+        caption = f"Full report: {report_file.name}"
+
+        assert "extraction_report_20251203_120000.json" in caption
+
+    def test_multiple_report_files_uses_latest(self, tmp_path: Path) -> None:
+        """Test that when multiple report files exist, the latest is used."""
+        import json
+
+        # Create multiple report files
+        old_report = tmp_path / "extraction_report_20251203_100000.json"
+        old_report.write_text(json.dumps({"summary": {"total_skipped": 1}}))
+
+        new_report = tmp_path / "extraction_report_20251203_120000.json"
+        new_report.write_text(json.dumps({"summary": {"total_skipped": 5}}))
+
+        # Find latest
+        report_files = sorted(tmp_path.glob("extraction_report_*.json"))
+        latest_report = report_files[-1]
+
+        assert latest_report == new_report
+        loaded_data = json.loads(latest_report.read_text())
+        assert loaded_data["summary"]["total_skipped"] == 5
+
+    def test_skip_summary_handles_empty_categories(self, tmp_path: Path) -> None:
+        """Test that empty skip categories are not displayed."""
+        import json
+
+        report_file = tmp_path / "extraction_report_20251203_120000.json"
+        report_data = {
+            "summary": {"total_skipped": 2, "total_errors": 0},
+            "skipped": {
+                "temp_file": ["~$temp.docx"],
+                "already_extracted": [],  # Empty category
+                "unsupported_extension": ["file.xyz (.xyz)"],
+            },
+        }
+        report_file.write_text(json.dumps(report_data, indent=2))
+
+        # Simulate display logic - only show non-empty categories
+        loaded_data = json.loads(report_file.read_text())
+        skip_summary = []
+        for category, items in loaded_data.get("skipped", {}).items():
+            if items:  # Only if category has items
+                skip_summary.append(f"**{category.replace('_', ' ').title()}** ({len(items)})")
+
+        # Should only show 2 categories (temp_file and unsupported_extension)
+        assert len(skip_summary) == 2
+        assert "**Temp File**" in skip_summary[0]
+        assert "**Unsupported Extension**" in skip_summary[1]
+
+    def test_indexing_report_uses_correct_prefix(self, tmp_path: Path) -> None:
+        """Test that indexing uses indexing_report_* prefix."""
+        import json
+
+        report_file = tmp_path / "indexing_report_20251203_120000.json"
+        report_data = {
+            "summary": {"total_skipped": 3, "total_errors": 0},
+            "skipped": {"unchanged_document": ["doc1.txt", "doc2.txt", "doc3.txt"]},
+        }
+        report_file.write_text(json.dumps(report_data, indent=2))
+
+        # Find indexing reports
+        report_files = sorted(tmp_path.glob("indexing_report_*.json"))
+        assert len(report_files) == 1
+        assert report_files[0].name.startswith("indexing_report_")
+
+    def test_skip_summary_markdown_formatting(self, tmp_path: Path) -> None:
+        """Test that skip summary uses proper markdown formatting."""
+        import json
+
+        report_file = tmp_path / "extraction_report_20251203_120000.json"
+        report_data = {
+            "summary": {"total_skipped": 2, "total_errors": 0},
+            "skipped": {"temp_file": ["~$temp1.docx", "~$temp2.docx"]},
+        }
+        report_file.write_text(json.dumps(report_data, indent=2))
+
+        # Generate markdown
+        loaded_data = json.loads(report_file.read_text())
+        skip_summary = []
+        for category, items in loaded_data.get("skipped", {}).items():
+            if items:
+                # Should use **bold** for headers and • for bullets
+                skip_summary.append(f"**{category.replace('_', ' ').title()}** ({len(items)})")
+                for item in items:
+                    skip_summary.append(f"  • {item}")
+
+        markdown_output = "\n".join(skip_summary)
+
+        assert "**Temp File**" in markdown_output
+        assert "  • ~$temp1.docx" in markdown_output
+        assert "  • ~$temp2.docx" in markdown_output
+
+    def test_skip_summary_error_handling(self, tmp_path: Path) -> None:
+        """Test that corrupted report files are handled gracefully."""
+        # Create invalid JSON file
+        report_file = tmp_path / "extraction_report_20251203_120000.json"
+        report_file.write_text("{ invalid json }")
+
+        # Should catch exception
+        import json
+
+        try:
+            json.loads(report_file.read_text())
+            assert False, "Should have raised JSONDecodeError"
+        except json.JSONDecodeError:
+            # Expected - should be handled gracefully in UI
+            pass

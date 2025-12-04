@@ -1,5 +1,6 @@
 """CLI command for searching the corpus."""
 
+import json
 import sys
 from pathlib import Path
 
@@ -56,6 +57,13 @@ from bloginator.search import CorpusSearcher
     is_flag=True,
     help="Show detailed scoring breakdown",
 )
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    help="Output format (default: table)",
+)
 def search(
     index_dir: Path,
     query: str | None,
@@ -67,6 +75,7 @@ def search(
     tags: str | None,
     interactive: bool,
     show_scores: bool,
+    output_format: str,
 ) -> None:
     """Search the corpus for relevant content.
 
@@ -128,6 +137,7 @@ def search(
                 format_filter,
                 tags_filter,
                 show_scores,
+                output_format,
             )
             console.print()  # Blank line between searches
 
@@ -147,6 +157,7 @@ def search(
             format_filter,
             tags_filter,
             show_scores,
+            output_format,
         )
 
 
@@ -161,8 +172,9 @@ def _display_results(
     format_filter: str | None,
     tags_filter: list[str] | None,
     show_scores: bool,
+    output_format: str,
 ) -> None:
-    """Display search results in a formatted table.
+    """Display search results in a formatted table or JSON.
 
     Args:
         console: Rich console for output
@@ -175,6 +187,7 @@ def _display_results(
         format_filter: Format filter
         tags_filter: Tags filter
         show_scores: Whether to show detailed scores
+        output_format: Output format (table or json)
     """
     # Perform search with weights
     results = searcher.search_with_weights(
@@ -188,7 +201,37 @@ def _display_results(
     )
 
     if not results:
-        console.print(f"[yellow]No results found for: '{query}'[/yellow]")
+        if output_format == "json":
+            print(json.dumps({"query": query, "results": []}, indent=2))
+        else:
+            console.print(f"[yellow]No results found for: '{query}'[/yellow]")
+        return
+
+    # JSON output format
+    if output_format == "json":
+        json_results = []
+        for result in results:
+            result_dict = {
+                "combined_score": result.combined_score,
+                "similarity_score": result.similarity_score,
+                "recency_score": result.recency_score,
+                "quality_score": result.quality_score,
+                "content": result.content,
+                "metadata": result.metadata,
+            }
+            json_results.append(result_dict)
+
+        output = {
+            "query": query,
+            "num_results": len(results),
+            "weights": {
+                "similarity": 1.0 - recency_w - quality_w,
+                "recency": recency_w,
+                "quality": quality_w,
+            },
+            "results": json_results,
+        }
+        print(json.dumps(output, indent=2, default=str))
         return
 
     # Create results table

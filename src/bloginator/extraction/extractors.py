@@ -1,9 +1,38 @@
 """Document content extractors for various file formats."""
 
+import os
 import re
+import sys
+from contextlib import contextmanager
 from pathlib import Path
 
 import fitz  # PyMuPDF
+
+
+@contextmanager
+def suppress_stderr():
+    """Context manager to suppress stderr output.
+
+    This is useful for suppressing C-level warnings from PyMuPDF
+    that clutter the output but are informational, not errors.
+    """
+    # Save original stderr
+    original_stderr = sys.stderr
+    original_stderr_fd = os.dup(2)
+
+    try:
+        # Redirect stderr to devnull
+        devnull = os.open(os.devnull, os.O_WRONLY)
+        os.dup2(devnull, 2)
+        sys.stderr = os.fdopen(devnull, 'w')
+
+        yield
+
+    finally:
+        # Restore original stderr
+        os.dup2(original_stderr_fd, 2)
+        sys.stderr = original_stderr
+        os.close(original_stderr_fd)
 
 
 def extract_text_from_pdf(pdf_path: Path) -> str:
@@ -25,13 +54,17 @@ def extract_text_from_pdf(pdf_path: Path) -> str:
         raise FileNotFoundError(f"PDF file not found: {pdf_path}")
 
     try:
-        doc = fitz.open(str(pdf_path))
-        text_parts = []
+        # Suppress MuPDF stderr warnings (syntax errors in PDF content streams)
+        # These are informational C-level warnings, not extraction errors
+        with suppress_stderr():
+            doc = fitz.open(str(pdf_path))
+            text_parts = []
 
-        for page in doc:
-            text_parts.append(page.get_text())
+            for page in doc:
+                text_parts.append(page.get_text())
 
-        doc.close()
+            doc.close()
+
         return "\n\n".join(text_parts)
     except Exception as e:
         raise ValueError(f"Failed to extract text from PDF: {e}") from e

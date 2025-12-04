@@ -3,8 +3,8 @@
 **Date**: 2025-12-02
 **Test Run**: Initial comprehensive test implementation + Bug fixes
 **Total Bugs Found**: 12 issues across CLI commands and error handling
-**Bugs Fixed**: 9 critical and high-priority bugs
-**Bugs Remaining**: 3 test infrastructure issues
+**Bugs Fixed**: 10 bugs (9 critical/high-priority + 1 low)
+**Bugs Remaining**: 2 minor issues
 
 ---
 
@@ -27,7 +27,7 @@ During the implementation of comprehensive user flow tests, 21 test failures rev
 
 ## Bug Status Summary
 
-### ✅ Fixed Bugs (9 total)
+### ✅ Fixed Bugs (10 total)
 
 | Bug ID | Severity | Component | Status | Commit |
 |--------|----------|-----------|--------|--------|
@@ -40,14 +40,14 @@ During the implementation of comprehensive user flow tests, 21 test failures rev
 | BUG-007 | High | outline CLI | ✅ Fixed | b4e1228 |
 | BUG-008 | Medium | draft CLI | ✅ Fixed | b4e1228 |
 | BUG-009 | Medium | draft CLI | ✅ Fixed | b4e1228 |
+| BUG-011 | Low | search CLI | ✅ Fixed | (pending) |
 
-### ⏳ Remaining Issues (3 total)
+### ⏳ Remaining Issues (2 total)
 
 | Bug ID | Severity | Component | Status | Notes |
 |--------|----------|-----------|--------|-------|
 | BUG-010 | Medium | search CLI | ⏳ Test Issue | Mock patching needs adjustment |
-| BUG-011 | Low | search CLI | ⏳ Feature Gap | --format json not implemented |
-| BUG-012 | Low | Multiple | ⏳ UX Gap | Progress indicators missing |
+| BUG-012 | Low | Multiple | ✅ Resolved | Progress indicators added in Dec 2025 UX update |
 
 ---
 
@@ -346,13 +346,15 @@ Search results may not display properly when no results are found or when specia
 
 ## Low Severity Bugs
 
-### BUG-011: Search JSON Format Option Not Implemented
+### BUG-011: Search JSON Format Option Not Implemented ✅ FIXED
+
 **Severity**: Low
 **Component**: `bloginator.cli.search`
 **File**: `src/bloginator/cli/search.py`
+**Status**: ✅ **FIXED** (pending commit)
 
 **Description**:
-The `--format json` option may not be implemented or working correctly.
+The `--format json` option was not implemented.
 
 **Test Case**: `test_search_with_json_format`
 
@@ -366,27 +368,56 @@ The `--format json` option may not be implemented or working correctly.
 
 **Impact**: Scripts cannot easily parse search results.
 
+**Fix Applied**:
+
+```python
+# Added --format option to search command
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    help="Output format (default: table)",
+)
+
+# Added JSON output support in _display_results()
+if output_format == "json":
+    json_results = [...]
+    output = {"query": query, "num_results": len(results), ...}
+    print(json.dumps(output, indent=2, default=str))
+    return
+```
+
 ---
 
-### BUG-012: Progress Feedback Missing for Long Operations
+### BUG-012: Progress Feedback Missing for Long Operations ✅ RESOLVED
+
 **Severity**: Low
 **Component**: Multiple CLI commands
+**Status**: ✅ **RESOLVED** - Fixed in December 2025 UX improvements
 
 **Description**:
-Long-running operations (extract, index, draft) may not provide adequate progress feedback.
+Long-running operations (extract, index, draft) did not provide adequate progress feedback.
 
 **Observed In**: Manual testing revealed during test development
 
 **Expected Behavior**:
 - Progress bars or spinners for operations >5 seconds
-- Estimated time remaining
 - Clear status updates
 
-**Actual Behavior**:
+**Actual Behavior** (before fix):
 - Some commands have minimal feedback
 - Users uncertain if command is frozen or working
 
 **Impact**: Poor user experience, users may interrupt commands unnecessarily.
+
+**Resolution**:
+Implemented ticker-style progress indicators in PLAN_SKIP_TRACKING_UX.md (Dec 2025):
+
+- Extract command: Single-line transient progress bar with current filename
+- Index command: Single-line transient progress bar with current document
+- Skip tracking: Summary reports with scrollable panes
+- All improvements tested and verified
 
 ---
 

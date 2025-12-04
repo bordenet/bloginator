@@ -6,11 +6,16 @@ from datetime import datetime
 from pathlib import Path
 
 from rich.console import Console
-from rich.progress import Progress
+from rich.progress import BarColumn, Progress, SpinnerColumn, TaskProgressColumn, TextColumn
 from rich.table import Table
 
-from bloginator.cli.error_reporting import ErrorTracker, create_error_panel
-from bloginator.cli.extract_utils import is_temp_file, load_existing_extractions, should_skip_file
+from bloginator.cli.error_reporting import ErrorTracker, SkipCategory, create_error_panel
+from bloginator.cli.extract_utils import (
+    is_temp_file,
+    load_existing_extractions,
+    should_skip_file,
+    wait_for_file_availability,
+)
 from bloginator.corpus_config import CorpusConfig, CorpusSource
 from bloginator.extraction import (
     count_words,
@@ -64,6 +69,11 @@ def extract_from_config(
         console=console,
     )
 
+    # Save report to file if there were skips or errors
+    report_file: Path | None = None
+    if error_tracker.total_skipped > 0 or error_tracker.total_errors > 0:
+        report_file = error_tracker.save_to_file(output, prefix="extraction")
+
     # Print summary
     console.print(f"\n[bold green]Total: {total_extracted} document(s) extracted[/bold green]")
     if total_skipped > 0:
@@ -73,6 +83,10 @@ def extract_from_config(
     if total_failed > 0:
         console.print(f"[bold yellow]Total: {total_failed} document(s) failed[/bold yellow]")
     console.print(f"[cyan]Output directory: {output}[/cyan]")
+
+    # Print skip summary if there were skips (with file path reference)
+    if error_tracker.total_skipped > 0:
+        error_tracker.print_skip_summary(console, show_file_path=report_file)
 
     # Print error summary if there were failures
     if total_failed > 0:
@@ -167,6 +181,7 @@ def _process_all_sources(
     for source_cfg in enabled_sources:
         # Skip URL sources (not implemented)
         if source_cfg.is_url():
+            error_tracker.record_skip(SkipCategory.URL_SOURCE, source_cfg.name)
             console.print(
                 f"[yellow]⊘ Skipping URL source '{source_cfg.name}' (not yet implemented)[/yellow]"
             )
@@ -224,8 +239,12 @@ def _resolve_source_path(
         return None
 
     if not resolved_path.exists():
+        error_tracker.record_skip(
+            SkipCategory.PATH_NOT_FOUND, f"{source_cfg.name}: {resolved_path}"
+        )
         console.print(
-            f"[yellow]⊘ Skipping '{source_cfg.name}' (path does not exist: {resolved_path})[/yellow]"
+            f"[yellow]⊘ Skipping '{source_cfg.name}' "
+            f"(path does not exist: {resolved_path})[/yellow]"
         )
         return None
 
@@ -260,7 +279,7 @@ def _process_source(
     console.print(f"[cyan]Processing '{source_cfg.name}' from {resolved_path}...[/cyan]")
 
     # Get files from this source
-    files = _collect_source_files(resolved_path, corpus_config)
+    files = _collect_source_files(resolved_path, corpus_config, error_tracker)
 
     if not files:
         console.print(f"  [dim]No files found in '{source_cfg.name}'[/dim]")
@@ -289,12 +308,15 @@ def _process_source(
     return extracted_count, skipped_count, failed_count
 
 
-def _collect_source_files(resolved_path: Path, corpus_config: CorpusConfig) -> list[Path]:
+def _collect_source_files(
+    resolved_path: Path, corpus_config: CorpusConfig, error_tracker: ErrorTracker
+) -> list[Path]:
     """Collect files from a source path.
 
     Args:
         resolved_path: Resolved source path
         corpus_config: Corpus configuration
+        error_tracker: Error tracker for skip reporting
 
     Returns:
         List of file paths to extract
@@ -303,7 +325,9 @@ def _collect_source_files(resolved_path: Path, corpus_config: CorpusConfig) -> l
 
     if resolved_path.is_file():
         # Skip temp files even for single files
-        if not is_temp_file(resolved_path.name):
+        if is_temp_file(resolved_path.name):
+            error_tracker.record_skip(SkipCategory.TEMP_FILE, resolved_path.name)
+        else:
             files = [resolved_path]
     else:
         supported_extensions = set(corpus_config.extraction.include_extensions)
@@ -317,15 +341,21 @@ def _collect_source_files(resolved_path: Path, corpus_config: CorpusConfig) -> l
             for filename in filenames:
                 # Skip temp files
                 if is_temp_file(filename):
+                    error_tracker.record_skip(SkipCategory.TEMP_FILE, filename)
                     continue
 
                 # Check ignore patterns
                 if any(filename.startswith(p.rstrip("*")) for p in ignore_patterns):
+                    error_tracker.record_skip(SkipCategory.IGNORE_PATTERN, filename)
                     continue
 
                 file_path = root_path / filename
                 if file_path.suffix.lower() in supported_extensions:
                     files.append(file_path)
+                else:
+                    error_tracker.record_skip(
+                        SkipCategory.UNSUPPORTED_EXTENSION, f"{filename} ({file_path.suffix})"
+                    )
 
     return files
 
@@ -339,7 +369,10 @@ def _extract_source_files(
     error_tracker: ErrorTracker,
     console: Console,
 ) -> tuple[int, int, int]:
-    """Extract files from a source with progress tracking.
+    """Extract files from a source with ticker-style progress.
+
+    Uses a single-line ticker that shows current file being processed,
+    then disappears when complete.
 
     Returns:
         Tuple of (extracted_count, skipped_count, failed_count)
@@ -348,15 +381,55 @@ def _extract_source_files(
     skipped_count = 0
     failed_count = 0
 
-    with Progress() as progress:
-        task = progress.add_task(f"[green]Processing {source_cfg.name}...", total=len(files))
+    # Create progress with spinner and ticker-style current file display
+    progress = Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        TaskProgressColumn(),
+        TextColumn("• {task.fields[current_file]}"),
+        console=console,
+        transient=True,  # Ticker disappears when done
+    )
+
+    with progress:
+        task = progress.add_task(
+            f"[green]{source_cfg.name}",
+            total=len(files),
+            current_file="starting...",
+        )
 
         for file_path in files:
+            # Update ticker with current file (show full path)
+            display_path = str(file_path)
+            progress.update(task, current_file=display_path)
+
             try:
                 # Check if we should skip this file
                 skip, doc_id = should_skip_file(file_path, existing_docs, force)
 
                 if skip:
+                    error_tracker.record_skip(SkipCategory.ALREADY_EXTRACTED, str(file_path))
+                    # Output parseable skip event for Streamlit
+                    progress.console.print(
+                        f"[SKIP] {file_path} (already_extracted)", highlight=False
+                    )
+                    skipped_count += 1
+                    progress.update(task, advance=1)
+                    continue
+
+                # Wait for file availability (critical for OneDrive files)
+                # OneDrive files may appear in directory but have 0 bytes until downloaded
+                if not wait_for_file_availability(file_path, timeout_seconds=10.0):
+                    # File not available after timeout - skip it
+                    error_tracker.record_skip(
+                        SkipCategory.PATH_NOT_FOUND,
+                        f"{file_path} (not available - OneDrive download timeout)",
+                    )
+                    # Output parseable skip event for Streamlit
+                    progress.console.print(
+                        f"[SKIP] {file_path} (path_not_found: OneDrive timeout)", highlight=False
+                    )
                     skipped_count += 1
                     progress.update(task, advance=1)
                     continue
@@ -411,7 +484,8 @@ def _extract_source_files(
                 # Categorize and track error
                 category = error_tracker.categorize_exception(e, file_path)
                 error_tracker.record_error(category, f"{source_cfg.name}/{file_path.name}", e)
-                console.print(f"  [red]✗ {file_path.name}: {type(e).__name__}[/red]")
+                # Print error on separate line (progress is transient so this works)
+                progress.console.print(f"  [red]✗ {file_path.name}: {type(e).__name__}[/red]")
                 failed_count += 1
 
             progress.update(task, advance=1)

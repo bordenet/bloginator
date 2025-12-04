@@ -14,6 +14,7 @@ from bloginator.cli.extract_utils import (
     is_temp_file,
     load_existing_extractions,
     should_skip_file,
+    wait_for_file_availability,
 )
 from bloginator.extraction import (
     count_words,
@@ -285,6 +286,12 @@ def _extract_and_save_document(
         quality: Quality rating
         tag_list: Tags to apply
     """
+    # Wait for file availability (critical for OneDrive files)
+    if not wait_for_file_availability(file_path, timeout_seconds=10.0):
+        raise FileNotFoundError(
+            f"File not available after 10s timeout (OneDrive download failed): {file_path}"
+        )
+
     # Extract text
     text = extract_text_from_file(file_path)
 
