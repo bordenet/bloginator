@@ -181,10 +181,10 @@ class TestLLMRoundTrip:
 
 | Task | Status | Commit | Timestamp |
 |------|--------|--------|-----------|
-| Create test_cli_workflows.py | ✅ Complete | TBD | 2024-12-04 16:00 |
-| Create test_llm_roundtrip.py | 🔄 In Progress | - | 2024-12-04 16:00 |
-| All tests passing | 🔄 In Progress | - | - |
-| Coverage meets 80% | ⬜ Not Started | - | - |
+| Create test_cli_workflows.py | ✅ Complete | b638e00 | 2024-12-04 16:00 |
+| Create test_llm_roundtrip.py | ✅ Complete | TBD | 2024-12-04 16:30 |
+| All tests passing | ✅ Complete | TBD | 2024-12-04 16:30 |
+| Coverage meets 80% | ⬜ Pending validation | - | - |
 
 **Phase 1 Details (CLI E2E Tests)**:
 - 17 tests implemented covering all major CLI commands
@@ -193,6 +193,17 @@ class TestLLMRoundTrip:
   TestDiffAndRevertCommands, TestFullWorkflow
 - Full extract → index → search → outline workflow tested with mock LLM
 - All tests pass in ~15 seconds
+
+**Phase 2 Details (LLM Round-Trip Tests)**:
+- 15 tests implemented covering LLM generation cycle
+- Test classes: TestMockLLMClient, TestLLMClientFactory,
+  TestOutlineGenerationRoundTrip, TestDraftGenerationRoundTrip,
+  TestLLMResponseParsing, TestQualityAssuranceIntegration
+- Mock LLM client direct testing (availability, response generation, request detection)
+- Factory pattern with BLOGINATOR_LLM_MOCK=true
+- Complete outline and draft generation with coverage analysis
+- Quality assurance integration (slop detection, QA, retry orchestrator)
+- All tests pass in ~4 seconds
 
 ---
 
