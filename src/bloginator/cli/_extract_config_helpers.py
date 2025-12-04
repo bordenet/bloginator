@@ -239,9 +239,10 @@ def collect_source_files(
 
     # Convert SMB URLs to mounted local paths
     if isinstance(resolved_path, str) and resolved_path.startswith("smb://"):
-        resolved_path = resolve_smb_path(resolved_path, error_tracker)
-        if not resolved_path:
+        smb_resolved = resolve_smb_path(resolved_path, error_tracker)
+        if not smb_resolved:
             return files
+        resolved_path = smb_resolved
 
     # Type guard: resolved_path must be Path at this point
     if not isinstance(resolved_path, Path):
