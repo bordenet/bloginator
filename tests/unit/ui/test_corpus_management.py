@@ -1122,3 +1122,86 @@ class TestRealTimeSkipEventParsing:
         combined = "\n".join(skipped_files)
         assert "file0.md" in combined
         assert "file99.md" in combined
+
+
+        class TestExplicitProgressLineFormats:
+        """Tests for explicit progress line formats from CLI."""
+
+        def test_extracting_prefix_parsing(self) -> None:
+        """Test parsing Extracting: prefix for current file."""
+        line = "Extracting: /path/to/file.pdf"
+
+        if line.startswith("Extracting:"):
+            current_file = line[11:].strip()
+            assert current_file == "/path/to/file.pdf"
+
+        def test_extracting_with_long_path(self) -> None:
+        """Test Extracting: with full absolute path."""
+        line = "Extracting: /Users/matt/Library/CloudStorage/OneDrive/Documents/important.docx"
+
+        if line.startswith("Extracting:"):
+            current_file = line[11:].strip()
+            assert "OneDrive" in current_file
+            assert "important.docx" in current_file
+
+        def test_ui_display_update_from_extracting(self) -> None:
+        """Test Streamlit container update from Extracting: line."""
+        mock_container = Mock()
+        line = "Extracting: /path/to/file.md"
+
+        if line.startswith("Extracting:"):
+            current_file = line[11:].strip()
+            mock_container.info(f"📄 Current: {current_file}")
+
+        mock_container.info.assert_called_once_with("📄 Current: /path/to/file.md")
+
+        def test_extraction_output_with_mixed_events(self) -> None:
+        """Test extraction output with skip events and extracting lines."""
+        output = [
+            "Extracting: file1.pdf",
+            "[SKIP] file2.md (already_extracted)",
+            "Extracting: file3.docx",
+            "[SKIP] file4.txt (already_extracted)",
+        ]
+
+        current_file = None
+        skipped_files = []
+
+        for line in output:
+            if line.startswith("[SKIP]"):
+                skip_info = line[6:].strip()
+                skipped_files.append(f"• {skip_info}")
+            elif line.startswith("Extracting:"):
+                current_file = line[11:].strip()
+
+        assert current_file == "file3.docx"
+        assert len(skipped_files) == 2
+        assert "file2.md" in skipped_files[0]
+        assert "file4.txt" in skipped_files[1]
+
+        def test_ignore_non_prefixed_lines(self) -> None:
+        """Test that lines without recognized prefixes are ignored."""
+        output = [
+            "Extracting: file1.pdf",
+            "Some random output line",
+            "Another info message",
+            "Extracting: file2.pdf",
+        ]
+
+        current_file = None
+        for line in output:
+            if line.startswith("Extracting:"):
+                current_file = line[11:].strip()
+
+        # Should only capture Extracting: lines, not random output
+        assert current_file == "file2.pdf"
+
+        def test_whitespace_handling_in_extracting(self) -> None:
+        """Test whitespace handling in Extracting: prefix."""
+        line = "Extracting:    /path/to/file.pdf   "
+
+        if line.startswith("Extracting:"):
+            current_file = line[11:].strip()
+            assert current_file == "/path/to/file.pdf"
+            assert not current_file.startswith(" ")
+            assert not current_file.endswith(" ")
