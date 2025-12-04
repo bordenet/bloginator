@@ -1,8 +1,22 @@
 # File Size Refactoring - Progress Checkpoint
 
-**Status:** IN PROGRESS
+**Status:** IN PROGRESS (2/10 tasks complete)
 **Last Updated:** 2025-12-03
 **Base Commit:** 9973a26 (retry logic for Streamlit generation)
+**Progress Commits:** 63f9aee (TASK 1), 1660329 (TASK 4)
+
+## Quick Start for Next Agent
+
+If continuing this refactoring:
+1. **Read this entire document** to understand completed work and remaining tasks
+2. **Start at TASK 5** (searcher.py) - see specification below
+3. **Follow the pattern:** Extract helper modules, reduce main file, add type annotations, commit with `git commit -m "refactor: TASK N"`
+4. **Quality gates:** All files must pass `./scripts/fast-quality-gate.sh` before commit
+5. **Update this document** as you complete each task (add ✅, remove from todo)
+
+**Current Progress:** 2/10 files refactored. **722 + 489 = 1,211 lines reduced to 810 + 529 = 1,339 lines** (better organization, clearer separation).
+
+---
 
 ## Overview
 
@@ -34,24 +48,31 @@ Refactoring 10 Python files (5,390 lines → target <4,000 lines) to ensure no s
 
 ---
 
+### ✅ TASK 4: Refactor llm_mock.py (489 → 5 files) - COMPLETE
+
+**Status:** COMPLETE ✓ (commit: 1660329)
+
+**Files Created:**
+- `src/bloginator/generation/llm_mock.py` (18 lines) - re-export stub ✓
+- `src/bloginator/generation/_llm_assistant_client.py` (153 lines) ✓
+- `src/bloginator/generation/_llm_interactive_client.py` (117 lines) ✓
+- `src/bloginator/generation/_llm_mock_client.py` (90 lines) ✓
+- `src/bloginator/generation/_llm_mock_responses.py` (151 lines) ✓
+
+**Total:** 529 lines (489 → 529 with clearer separation)
+
+**Changes:**
+- AssistantLLMClient: File-based communication with AI assistant
+- InteractiveLLMClient: Prompts user for responses
+- MockLLMClient: Deterministic mock responses for testing
+- Response helpers: Outline/draft detection and generation
+- All backward compatible via re-exports
+
+**Quality:** All quality gates passing, mypy clean
+
+---
+
 ## Remaining Tasks
-
-### 📋 TASK 2-3: Corpus Extraction Engine Decomposition
-
-After TASK 1 split, proceed with:
-- Extract `_run_extraction()` to `_corpus_extraction_engine.py` (150 lines)
-- Extract source management UI to `_corpus_extraction_sources.py` (180 lines)
-- Clean up `_corpus_extraction.py` to 100 lines (orchestrator)
-
-### 📋 TASK 4: Refactor llm_mock.py (489 → 2-3 files)
-
-**Target:** Split 3 client classes into separate modules
-- `src/bloginator/generation/_llm_assistant_client.py` (~150 lines)
-- `src/bloginator/generation/_llm_interactive_client.py` (~120 lines)
-- `src/bloginator/generation/_llm_mock_client.py` (~150 lines)
-- `src/bloginator/generation/llm_mock.py` (export stub, ~20 lines)
-
-**Notes:** Classes to extract: `AssistantLLMClient`, `InteractiveLLMClient`, `MockLLMClient`
 
 ### 📋 TASK 5: Refactor searcher.py (488 → 2 files)
 
