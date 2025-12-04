@@ -388,7 +388,7 @@ pytest --cov=src --cov-branch --cov-report=term --cov-fail-under=85
 **Before EVERY PR**:
 - [ ] All CI checks green
 - [ ] Documentation updated
-- [ ] CHANGELOG.md updated
+- [ ] docs/CHANGELOG.md updated
 - [ ] Cross-references validated
 - [ ] No prohibited language in docs
 

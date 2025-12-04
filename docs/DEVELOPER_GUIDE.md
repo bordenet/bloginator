@@ -887,7 +887,7 @@ pytest tests/benchmarks/ --benchmark-only
 - [ ] All tests pass
 - [ ] Pre-commit hooks pass
 - [ ] Documentation updated
-- [ ] CHANGELOG.md updated (if applicable)
+- [ ] docs/CHANGELOG.md updated (if applicable)
 - [ ] No proprietary content in examples
 
 ### Code Review Criteria

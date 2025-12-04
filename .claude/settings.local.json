@@ -75,7 +75,17 @@
       "Bash(python3.11:*)",
       "Bash(git tag:*)",
       "Bash(mypy:*)",
-      "Bash(streamlit run:*)"
+      "Bash(streamlit run:*)",
+      "Bash(BLOGINATOR_LLM_TIMEOUT=90 python3:*)",
+      "Bash(BLOGINATOR_LLM_TIMEOUT=invalid python3:*)",
+      "Bash(BLOGINATOR_LLM_TIMEOUT=0 python3:*)",
+      "Bash(BLOGINATOR_LLM_TIMEOUT=100000 python3:*)",
+      "Bash(. venv/bin/activate)",
+      "Bash(venv/bin/pytest tests/unit/generation/test_llm_factory.py -v --no-cov)",
+      "Bash(./run-e2e.sh:*)",
+      "Bash(do)",
+      "Bash(echo:*)",
+      "Bash(git mv:*)"
     ],
     "deny": [],
     "ask": []
