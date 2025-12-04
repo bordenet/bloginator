@@ -465,6 +465,52 @@ validate_runtime() {
     task_ok "Runtime environment validated"
 }
 
+setup_sample_corpus() {
+    task_start "Setting up sample corpus for testing"
+
+    local corpus_dir="${REPO_ROOT}/test-corpus"
+    local ec_dir="${corpus_dir}/Engineering_Culture"
+    local ec_repo="https://github.com/bordenet/Engineering_Culture.git"
+
+    # Create corpus directory (gitignored)
+    mkdir -p "$corpus_dir"
+
+    # Check if Engineering_Culture already exists and is up-to-date
+    if [[ -d "$ec_dir/.git" ]]; then
+        if is_cached "sample-corpus" && [[ $FORCE_INSTALL == false ]]; then
+            task_skip "Sample corpus (cached)"
+            return 0
+        fi
+
+        # Update existing clone
+        verbose "Updating Engineering_Culture from GitHub..."
+        if (cd "$ec_dir" && git fetch origin && git reset --hard origin/main) > /dev/null 2>&1; then
+            mark_cached "sample-corpus"
+            task_ok "Sample corpus updated"
+            return 0
+        else
+            verbose "Update failed, will re-clone..."
+            rm -rf "$ec_dir"
+        fi
+    fi
+
+    # Clone Engineering_Culture repo
+    verbose "Cloning Engineering_Culture from GitHub..."
+    if git clone --depth 1 "$ec_repo" "$ec_dir" > /dev/null 2>&1; then
+        mark_cached "sample-corpus"
+
+        # Count downloaded files
+        local md_count
+        md_count=$(find "$ec_dir" -name "*.md" -type f | wc -l | tr -d ' ')
+        verbose "Downloaded $md_count markdown files"
+
+        task_ok "Sample corpus ready ($md_count documents)"
+    else
+        task_warn "Could not download sample corpus (continuing without it)"
+        verbose "You can manually clone: git clone $ec_repo $ec_dir"
+    fi
+}
+
 ################################################################################
 # Main
 ################################################################################
@@ -483,6 +529,7 @@ main() {
     setup_dependencies
     setup_precommit_hooks
     validate_runtime
+    setup_sample_corpus
 
     echo ""
     print_header "✓ Setup complete! $(get_elapsed_time)"
