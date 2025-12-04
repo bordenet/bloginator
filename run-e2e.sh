@@ -180,6 +180,22 @@ confirm() {
     [[ "$response" =~ ^[Yy]$ ]]
 }
 
+run_bloginator() {
+    if [[ "$VERBOSE" -eq 1 ]]; then
+        bloginator "$@"
+    else
+        bloginator "$@" > /dev/null 2>&1
+    fi
+}
+
+run_pip_install() {
+    if [[ "$VERBOSE" -eq 1 ]]; then
+        python -m pip install -e ".[dev]"
+    else
+        python -m pip install -q -e ".[dev]" > /dev/null 2>&1
+    fi
+}
+
 ################################################################################
 # Workflow Tasks
 ################################################################################
@@ -187,9 +203,19 @@ confirm() {
 step_setup_environment() {
     task_start "Setting up environment"
 
+    if command -v python3.12 &> /dev/null; then
+        PYTHON_EXEC="python3.12"
+    elif command -v python3.11 &> /dev/null; then
+        PYTHON_EXEC="python3.11"
+    elif command -v python3.10 &> /dev/null; then
+        PYTHON_EXEC="python3.10"
+    else
+        PYTHON_EXEC="python3"
+    fi
+
     if [[ ! -d "venv" ]]; then
-        verbose "Creating Python virtual environment..."
-        python3 -m venv venv > /dev/null 2>&1
+        verbose "Creating Python virtual environment with $PYTHON_EXEC..."
+        "$PYTHON_EXEC" -m venv venv > /dev/null 2>&1
         verbose "Created venv"
     fi
 
@@ -197,7 +223,7 @@ step_setup_environment() {
     source venv/bin/activate
 
     verbose "Installing bloginator..."
-    if ! python -m pip install -q -e ".[dev]" 2>/dev/null; then
+    if ! run_pip_install; then
         task_fail "Failed to install dependencies"
         exit 1
     fi
@@ -261,7 +287,7 @@ step_extract_corpus() {
     fi
 
     verbose "Extracting documents..."
-    if ! bloginator extract -o output/extracted --config corpus/corpus.yaml > /dev/null 2>&1; then
+    if ! run_bloginator extract -o output/extracted --config corpus/corpus.yaml; then
         task_fail "Failed to extract corpus"
         exit 1
     fi
@@ -274,7 +300,7 @@ step_build_index() {
     task_start "Building search index"
 
     verbose "Indexing extracted documents..."
-    if ! bloginator index output/extracted -o .bloginator/chroma > /dev/null 2>&1; then
+    if ! run_bloginator index output/extracted -o .bloginator/chroma; then
         task_fail "Failed to build index"
         exit 1
     fi
@@ -287,7 +313,7 @@ step_search_demo() {
     task_start "Running search demo"
 
     verbose "Searching for 'kubernetes devops'..."
-    if ! bloginator search .bloginator/chroma "kubernetes devops" -n 5 > /dev/null 2>&1; then
+    if ! run_bloginator search .bloginator/chroma "kubernetes devops" -n 5; then
         task_warn "Search query failed (non-fatal)"
     fi
 
@@ -300,14 +326,14 @@ step_generate_outline() {
     mkdir -p output/generated
 
     verbose "Creating outline..."
-    if ! bloginator outline \
+    if ! run_bloginator outline \
         --index .bloginator/chroma \
         --title "Building a DevOps Culture at Scale" \
         --keywords "devops,kubernetes,automation,culture" \
         --thesis "Effective DevOps requires technical infrastructure AND organizational transformation" \
         --sections 5 \
         --output output/generated/outline \
-        --format both > /dev/null 2>&1; then
+        --format both; then
         task_fail "Failed to generate outline"
         exit 1
     fi
@@ -325,10 +351,10 @@ step_generate_draft() {
     fi
 
     verbose "Creating draft..."
-    if ! bloginator draft \
+    if ! run_bloginator draft \
         --index .bloginator/chroma \
         --outline output/generated/outline.json \
-        --output output/generated/draft.md > /dev/null 2>&1; then
+        --output output/generated/draft.md; then
         task_fail "Failed to generate draft"
         exit 1
     fi
