@@ -439,6 +439,9 @@ step_cleanup_state() {
 
 run_generation_workflow() {
     task_start "Running generation-only workflow"
+    verbose "Using bloginator at: $(which bloginator)"
+    verbose "BLOGINATOR_LLM_PROVIDER is: $BLOGINATOR_LLM_PROVIDER"
+    verbose "BLOGINATOR_LLM_TIMEOUT is: $BLOGINATOR_LLM_TIMEOUT"
 
     # Validate required arguments
     if [[ -z "$BLOG_TITLE" || -z "$BLOG_KEYWORDS" || -z "$BLOG_THESIS" ]]; then

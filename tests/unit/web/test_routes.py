@@ -1,4 +1,11 @@
-"""Tests for web UI routes."""
+"""Tests for web UI routes - skipped by design (optional FastAPI dependency).
+
+These tests are designed to run only when FastAPI is installed via:
+    pip install bloginator[web]
+
+The conditional skip mechanism properly handles missing optional dependencies,
+so no action is needed to "enable" these tests.
+"""
 
 import pytest
 
