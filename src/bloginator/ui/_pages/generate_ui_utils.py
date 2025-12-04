@@ -1,6 +1,7 @@
 """Shared utilities for content generation UI components."""
 
 import subprocess
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -81,38 +82,66 @@ def create_output_directory() -> Path:
     return output_dir
 
 
-def run_bloginator_command(cmd: list[str], timeout: int = 600) -> tuple[bool, str, str]:
-    """Run bloginator CLI command with timeout.
+def run_bloginator_command(
+    cmd: list[str], timeout: int = 600, max_retries: int = 3
+) -> tuple[bool, str, str]:
+    """Run bloginator CLI command with retry logic and timeout.
+
+    Uses exponential backoff on timeout: 1x, 2x, 4x the base timeout.
 
     Args:
         cmd: Command and arguments as list
-        timeout: Timeout in seconds
+        timeout: Timeout in seconds for first attempt
+        max_retries: Maximum number of retry attempts on timeout
 
     Returns:
         Tuple of (success, stdout, stderr).
     """
     st.info(f"Running command: `{' '.join(cmd)}`")
-    try:
-        # nosec B603 - subprocess without shell=True is safe, cmd is built from controlled inputs
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)  # nosec B603
 
-        st.info(f"Command finished with return code: `{result.returncode}`")
-        if result.stdout:
-            with st.expander("Command stdout"):
-                st.code(result.stdout, language="text")
-        if result.stderr:
-            with st.expander("Command stderr"):
-                st.code(result.stderr, language="text")
+    for attempt_num in range(max_retries + 1):
+        attempt_timeout = timeout * (2**attempt_num)  # Exponential backoff
+        if attempt_num > 0:
+            st.info(f"Retry attempt {attempt_num} (timeout: {attempt_timeout // 60} minutes)...")
 
-        if result.returncode == 0:
-            return True, result.stdout, result.stderr
-        else:
-            return False, result.stdout, result.stderr
+        try:
+            # nosec B603 - subprocess without shell=True is safe, cmd is built from controlled inputs
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, timeout=attempt_timeout
+            )  # nosec B603
 
-    except subprocess.TimeoutExpired:
-        return False, "", f"Command timed out after {timeout} seconds"
-    except Exception as e:
-        return False, "", str(e)
+            st.info(f"Command finished with return code: `{result.returncode}`")
+            if result.stdout:
+                with st.expander("Command stdout"):
+                    st.code(result.stdout, language="text")
+            if result.stderr:
+                with st.expander("Command stderr"):
+                    st.code(result.stderr, language="text")
+
+            if result.returncode == 0:
+                return True, result.stdout, result.stderr
+            else:
+                return False, result.stdout, result.stderr
+
+        except subprocess.TimeoutExpired:
+            if attempt_num < max_retries:
+                st.warning(
+                    f"⏱️ Attempt {attempt_num + 1} timed out "
+                    f"({attempt_timeout // 60} min). Retrying with longer timeout..."
+                )
+                time.sleep(2)  # Brief delay before retry
+                continue
+            else:
+                # Final timeout after all retries exhausted
+                return (
+                    False,
+                    "",
+                    f"Command timed out after {attempt_timeout} seconds (all retries exhausted)",
+                )
+        except Exception as e:
+            return False, "", str(e)
+
+    return False, "", "Unexpected error in command execution"
 
 
 def display_generation_error(
@@ -125,8 +154,22 @@ def display_generation_error(
         stderr: Standard error output
         timeout_seconds: Optional timeout duration if timed out
     """
-    if timeout_seconds:
-        st.error(f"✗ Generation timed out (>{timeout_seconds // 60} minutes)")
+    if "timed out" in stderr.lower() or "timeout" in stderr.lower():
+        st.error("✗ Generation timed out after all retry attempts")
+        st.info(
+            """
+            Generation took too long even with extended timeouts and retries.
+            This can happen with very large corpuses or slow LLM responses.
+
+            Try:
+            - Reducing corpus size or filtering documents
+            - Using fewer sections/sources per section
+            - Increasing available system resources
+            """
+        )
+        if stderr:
+            with st.expander("Error Details"):
+                st.code(stderr, language="text")
     elif not success:
         st.error("✗ Generation failed")
         if stderr:
