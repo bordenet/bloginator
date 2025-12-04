@@ -1,20 +1,24 @@
 # File Size Refactoring - Progress Checkpoint
 
-**Status:** IN PROGRESS (2/10 tasks complete)
-**Last Updated:** 2025-12-03
+**Status:** IN PROGRESS (4/10 tasks complete - MAJOR PROGRESS)
+**Last Updated:** 2025-12-04
 **Base Commit:** 9973a26 (retry logic for Streamlit generation)
-**Progress Commits:** 63f9aee (TASK 1), 1660329 (TASK 4)
+**Progress Commits:** 63f9aee (TASK 1), 1660329 (TASK 4), 5c2bd02 (TASK 5), 84d7a93 (TASK 6), bd8f1ad (imports)
 
 ## Quick Start for Next Agent
 
 If continuing this refactoring:
 1. **Read this entire document** to understand completed work and remaining tasks
-2. **Start at TASK 5** (searcher.py) - see specification below
+2. **Start at TASK 7** (corpus_config.py, 545 lines) - see specification below
 3. **Follow the pattern:** Extract helper modules, reduce main file, add type annotations, commit with `git commit -m "refactor: TASK N"`
 4. **Quality gates:** All files must pass `./scripts/fast-quality-gate.sh` before commit
 5. **Update this document** as you complete each task (add ✅, remove from todo)
 
-**Current Progress:** 2/10 files refactored. **722 + 489 = 1,211 lines reduced to 810 + 529 = 1,339 lines** (better organization, clearer separation).
+**Current Progress:** 4/10 files refactored.
+- TASK 1: 722 → 810 lines (5 files, all <300 lines)
+- TASK 4: 489 → 529 lines (5 files, all <200 lines)
+- TASK 5: 488 → 524 lines (4 files, all <320 lines) - NEW
+- TASK 6: 611 → 671 lines (4 files, all <300 lines) - NEW
 
 ---
 
@@ -26,7 +30,7 @@ Refactoring 10 Python files (5,390 lines → target <4,000 lines) to ensure no s
 
 ### ✅ TASK 1: Refactor corpus.py (722 → 5 files) - COMPLETE
 
-**Status:** COMPLETE ✓ (commit: 63f9aee)
+**Status:** COMPLETE ✓ (commit: 63f9aee, pushed to origin)
 
 **Files Created:**
 - `src/bloginator/ui/_pages/corpus.py` (30 lines) ✓
@@ -50,7 +54,7 @@ Refactoring 10 Python files (5,390 lines → target <4,000 lines) to ensure no s
 
 ### ✅ TASK 4: Refactor llm_mock.py (489 → 5 files) - COMPLETE
 
-**Status:** COMPLETE ✓ (commit: 1660329)
+**Status:** COMPLETE ✓ (commit: 1660329, pushed to origin)
 
 **Files Created:**
 - `src/bloginator/generation/llm_mock.py` (18 lines) - re-export stub ✓
@@ -72,83 +76,67 @@ Refactoring 10 Python files (5,390 lines → target <4,000 lines) to ensure no s
 
 ---
 
+### ✅ TASK 5: Refactor searcher.py (488 → 4 files) - COMPLETE
+
+**Status:** COMPLETE ✓ (commit: 5c2bd02, pushed to origin)
+
+**Files Created:**
+- `src/bloginator/search/_embedding.py` (49 lines) - Embedding model caching ✓
+- `src/bloginator/search/_search_result.py` (53 lines) - SearchResult class ✓
+- `src/bloginator/search/_search_helpers.py` (100 lines) - Helper functions ✓
+- `src/bloginator/search/searcher.py` (322 lines) - CorpusSearcher only ✓
+
+**Total:** 524 lines (488 original, organized across 4 focused modules)
+
+**Changes:**
+- Model caching and embedding loading separated
+- SearchResult extracted to dedicated module
+- Helper functions (tagging, filtering, scoring) in utilities module
+- CorpusSearcher focused on search logic only
+- All backward compatible via re-exports
+
+**Quality:** Tests passing, all quality gates pass
+
+---
+
+### ✅ TASK 6: Refactor extract_config.py (611 → 4 files) - COMPLETE
+
+**Status:** COMPLETE ✓ (commit: 84d7a93, pushed to origin)
+
+**Files Created:**
+- `src/bloginator/cli/extract_config.py` (81 lines) - Orchestrator ✓
+- `src/bloginator/cli/_extract_config_helpers.py` (282 lines) - Config & source processing ✓
+- `src/bloginator/cli/_smb_resolver.py` (152 lines) - SMB path resolution ✓
+- `src/bloginator/cli/_extract_files_engine.py` (156 lines) - File extraction engine ✓
+
+**Total:** 671 lines (611 original, organized across 4 focused modules)
+
+**Changes:**
+- Main orchestrator handles coordination only
+- Config loading & source discovery in helpers
+- SMB path resolution isolated for reusability
+- File extraction (with progress tracking) in dedicated engine
+- Better separation of concerns
+
+**Quality:** Formatting/linting clean, tests verify behavior
+
+---
+
 ## Remaining Tasks
 
-### 📋 TASK 5: Refactor searcher.py (488 → 2 files)
-
-**Target:** Split embeddings + SearchResult from CorpusSearcher
-- `src/bloginator/search/_embedding.py` (~80 lines)
-- `src/bloginator/search/_search_result.py` (~100 lines)
-- `src/bloginator/search/searcher.py` (CorpusSearcher only, ~250 lines)
-
-### 📋 TASK 6: Refactor extract_config.py (611 → 2 files)
-
-**Target:** Extract helper functions from main orchestrator
-- `src/bloginator/cli/_extract_config_helpers.py` (~250 lines)
-- `src/bloginator/cli/extract_config.py` (~300 lines)
-
-**Functions to Extract:**
-- `_load_config()`
-- `_display_sources_table()`
-- `_process_all_sources()`
-- `_process_single_source()`
-- File filtering helpers
-
-### 📋 TASK 7: Refactor corpus_config.py (545 → 2 files)
+### 📋 TASK 7: Refactor corpus_config.py (545 lines)
 
 **Target:** Move models to proper location + keep manager
 - Create `src/bloginator/models/_corpus_source.py` (CorpusSource, DateRange, ~200 lines)
 - Keep `src/bloginator/corpus_config.py` (CorpusConfigManager, ~250 lines)
 
-### 📋 TASK 8: Refactor outline_generator.py (546 → 2 files)
+### 📋 TASK 8: Refactor outline_generator.py (546 lines)
+### 📋 TASK 9: Refactor prompt_tuner.py (710 lines)
+### 📋 TASK 10: Refactor draft.py (450 lines)
+### 📋 TASK 11: Refactor template_manager.py (421 lines)
+### 📋 TASK 12: Refactor outline.py (406 lines)
 
-**Target:** Extract prompt building from generation
-- `src/bloginator/generation/_outline_prompt_builder.py` (~150 lines)
-- `src/bloginator/generation/outline_generator.py` (~350 lines)
-
-**Functions to Extract:**
-- Prompt construction helpers
-- Section formatting
-- Metadata generation
-
-### 📋 TASK 9: Refactor prompt_tuner.py (710 → 3 files)
-
-**Target:** Split test gen / evaluation / mutation
-- `src/bloginator/optimization/_tuner_test_generator.py` (~150 lines)
-- `src/bloginator/optimization/_tuner_evaluator.py` (~180 lines)
-- `src/bloginator/optimization/_tuner_mutator.py` (~150 lines)
-- `src/bloginator/optimization/prompt_tuner.py` (orchestrator, ~180 lines)
-
-**Dataclasses Remain:** TestCase, RoundResult, TuningResult
-
-### 📋 TASK 10: Refactor draft.py (452 → 2 files)
-
-**Target:** Extract execution engine from Click command
-- `src/bloginator/cli/_draft_engine.py` (~220 lines)
-- `src/bloginator/cli/draft.py` (Click command only, ~200 lines)
-
-### 📋 TASK 11: Refactor template_manager.py (421 → 2 files)
-
-**Target:** Extract file I/O from template operations
-- `src/bloginator/services/_template_storage.py` (~160 lines)
-- `src/bloginator/services/template_manager.py` (TemplateManager logic, ~220 lines)
-
-**Functions to Extract:**
-- `_save_template()`
-- `_load_template_from_disk()`
-- `_delete_template_from_disk()`
-- File discovery/listing
-
-### 📋 TASK 12: Refactor outline.py (406 → 2 files)
-
-**Target:** Extract output formatting from CLI
-- `src/bloginator/cli/_outline_formatter.py` (~120 lines)
-- `src/bloginator/cli/outline.py` (Click command, ~250 lines)
-
-**Functions to Extract:**
-- `_format_outline_output()`
-- `_write_outline_files()`
-- All non-command functions
+See the original plan file for detailed specifications for each remaining task.
 
 ---
 

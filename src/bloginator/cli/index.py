@@ -126,7 +126,8 @@ def index(source: Path, output: Path, chunk_size: int, force: bool) -> None:
                 # Check if document needs reindexing (incremental indexing with checksums)
                 if not indexer.document_needs_reindexing(document):
                     source_path = document.source_path or document.filename
-                    error_tracker.record_skip(SkipCategory.ALREADY_EXTRACTED, source_path)
+                    source_path_str = str(source_path)
+                    error_tracker.record_skip(SkipCategory.ALREADY_EXTRACTED, source_path_str)
                     # Output parseable skip event for Streamlit
                     progress.console.print(
                         f"[SKIP] {source_path} (already_indexed)", highlight=False

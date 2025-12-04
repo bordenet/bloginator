@@ -2,143 +2,26 @@
 
 Loads and validates corpus.yaml configuration files that describe
 corpus sources with metadata.
+
+This module provides the main corpus configuration manager and settings models.
+Models are defined in separate modules under bloginator.models.
 """
 
-import re
 import shutil
 from datetime import datetime
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
-from uuid import uuid4
 
 import yaml
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
 
+from bloginator.models._corpus_source import CorpusSource
+from bloginator.models._date_range import DateRange
 from bloginator.models.document import QualityRating
 
 
-class DateRange(BaseModel):
-    """Date range for corpus source content.
-
-    Attributes:
-        start: Start date (inclusive)
-        end: End date (inclusive)
-    """
-
-    start: datetime | None = None
-    end: datetime | None = None
-
-    @field_validator("start", "end", mode="before")
-    @classmethod
-    def parse_date(cls, v: Any) -> datetime | None:
-        """Parse date from string (YYYY-MM-DD format)."""
-        if v is None or isinstance(v, datetime):
-            return v
-        if isinstance(v, str):
-            try:
-                return datetime.fromisoformat(v)
-            except ValueError as e:
-                raise ValueError(f"Invalid date format: {v}. Use YYYY-MM-DD.") from e
-        raise ValueError(f"Invalid date type: {type(v)}")
-
-
-class CorpusSource(BaseModel):
-    """Configuration for a corpus source.
-
-    Attributes:
-        id: Unique identifier for this source (UUID)
-        name: Unique name for this source
-        path: Path to source (local path, URL, UNC path)
-        type: Source type (directory, symlink, file, url)
-        enabled: Whether this source should be processed
-        quality: Quality rating for documents from this source
-        date_range: Time period for content in this source
-        voice_notes: Notes about writing voice/style
-        tags: Custom tags for filtering and weighting
-    """
-
-    id: str = Field(default_factory=lambda: str(uuid4()), description="Unique ID for this source")
-    name: str = Field(..., description="Unique name for this source")
-    path: str = Field(..., description="Path to source (local, URL, UNC)")
-    type: str = Field(
-        default="directory",
-        description="Source type: directory, symlink, file, url",
-    )
-    enabled: bool = Field(default=True, description="Whether to process this source")
-    quality: QualityRating = Field(
-        default=QualityRating.REFERENCE,
-        description="Quality rating for this source",
-    )
-    date_range: DateRange | None = Field(None, description="Content time period")
-    voice_notes: str | None = Field(None, description="Voice/style notes")
-    tags: list[str] = Field(default_factory=list, description="Custom tags")
-
-    @field_validator("type")
-    @classmethod
-    def validate_type(cls, v: str) -> str:
-        """Validate source type."""
-        valid_types = {"directory", "symlink", "file", "url"}
-        if v not in valid_types:
-            raise ValueError(f"Invalid type: {v}. Must be one of {valid_types}")
-        return v
-
-    @field_validator("quality", mode="before")
-    @classmethod
-    def parse_quality(cls, v: Any) -> QualityRating:
-        """Parse quality rating from string."""
-        if isinstance(v, QualityRating):
-            return v
-        if isinstance(v, str):
-            try:
-                return QualityRating(v.lower())
-            except ValueError as e:
-                valid = ", ".join(q.value for q in QualityRating)
-                raise ValueError(f"Invalid quality: {v}. Must be one of: {valid}") from e
-        raise ValueError(f"Invalid quality type: {type(v)}")
-
-    def resolve_path(self, config_dir: Path) -> Path | str:
-        """Resolve path relative to config file location.
-
-        Args:
-            config_dir: Directory containing corpus.yaml
-
-        Returns:
-            Resolved absolute path (Path) or URL (str)
-        """
-        path_str = self.path
-
-        # Handle URLs
-        if self.is_url():
-            return path_str
-
-        # Handle Windows UNC paths (\\server\share)
-        if path_str.startswith("\\\\"):
-            # Convert to pathlib-compatible format on Windows
-            return Path(path_str)
-
-        # Handle Windows drive letters (C:\, D:\, etc.)
-        if re.match(r"^[A-Za-z]:[/\\]", path_str):
-            return Path(path_str)
-
-        # Convert to Path and resolve
-        path = Path(path_str)
-
-        # If absolute, return as-is
-        if path.is_absolute():
-            return path.resolve()
-
-        # Relative path - resolve relative to config directory
-        return (config_dir / path).resolve()
-
-    def is_url(self) -> bool:
-        """Check if path is a URL."""
-        result = urlparse(self.path)
-        return result.scheme in ("http", "https", "ftp", "smb")
-
-    def is_local_path(self) -> bool:
-        """Check if path is a local file system path."""
-        return not self.is_url()
+# Re-export models for backward compatibility
+__all__ = ["DateRange", "CorpusSource", "CorpusConfig", "CorpusConfigManager"]
 
 
 class ExtractionSettings(BaseModel):
