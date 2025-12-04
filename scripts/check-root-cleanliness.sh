@@ -17,7 +17,7 @@ ALLOWED_ROOT_FILES=(
     "CLAUDE.md"
     "LICENSE"
     "CONTRIBUTING.md"
-    "CHANGELOG.md"
+    "SECURITY.md"
     ".gitignore"
     ".gitattributes"
     ".pre-commit-config.yaml"

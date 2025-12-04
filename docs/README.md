@@ -19,8 +19,9 @@ This directory contains all project documentation.
 
 - **[../README.md](../README.md)** - Project overview, quick start, and usage guide (at repository root)
 - **[../CONTRIBUTING.md](../CONTRIBUTING.md)** - Contribution guidelines and code standards
-- **[../CHANGELOG.md](../CHANGELOG.md)** - Version history and release notes
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history and release notes
 - **[../SECURITY.md](../SECURITY.md)** - Security policy and vulnerability reporting
+- **[TEST_PLAN.md](TEST_PLAN.md)** - Testing plan and test case documentation
 
 ## Other Resources
 

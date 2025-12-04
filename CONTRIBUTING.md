@@ -139,7 +139,7 @@ pytest -m "not slow" -v        # Skip slow tests
 - Update relevant documentation for any user-facing changes
 - Add docstrings for new functions and classes
 - Update README.md if adding new features
-- Add entries to CHANGELOG.md
+- Add entries to docs/CHANGELOG.md
 
 ## Security
 
