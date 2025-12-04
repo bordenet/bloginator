@@ -22,6 +22,8 @@ class TestOutlineGenerator:
     def mock_searcher(self):
         """Create mock searcher."""
         searcher = Mock()
+        # Default: return empty search results
+        searcher.search.return_value = []
         return searcher
 
     @pytest.fixture
@@ -221,14 +223,14 @@ Third line too.
 
     def test_generate_basic(self, generator, mock_llm_client, mock_searcher):
         """Test basic outline generation."""
-        # Mock LLM response
+        # Mock LLM response with sections that match keywords
         llm_response = Mock()
         llm_response.content = """
-## Introduction
-Opening section
+## Test Overview
+Introduction to testing best practices
 
-## Conclusion
-Closing section
+## Document Management
+How to organize test documents
 """
         mock_llm_client.generate.return_value = llm_response
 
@@ -236,7 +238,7 @@ Closing section
         mock_searcher.search.return_value = [
             SearchResult(
                 chunk_id="chunk1",
-                content="Content",
+                content="Content about testing and documents",
                 distance=0.2,
                 metadata={"document_id": "doc1"},
             )
@@ -264,7 +266,7 @@ Closing section
         assert outline.thesis == "Test thesis"
         assert outline.keywords == ["test", "document"]
         assert len(outline.sections) == 2
-        assert outline.sections[0].title == "Introduction"
+        assert outline.sections[0].title == "Test Overview"
 
     def test_generate_with_temperature(self, generator, mock_llm_client, mock_searcher):
         """Test generation with custom temperature."""
@@ -297,21 +299,21 @@ Closing section
         """Test that stats are calculated after generation."""
         llm_response = Mock()
         llm_response.content = """
-## Section 1
-Description 1
+## Test Implementation
+How to implement testing
 
-## Section 2
-Description 2
+## Test Coverage
+Understanding test coverage
 """
         mock_llm_client.generate.return_value = llm_response
 
         # Mock different coverage levels
         def search_side_effect(query, n_results):
-            if "Section 1" in query:
+            if "Test Implementation" in query or "implementation" in query:
                 return [
                     SearchResult(
                         chunk_id="c1",
-                        content="Content",
+                        content="Content about test implementation",
                         distance=0.1,
                         metadata={"document_id": "doc1"},
                     )
@@ -320,7 +322,7 @@ Description 2
                 return [
                     SearchResult(
                         chunk_id="c2",
-                        content="Content",
+                        content="Coverage information",
                         distance=0.7,
                         metadata={"document_id": "doc2"},
                     )
@@ -335,5 +337,5 @@ Description 2
 
         # Stats should be calculated
         assert outline.avg_coverage > 0
-        # Section 2 should have low coverage
+        # Test Coverage section should have low coverage
         assert outline.low_coverage_sections > 0

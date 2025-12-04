@@ -2,9 +2,13 @@
 
 from pathlib import Path
 
+from bloginator.generation._outline_prompt_builder import (
+    OutlinePromptBuilder,
+    build_corpus_context,
+    build_search_queries,
+)
 from bloginator.generation.llm_client import LLMClient
 from bloginator.models.outline import Outline, OutlineSection
-from bloginator.prompts.loader import PromptLoader
 from bloginator.search import CorpusSearcher, SearchResult
 
 
@@ -25,7 +29,6 @@ class OutlineGenerator:
         llm_client: LLMClient,
         searcher: CorpusSearcher,
         min_coverage_sources: int = 3,
-        prompt_loader: PromptLoader | None = None,
     ):
         """Initialize outline generator.
 
@@ -33,12 +36,11 @@ class OutlineGenerator:
             llm_client: LLM client for generation
             searcher: Corpus searcher for coverage analysis
             min_coverage_sources: Minimum sources for good coverage
-            prompt_loader: Prompt loader (creates default if None)
         """
         self.llm_client = llm_client
         self.searcher = searcher
         self.min_coverage_sources = min_coverage_sources
-        self.prompt_loader = prompt_loader or PromptLoader()
+        self.prompt_builder = OutlinePromptBuilder()
 
     def generate(
         self,
@@ -78,32 +80,14 @@ class OutlineGenerator:
             >>> outline.calculate_stats()
             >>> print(f"Coverage: {outline.avg_coverage:.0f}%")
         """
-        # Load prompt template from external YAML file
-        prompt_template = self.prompt_loader.load("outline/base.yaml")
-
-        # Get classification and audience context from template
-        classification_contexts = prompt_template.parameters.get("classification_contexts", {})
-        audience_contexts = prompt_template.parameters.get("audience_contexts", {})
-
-        classification_context = classification_contexts.get(classification, "This is guidance.")
-        audience_context = audience_contexts.get(
-            audience, "TARGET AUDIENCE: General technical audience."
-        )
-
-        # Render system prompt with context
-        system_prompt = prompt_template.render_system_prompt(
-            classification_context=classification_context, audience_context=audience_context
+        # Build system and user prompts with corpus grounding
+        system_prompt = self.prompt_builder.build_system_prompt(
+            classification=classification, audience=audience
         )
 
         # GROUNDING: Search corpus multiple times for different keyword angles
         # to build sections directly from corpus rather than LLM hallucination
-        search_queries = [
-            title,  # Full title first
-            f"{keywords[0]} {keywords[1]}" if len(keywords) > 1 else keywords[0],
-            f"{keywords[0]} implementation" if keywords else "",
-            f"{keywords[0]} best practices" if keywords else "",
-            f"{' '.join(keywords[:2])} guide" if len(keywords) > 1 else "",
-        ]
+        search_queries = build_search_queries(title, keywords)
 
         # Collect all unique chunks to extract natural section boundaries
         all_results = []
@@ -117,33 +101,19 @@ class OutlineGenerator:
                         seen_chunk_ids.add(result.chunk_id)
 
         # Build corpus context from results
-        corpus_context = ""
-        if all_results:
-            corpus_context = "Key topics found in corpus:\n\n"
-            for i, result in enumerate(all_results[:5], 1):
-                preview = result.content[:200].replace("\n", " ").strip()
-                corpus_context += f"{i}. {preview}...\n\n"
+        corpus_context = build_corpus_context(all_results)
 
         # Render user prompt with variables
-        base_prompt = prompt_template.render_user_prompt(
+        user_prompt = self.prompt_builder.build_user_prompt(
             title=title,
-            classification=classification.replace("-", " ").title(),
-            audience=audience.replace("-", " ").title(),
-            keywords=", ".join(keywords),
-            thesis=thesis if thesis else "",
+            keywords=keywords,
+            thesis=thesis,
+            classification=classification,
+            audience=audience,
             num_sections=num_sections,
             corpus_context=corpus_context,
+            custom_template=custom_prompt_template,
         )
-
-        # Prepend custom template if provided
-        if custom_prompt_template:
-            user_prompt = f"""{custom_prompt_template}
-
----
-
-{base_prompt}"""
-        else:
-            user_prompt = base_prompt
 
         # Generate outline structure with LLM
         response = self.llm_client.generate(
