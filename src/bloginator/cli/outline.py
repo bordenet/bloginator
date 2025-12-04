@@ -81,8 +81,8 @@ from bloginator.services.template_manager import TemplateManager
 )
 @click.option(
     "--model",
-    default="llama3",
-    help="LLM model to use (default: llama3)",
+    default=None,
+    help="LLM model to use (default: from BLOGINATOR_LLM_MODEL env var, falls back to ministral-3:14b)",
 )
 @click.option(
     "--output",
@@ -169,7 +169,7 @@ def outline(
         bloginator outline --index output/index \\
           --title "Test Document" \\
           --keywords "testing,quality" \\
-          --model llama3.1
+          --model ministral-3:14b
     """
     # Configure logging
     if log_file:

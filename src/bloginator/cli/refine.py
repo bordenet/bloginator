@@ -57,8 +57,8 @@ logger = logging.getLogger(__name__)
 )
 @click.option(
     "--llm-model",
-    default="llama3",
-    help="LLM model to use for refinement",
+    default=None,
+    help="LLM model to use for refinement (default: from BLOGINATOR_LLM_MODEL env var, falls back to ministral-3:14b)",
 )
 @click.option(
     "--validate-safety/--no-validate-safety",
