@@ -484,7 +484,7 @@ def validate_search_results(
 
 ### Phase 2 Tasks
 
-- [ ] 2.1 Implement search result validation
+- [x] 2.1 Implement search result validation
 - [ ] 2.2 Run embedding model experiments
 - [ ] Document findings
 
@@ -497,24 +497,32 @@ def validate_search_results(
 
 ## Results Log
 
-### Test Run: [Date]
+### Test Run: 2025-12-04 (After Phase 1 Implementation)
 
-**Setup**: [Describe changes made]
+**Setup**:
+- Phase 1 critical fixes implemented:
+    - Topic validation added to outline and draft prompts.
+    - Improved search query construction with thesis.
+    - Increased corpus context depth and added metadata.
+    - Search result logging added.
+- Integration tests (`tests/integration/test_topic_alignment.py`) created.
+- Two worst-performing test cases re-run in mock LLM mode.
 
-**Results**: [Summary of blog generation quality]
+**Results**:
+1. **"What Great Hiring Managers Actually Do"**:
+    - `outline.md` was rejected: "❌ OUTLINE REJECTED: Only 0/5 sections (0%) match provided keywords."
+    - `draft.md` was effectively empty.
+2. **"Daily Stand-Up Meetings That Don't Suck"**:
+    - `outline.md` was rejected: "❌ OUTLINE REJECTED: Only 2/5 sections (40%) match provided keywords. The outline appears to be hallucinated (not grounded in your corpus)."
+    - The corresponding `draft.md` was off-topic (prior assessment indicated "100% OFF TOPIC").
 
-**Observations**: [What worked, what didn't]
+**Observations**:
+- The new topic validation in the outline prompt successfully identified and rejected outlines where corpus content was irrelevant or led to hallucination.
+- For "Hiring Managers", the rejection was absolute (0% keyword match), leading to an empty draft, which is desirable behavior for preventing off-topic content.
+- For "Daily Stand-Up Meetings", the outline was partially rejected (40% keyword match), indicating some hallucination, and the resulting draft was still off-topic, suggesting either incomplete validation or continued issues with corpus content relevance at the draft stage.
+- The core problem remains: the corpus often does not provide sufficiently relevant content for the requested topics, or the initial search results, despite improvements, are still too broad or low-quality. The LLM's interpretation of "relevance" might also need stricter guidance, especially at the draft level.
 
-**Next Steps**: [Adjustments needed]
-
----
-
-## Lessons Learned
-
-### [Date]: Lesson Title
-
-**Context**: [What we tried]
-
-**Finding**: [What we discovered]
-
-**Action**: [What we changed as a result]
+**Next Steps**:
+Proceed with **Phase 2: Search Quality**, focusing on:
+1. **Add Search Result Validation (2.1)**: Implement programmatic filtering of irrelevant search results *before* they reach the LLM, to act as a stronger guardrail against "garbage-in".
+2. **Experiment with Better Embedding Models (2.2)**: Investigate alternative embedding models that offer higher semantic precision for topic discrimination, aiming to improve the quality of initial search results.

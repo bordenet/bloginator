@@ -17,6 +17,7 @@ from bloginator.generation._outline_prompt_builder import (
 from bloginator.generation.llm_client import LLMClient
 from bloginator.models.outline import Outline
 from bloginator.search import CorpusSearcher
+from bloginator.search.validators import validate_search_results
 
 
 logger = logging.getLogger(__name__)
@@ -112,10 +113,19 @@ class OutlineGenerator:
                         all_results.append(result)
                         seen_chunk_ids.add(result.chunk_id)
 
+        # Validate and filter search results
+        filtered_results, validation_warnings = validate_search_results(
+            all_results, expected_keywords=keywords
+        )
+        for warning in validation_warnings:
+            logger.warning(f"Search result validation warning: {warning}")
+
         # Log top results
-        if all_results:
-            logger.info(f"Retrieved {len(all_results)} unique results. Top 3:")
-            for i, result in enumerate(all_results[:3], 1):
+        if filtered_results:
+            logger.info(
+                f"Retrieved {len(filtered_results)} unique results after validation. Top 3:"
+            )
+            for i, result in enumerate(filtered_results[:3], 1):
                 preview = result.content[:100].replace("\n", " ")
                 logger.info(
                     f"  Result {i}: similarity={result.similarity_score:.3f}, "
@@ -123,10 +133,10 @@ class OutlineGenerator:
                     f"preview='{preview}...'"
                 )
         else:
-            logger.warning("No corpus results found for any query.")
+            logger.warning("No corpus results found for any query after validation.")
 
         # Build corpus context from results
-        corpus_context = build_corpus_context(all_results)
+        corpus_context = build_corpus_context(filtered_results)
 
         # Render user prompt with variables
         user_prompt = self.prompt_builder.build_user_prompt(
@@ -162,8 +172,8 @@ class OutlineGenerator:
             match_ratio = keyword_match_count / len(sections) if sections else 0
 
             # If <30% match, use corpus-based outline instead
-            if match_ratio < 0.3 and all_results:
-                sections = build_outline_from_corpus(all_results, keywords, num_sections)
+            if match_ratio < 0.3 and filtered_results:
+                sections = build_outline_from_corpus(filtered_results, keywords, num_sections)
 
         # Analyze coverage for each section
         for section in sections:

@@ -80,11 +80,11 @@ class TestDraftGenerator:
 
     def test_generate_section_basic(self, generator, mock_llm_client, mock_searcher):
         """Test generating a basic section."""
-        # Mock search results
+        # Mock search results - include keyword "test" in content for validator
         search_results = [
             SearchResult(
                 chunk_id=f"chunk{i}",
-                content=f"Source content {i}",
+                content=f"Test source content {i}",  # Include keyword for validator
                 distance=0.2,
                 metadata={
                     "document_id": f"doc{i}",
@@ -124,7 +124,7 @@ class TestDraftGenerator:
         mock_searcher.search.return_value = [
             SearchResult(
                 chunk_id="chunk1",
-                content="Content",
+                content="Test content for validation",  # Include keyword for validator
                 distance=0.2,
                 metadata={"document_id": "doc1", "filename": "file.md"},
             )
@@ -160,7 +160,7 @@ class TestDraftGenerator:
         mock_searcher.search.return_value = [
             SearchResult(
                 chunk_id="chunk1",
-                content="Source material",
+                content="Source material about keyword1 topic",  # Include keyword for validator
                 distance=0.2,
                 metadata={"document_id": "doc1", "filename": "file.md"},
             )
@@ -188,7 +188,7 @@ class TestDraftGenerator:
         assert "Section Title" in user_prompt
         assert "Section description" in user_prompt
         assert "500 words" in user_prompt
-        assert "Source material" in user_prompt
+        assert "keyword1" in user_prompt  # Keyword should be in source context
 
         system_prompt = call_args.kwargs["system_prompt"]
         assert "technical writer" in system_prompt.lower()
@@ -197,11 +197,12 @@ class TestDraftGenerator:
     def test_generate_full_draft(self, generator, mock_llm_client, mock_searcher):
         """Test generating complete draft from outline."""
         # Mock batch search (returns results for 2 sections)
+        # Include keywords "test" and "document" for validator
         mock_searcher.batch_search.return_value = [
             [
                 SearchResult(
                     chunk_id="chunk1",
-                    content="Source",
+                    content="Test document source material",
                     distance=0.2,
                     metadata={"document_id": "doc1", "filename": "file.md"},
                 )
@@ -209,7 +210,7 @@ class TestDraftGenerator:
             [
                 SearchResult(
                     chunk_id="chunk2",
-                    content="Source",
+                    content="Test document source material",
                     distance=0.2,
                     metadata={"document_id": "doc2", "filename": "file2.md"},
                 )
@@ -255,7 +256,7 @@ class TestDraftGenerator:
             [
                 SearchResult(
                     chunk_id="chunk1",
-                    content="Source",
+                    content="Test source material",  # Include keyword for validator
                     distance=0.2,
                     metadata={"document_id": "doc1", "filename": "file.md"},
                 )
@@ -286,11 +287,11 @@ class TestDraftGenerator:
 
     def test_refine_section_basic(self, generator, mock_llm_client, mock_searcher):
         """Test refining a section."""
-        # Mock search
+        # Mock search - include keyword "test" for validator
         mock_searcher.search.return_value = [
             SearchResult(
                 chunk_id="new_chunk",
-                content="New source material",
+                content="New test source material",  # Include keyword for validator
                 distance=0.15,
                 metadata={"document_id": "new_doc", "filename": "new.md"},
             )
@@ -326,7 +327,7 @@ class TestDraftGenerator:
         user_prompt = call_args.kwargs["prompt"]
         assert "Original content" in user_prompt
         assert "Add more examples" in user_prompt
-        assert "New source material" in user_prompt
+        assert "test source material" in user_prompt  # Updated to match new content
 
     def test_refine_section_preserves_subsections(self, generator, mock_llm_client, mock_searcher):
         """Test that refinement preserves subsections."""
@@ -359,10 +360,11 @@ class TestDraftGenerator:
     ):
         """Test that refinement doesn't duplicate citations."""
         # Mock search returns same chunk as existing citation
+        # Include keyword "test" for validator
         mock_searcher.search.return_value = [
             SearchResult(
                 chunk_id="existing_chunk",
-                content="Content",
+                content="Test content for validation",  # Include keyword for validator
                 distance=0.2,
                 metadata={"document_id": "doc1", "filename": "file.md"},
             )
@@ -413,11 +415,11 @@ class TestDraftGenerator:
 
     def test_generate_limits_citations(self, generator, mock_llm_client, mock_searcher):
         """Test that citations are limited to top 5."""
-        # Return 10 results
+        # Return 10 results - include keyword "test" for validator
         mock_searcher.search.return_value = [
             SearchResult(
                 chunk_id=f"chunk{i}",
-                content=f"Content {i}",
+                content=f"Test content {i}",  # Include keyword for validator
                 distance=0.1 + (i * 0.05),  # Decreasing scores
                 metadata={"document_id": f"doc{i}", "filename": f"file{i}.md"},
             )
