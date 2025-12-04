@@ -55,14 +55,19 @@ user_prompt_template: |
   Keywords: {{keywords}}
   {% if thesis %}Thesis: {{thesis}}{% endif %}
 
+  {% if corpus_context %}CORPUS CONTEXT (actual content from the knowledge base):
+  {{corpus_context}}
+
+  {% endif %}
   REQUIRED: Create approximately {{num_sections}} main sections with relevant subsections.
 
-  IMPORTANT INSTRUCTIONS:
-  - Every section title and description MUST be directly related to the keywords above
-  - Do NOT include sections about unrelated topics, methodologies, or approaches
-  - Only create sections that logically belong in a document about "{{title}}"
-  - Each section should directly help explain or explore the keywords provided
-  - If you cannot justify a section by the keywords, leave it out
+  CRITICAL INSTRUCTIONS:
+  - Base your outline ONLY on the corpus context provided above
+  - Every section MUST directly relate to actual content in the corpus
+  - Do NOT invent or hallucinate sections not grounded in the corpus
+  - Do NOT include sections about unrelated topics (e.g., if corpus is about dashboards, don't create sections about sprint planning)
+  - Only create sections for topics actually present in the provided corpus context
+  - If the corpus doesn't cover a topic, don't create a section for it
 
   Each section should have a title and brief description of its content.
   Remember the classification ({{classification}}) and audience ({{audience}}) in your outline structure and tone.

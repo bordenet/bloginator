@@ -5,7 +5,7 @@ from pathlib import Path
 from bloginator.generation.llm_client import LLMClient
 from bloginator.models.outline import Outline, OutlineSection
 from bloginator.prompts.loader import PromptLoader
-from bloginator.search import CorpusSearcher
+from bloginator.search import CorpusSearcher, SearchResult
 
 
 class OutlineGenerator:
@@ -95,6 +95,35 @@ class OutlineGenerator:
             classification_context=classification_context, audience_context=audience_context
         )
 
+        # GROUNDING: Search corpus multiple times for different keyword angles
+        # to build sections directly from corpus rather than LLM hallucination
+        search_queries = [
+            title,  # Full title first
+            f"{keywords[0]} {keywords[1]}" if len(keywords) > 1 else keywords[0],
+            f"{keywords[0]} implementation" if keywords else "",
+            f"{keywords[0]} best practices" if keywords else "",
+            f"{' '.join(keywords[:2])} guide" if len(keywords) > 1 else "",
+        ]
+
+        # Collect all unique chunks to extract natural section boundaries
+        all_results = []
+        seen_chunk_ids = set()
+        for query in search_queries:
+            if query.strip():
+                results = self.searcher.search(query=query, n_results=3)
+                for result in results:
+                    if result.chunk_id not in seen_chunk_ids:
+                        all_results.append(result)
+                        seen_chunk_ids.add(result.chunk_id)
+
+        # Build corpus context from results
+        corpus_context = ""
+        if all_results:
+            corpus_context = "Key topics found in corpus:\n\n"
+            for i, result in enumerate(all_results[:5], 1):
+                preview = result.content[:200].replace("\n", " ").strip()
+                corpus_context += f"{i}. {preview}...\n\n"
+
         # Render user prompt with variables
         base_prompt = prompt_template.render_user_prompt(
             title=title,
@@ -103,6 +132,7 @@ class OutlineGenerator:
             keywords=", ".join(keywords),
             thesis=thesis if thesis else "",
             num_sections=num_sections,
+            corpus_context=corpus_context,
         )
 
         # Prepend custom template if provided
@@ -125,6 +155,20 @@ class OutlineGenerator:
 
         # Parse LLM response into sections
         sections = self._parse_outline_response(response.content)
+
+        # FALLBACK: If LLM generated mostly off-topic sections,
+        # build outline from corpus search results instead
+        if sections:
+            keyword_match_count = sum(
+                1
+                for s in sections
+                if any(kw.lower() in f"{s.title} {s.description}".lower() for kw in keywords)
+            )
+            match_ratio = keyword_match_count / len(sections) if sections else 0
+
+            # If <30% match, use corpus-based outline instead
+            if match_ratio < 0.3 and all_results:
+                sections = self._build_outline_from_corpus(all_results, keywords, num_sections)
 
         # Analyze coverage for each section
         for section in sections:
@@ -286,6 +330,66 @@ class OutlineGenerator:
             sections.append(current_section)
 
         return sections
+
+    def _build_outline_from_corpus(
+        self,
+        results: list[SearchResult],
+        keywords: list[str],
+        num_sections: int = 5,
+    ) -> list[OutlineSection]:
+        """Build outline directly from corpus search results.
+
+        This is a fallback when LLM outline generation produces hallucinations.
+        Extracts natural sections based on actual corpus content.
+
+        Args:
+            results: Search results from corpus
+            keywords: Keywords to focus on
+            num_sections: Target number of sections
+
+        Returns:
+            List of OutlineSection objects based on corpus content
+        """
+        sections = []
+
+        # Extract first heading or natural topic boundaries from each result
+        for result in results[:num_sections]:
+            # Try to extract a meaningful title from the content
+            lines = result.content.split("\n")
+            title = "Untitled Section"
+
+            # Look for markdown headings
+            for line in lines[:5]:
+                if line.startswith("##"):
+                    title = line.replace("##", "").strip()
+                    break
+                elif line.startswith("#"):
+                    title = line.replace("#", "").strip()
+                    break
+
+            # Use first non-empty line as fallback
+            if title == "Untitled Section":
+                for line in lines:
+                    if line.strip() and not line.startswith(("[", ">")):
+                        title = line.strip()[:80]  # Limit length
+                        break
+
+            # Extract description from first 100 chars
+            description = result.content[:150].replace("\n", " ").strip()
+            if len(description) > 100:
+                description = description[:100] + "..."
+
+            # Create section with keyword awareness
+            section = OutlineSection(
+                title=title,
+                description=description,
+            )
+            sections.append(section)
+
+            if len(sections) >= num_sections:
+                break
+
+        return sections if sections else []
 
     def _filter_by_keyword_match(
         self,
