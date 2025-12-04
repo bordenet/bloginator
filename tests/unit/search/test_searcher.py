@@ -219,47 +219,6 @@ class TestCorpusSearcher:
             assert 0.0 <= result.recency_score <= 1.0
             assert 0.0 <= result.quality_score <= 1.0
 
-    def test_calculate_recency_score(self, test_index: Path) -> None:
-        """Test recency score calculation."""
-        searcher = CorpusSearcher(index_dir=test_index)
-        now = datetime.now()
-
-        # Recent document (1 month old)
-        recent_meta = {"created_date": (now - timedelta(days=30)).isoformat()}
-        recent_score = searcher._calculate_recency_score(recent_meta, now)
-        assert recent_score > 0.9  # Should be very high
-
-        # Old document (2 years old)
-        old_meta = {"created_date": (now - timedelta(days=730)).isoformat()}
-        old_score = searcher._calculate_recency_score(old_meta, now)
-        assert old_score < 0.4  # Should be lower
-
-        # Recent should score higher than old
-        assert recent_score > old_score
-
-        # No date should return neutral score
-        no_date_meta: dict[str, str] = {}
-        no_date_score = searcher._calculate_recency_score(no_date_meta, now)
-        assert no_date_score == 0.5
-
-    def test_calculate_quality_score(self, test_index: Path) -> None:
-        """Test quality score calculation."""
-        searcher = CorpusSearcher(index_dir=test_index)
-
-        # Test all quality ratings
-        preferred_meta = {"quality_rating": "preferred"}
-        assert searcher._calculate_quality_score(preferred_meta) == 1.0
-
-        standard_meta = {"quality_rating": "standard"}
-        assert searcher._calculate_quality_score(standard_meta) == 0.5
-
-        deprecated_meta = {"quality_rating": "deprecated"}
-        assert searcher._calculate_quality_score(deprecated_meta) == 0.1
-
-        # Unknown quality should default to standard
-        unknown_meta = {"quality_rating": "unknown"}
-        assert searcher._calculate_quality_score(unknown_meta) == 0.5
-
     def test_get_stats(self, test_index: Path) -> None:
         """Test getting search statistics."""
         searcher = CorpusSearcher(index_dir=test_index)

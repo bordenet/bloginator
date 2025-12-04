@@ -13,7 +13,6 @@ from bloginator.generation.llm_client import LLMClient
 from bloginator.generation.outline_generator import OutlineGenerator
 from bloginator.models.draft import Draft
 from bloginator.models.outline import Outline
-from bloginator.prompts.loader import PromptLoader
 from bloginator.quality.quality_assurance import QualityAssessment, QualityAssurance, QualityLevel
 from bloginator.search.searcher import CorpusSearcher
 
@@ -96,19 +95,17 @@ class RetryOrchestrator:
                 f"Generation attempt {attempt_num + 1}/{self.max_retries + 1} using variant: {variant_name}"
             )
 
-            # Load prompts with variant
-            prompt_loader = self._load_prompt_variant(variant_name)
+            # Get custom template for this variant (if available)
+            custom_template = self._get_prompt_template(variant_name)
 
             # Generate content
             outline_gen = OutlineGenerator(
                 llm_client=self.llm_client,
                 searcher=self.searcher,
-                prompt_loader=prompt_loader,
             )
             draft_gen = DraftGenerator(
                 llm_client=self.llm_client,
                 searcher=self.searcher,
-                prompt_loader=prompt_loader,
             )
 
             outline = outline_gen.generate(
@@ -117,13 +114,10 @@ class RetryOrchestrator:
                 thesis=thesis,
                 classification=classification,
                 audience=audience,
+                custom_prompt_template=custom_template,
             )
 
-            draft = draft_gen.generate(
-                outline=outline,
-                classification=classification,
-                audience=audience,
-            )
+            draft = draft_gen.generate(outline=outline)
 
             # Assess quality
             assessment = self.qa.assess_quality(outline, draft)
@@ -179,11 +173,15 @@ class RetryOrchestrator:
             "minimal",  # Minimal, direct prompts
         ]
 
-    def _load_prompt_variant(self, variant: str) -> PromptLoader:
-        """Load prompt variant.
+    def _get_prompt_template(self, variant: str) -> str | None:
+        """Get custom prompt template for variant.
 
-        For now, returns default PromptLoader.
-        In production, this would load different prompt templates.
+        Args:
+            variant: Prompt variant name
+
+        Returns:
+            Custom template string if available, None for default behavior
         """
-        # TODO: Implement actual prompt variant loading
-        return PromptLoader()
+        # TODO: Implement actual prompt template variants
+        # For now, return None to use default prompts
+        return None

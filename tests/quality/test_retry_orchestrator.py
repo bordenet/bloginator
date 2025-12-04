@@ -1,15 +1,12 @@
 """Tests for retry orchestrator."""
 
+from unittest.mock import MagicMock
+
 import pytest
 
 from bloginator.generation.llm_mock import MockLLMClient
 from bloginator.quality.quality_assurance import QualityAssurance
 from bloginator.quality.retry_orchestrator import RetryOrchestrator
-from bloginator.search.searcher import CorpusSearcher
-
-
-# Skip all tests in this module until proper mocks are implemented
-pytestmark = pytest.mark.skip(reason="Requires proper ChromaDB mock setup")
 
 
 @pytest.fixture
@@ -19,12 +16,12 @@ def mock_llm():
 
 
 @pytest.fixture
-def mock_searcher(tmp_path):
-    """Create mock searcher."""
-    # Create a temporary index directory
-    index_dir = tmp_path / "index"
-    index_dir.mkdir()
-    return CorpusSearcher(index_dir=index_dir)
+def mock_searcher():
+    """Create mock searcher with no actual ChromaDB."""
+    searcher = MagicMock()
+    # Return empty search results by default
+    searcher.search.return_value = []
+    return searcher
 
 
 @pytest.fixture
