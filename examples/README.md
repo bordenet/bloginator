@@ -4,17 +4,18 @@ This directory contains example corpus documents and generated outputs to help y
 
 ## Example Corpus
 
-The `corpus/` directory contains sample documents on engineering leadership topics:
+The `corpus/` directory contains sample documents from the [Engineering Culture](https://github.com/bordenet/Engineering_Culture) repository:
 
-- **engineering-leadership.md**: Building high-performing engineering teams
-- **code-review-best-practices.md**: Effective code review practices
-- **incident-response.md**: Incident response and postmortem processes
+- **what-dashboards-are-good-for.md**: Understanding the proper role of observability dashboards
+- **constructive-feedback-sbi-model.md**: The Situation-Behavior-Impact framework for feedback
+- **mechanisms-building-self-correcting-systems.md**: Building systematic improvement processes
 
 These documents demonstrate the type of content Bloginator works best with:
-- Well-structured markdown
-- Clear headings and sections
-- Practical, experience-based content
-- Consistent voice and style
+
+- Well-structured markdown with clear headings
+- Practical, experience-based content from real engineering work
+- Consistent voice and style across documents
+- Cross-references that show topic relationships
 
 ## Quick Start with Examples
 
