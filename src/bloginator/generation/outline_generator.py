@@ -160,6 +160,70 @@ class OutlineGenerator:
 
         outline.calculate_stats()
 
+        # VALIDATION: Remove sections with zero coverage (hallucinated content)
+        # and warn about very low coverage
+        zero_coverage_sections = []
+        for section in outline.get_all_sections():
+            if section.coverage_pct == 0.0:
+                zero_coverage_sections.append(section.title)
+
+        if zero_coverage_sections:
+            outline.validation_notes = (
+                f"⚠️ REMOVED {len(zero_coverage_sections)} sections with 0% corpus coverage (hallucinated content):\n"
+                f"{chr(10).join(f'  - {t}' for t in zero_coverage_sections[:5])}"
+                + (
+                    f"\n  ... and {len(zero_coverage_sections) - 5} more"
+                    if len(zero_coverage_sections) > 5
+                    else ""
+                )
+            )
+            # Filter out zero-coverage sections from the outline
+            outline.sections = self._filter_sections_by_coverage(
+                outline.sections, min_coverage=0.01
+            )
+            outline.calculate_stats()  # Recalculate after filtering
+
+        # ADDITIONAL FILTERING: Remove sections with very low coverage (<5%)
+        # unless they're directly in the keywords
+        very_low_coverage_sections = []
+        for section in outline.get_all_sections():
+            if 0 < section.coverage_pct < 5.0:
+                # Check if section title contains any keyword
+                section_lower = section.title.lower()
+                keyword_match = any(kw.lower() in section_lower for kw in keywords)
+                if not keyword_match:
+                    very_low_coverage_sections.append(section.title)
+
+        if very_low_coverage_sections:
+            old_section_count = len(outline.get_all_sections())
+            outline.sections = self._filter_sections_by_coverage(outline.sections, min_coverage=5.0)
+            new_section_count = len(outline.get_all_sections())
+            if outline.validation_notes:
+                outline.validation_notes += "\n\n"
+            outline.validation_notes += (
+                f"⚠️ REMOVED {old_section_count - new_section_count} additional sections with very low coverage "
+                f"(<5%) unrelated to keywords:\n"
+                f"{chr(10).join(f'  - {t}' for t in very_low_coverage_sections[:3])}"
+                + (
+                    f"\n  ... and {len(very_low_coverage_sections) - 3} more"
+                    if len(very_low_coverage_sections) > 3
+                    else ""
+                )
+            )
+            outline.calculate_stats()  # Recalculate after filtering
+
+        # Additional warning if overall coverage is still very low
+        if outline.avg_coverage < 15.0 and outline.avg_coverage > 0:
+            if outline.validation_notes:
+                outline.validation_notes += "\n\n"
+            outline.validation_notes += (
+                f"⚠️ COVERAGE WARNING: Remaining outline still has low corpus coverage ({outline.avg_coverage:.1f}%). "
+                f"Consider:\n"
+                f"  1. Adding more source documents to corpus\n"
+                f"  2. Refining keywords to better match corpus content\n"
+                f"  3. Verifying section titles directly relate to the topic"
+            )
+
         return outline
 
     def _parse_outline_response(self, content: str) -> list[OutlineSection]:
@@ -210,6 +274,30 @@ class OutlineGenerator:
             sections.append(current_section)
 
         return sections
+
+    def _filter_sections_by_coverage(
+        self,
+        sections: list[OutlineSection],
+        min_coverage: float = 0.01,
+    ) -> list[OutlineSection]:
+        """Filter out sections with coverage below minimum threshold.
+
+        Args:
+            sections: Sections to filter
+            min_coverage: Minimum coverage threshold (default: 0.01%)
+
+        Returns:
+            Filtered list of sections (recursively filters subsections too)
+        """
+        filtered = []
+        for section in sections:
+            if section.coverage_pct >= min_coverage:
+                # Recursively filter subsections
+                section.subsections = self._filter_sections_by_coverage(
+                    section.subsections, min_coverage
+                )
+                filtered.append(section)
+        return filtered
 
     def _analyze_section_coverage(self, section: OutlineSection, keywords: list[str]) -> None:
         """Analyze corpus coverage for a section.

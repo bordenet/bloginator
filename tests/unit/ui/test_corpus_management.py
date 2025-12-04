@@ -1124,10 +1124,10 @@ class TestRealTimeSkipEventParsing:
         assert "file99.md" in combined
 
 
-        class TestExplicitProgressLineFormats:
-        """Tests for explicit progress line formats from CLI."""
+class TestExplicitProgressLineFormats:
+    """Tests for explicit progress line formats from CLI."""
 
-        def test_extracting_prefix_parsing(self) -> None:
+    def test_extracting_prefix_parsing(self) -> None:
         """Test parsing Extracting: prefix for current file."""
         line = "Extracting: /path/to/file.pdf"
 
@@ -1135,7 +1135,7 @@ class TestRealTimeSkipEventParsing:
             current_file = line[11:].strip()
             assert current_file == "/path/to/file.pdf"
 
-        def test_extracting_with_long_path(self) -> None:
+    def test_extracting_with_long_path(self) -> None:
         """Test Extracting: with full absolute path."""
         line = "Extracting: /Users/matt/Library/CloudStorage/OneDrive/Documents/important.docx"
 
@@ -1144,7 +1144,7 @@ class TestRealTimeSkipEventParsing:
             assert "OneDrive" in current_file
             assert "important.docx" in current_file
 
-        def test_ui_display_update_from_extracting(self) -> None:
+    def test_ui_display_update_from_extracting(self) -> None:
         """Test Streamlit container update from Extracting: line."""
         mock_container = Mock()
         line = "Extracting: /path/to/file.md"
@@ -1155,7 +1155,7 @@ class TestRealTimeSkipEventParsing:
 
         mock_container.info.assert_called_once_with("📄 Current: /path/to/file.md")
 
-        def test_extraction_output_with_mixed_events(self) -> None:
+    def test_extraction_output_with_mixed_events(self) -> None:
         """Test extraction output with skip events and extracting lines."""
         output = [
             "Extracting: file1.pdf",
@@ -1179,7 +1179,7 @@ class TestRealTimeSkipEventParsing:
         assert "file2.md" in skipped_files[0]
         assert "file4.txt" in skipped_files[1]
 
-        def test_ignore_non_prefixed_lines(self) -> None:
+    def test_ignore_non_prefixed_lines(self) -> None:
         """Test that lines without recognized prefixes are ignored."""
         output = [
             "Extracting: file1.pdf",
@@ -1196,7 +1196,7 @@ class TestRealTimeSkipEventParsing:
         # Should only capture Extracting: lines, not random output
         assert current_file == "file2.pdf"
 
-        def test_whitespace_handling_in_extracting(self) -> None:
+    def test_whitespace_handling_in_extracting(self) -> None:
         """Test whitespace handling in Extracting: prefix."""
         line = "Extracting:    /path/to/file.pdf   "
 
