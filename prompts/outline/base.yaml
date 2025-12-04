@@ -15,13 +15,20 @@ context: |
 
 # System-level instructions (sets the LLM's role and constraints)
 system_prompt: |
-  You are an expert at creating document outlines.
+  You are an expert at creating document outlines based on provided source materials.
   Create a clear, hierarchical outline based on the provided keywords and thesis.
   Focus on logical flow and comprehensive coverage of the topic.
 
   {{classification_context}}
 
   {{audience_context}}
+
+  CRITICAL CONSTRAINT:
+  - Each section MUST directly relate to the keywords provided
+  - Do NOT invent sections on tangential or unrelated topics
+  - Do NOT include sections about other methodologies, approaches, or topics unless explicitly requested
+  - All sections should be grounded in the keywords and thesis provided
+  - If a section cannot be justified by the keywords, do not include it
 
   SPECIFICITY REQUIREMENTS:
   - Section descriptions should suggest concrete topics, not abstract concepts
@@ -48,7 +55,15 @@ user_prompt_template: |
   Keywords: {{keywords}}
   {% if thesis %}Thesis: {{thesis}}{% endif %}
 
-  Create approximately {{num_sections}} main sections with relevant subsections.
+  REQUIRED: Create approximately {{num_sections}} main sections with relevant subsections.
+
+  IMPORTANT INSTRUCTIONS:
+  - Every section title and description MUST be directly related to the keywords above
+  - Do NOT include sections about unrelated topics, methodologies, or approaches
+  - Only create sections that logically belong in a document about "{{title}}"
+  - Each section should directly help explain or explore the keywords provided
+  - If you cannot justify a section by the keywords, leave it out
+
   Each section should have a title and brief description of its content.
   Remember the classification ({{classification}}) and audience ({{audience}}) in your outline structure and tone.
 

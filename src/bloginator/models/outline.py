@@ -79,6 +79,7 @@ class Outline(BaseModel):
     total_sources: int = Field(default=0, ge=0)
     avg_coverage: float = Field(default=0.0, ge=0.0, le=100.0)
     low_coverage_sections: int = Field(default=0, ge=0)
+    validation_notes: str = Field(default="", description="Warnings about outline quality/coverage")
 
     def calculate_stats(self, low_coverage_threshold: float = 50.0) -> None:
         """Calculate outline statistics.
@@ -151,6 +152,11 @@ class Outline(BaseModel):
         if self.low_coverage_sections > 0:
             lines.append(f"**⚠️ Low Coverage**: {self.low_coverage_sections} section(s)")
         lines.append("")
+
+        # Validation notes (warnings about outline quality)
+        if self.validation_notes:
+            lines.append(self.validation_notes)
+            lines.append("")
 
         # Sections
         for section in self.sections:
