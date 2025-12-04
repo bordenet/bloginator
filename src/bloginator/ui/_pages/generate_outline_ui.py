@@ -192,7 +192,10 @@ def show_outline_generation() -> None:
             return
 
         output_dir = create_output_directory()
-        outline_path = output_dir / "outline"
+        # Use title as filename, sanitize for filesystem
+        safe_title = "".join(c if c.isalnum() or c in "-_ " else "" for c in title).strip()
+        safe_title = safe_title.replace(" ", "-").lower() if safe_title else "outline"
+        outline_path = output_dir / safe_title
 
         with st.spinner("Generating outline... This may take a few minutes."):
             # Build command

@@ -1,5 +1,6 @@
 """Draft generation UI component for Bloginator Streamlit."""
 
+import json
 from datetime import datetime
 from pathlib import Path
 
@@ -82,9 +83,24 @@ def show_draft_generation() -> None:
             st.warning("Please provide a valid outline path")
             return
 
-        # Create output path
+        # Create output path using outline title as base filename
         outline_file = Path(outline_path)
-        draft_path = outline_file.parent / "draft.md"
+
+        # Extract title from outline JSON file
+        outline_json_path = outline_file.with_suffix(".json")
+        if outline_json_path.exists():
+            try:
+                outline_data = json.loads(outline_json_path.read_text())
+                title = outline_data.get("title", "draft")
+                # Sanitize title for filesystem
+                safe_title = "".join(c if c.isalnum() or c in "-_ " else "" for c in title).strip()
+                safe_title = safe_title.replace(" ", "-").lower() if safe_title else "draft"
+            except (json.JSONDecodeError, KeyError, FileNotFoundError):
+                safe_title = "draft"
+        else:
+            safe_title = "draft"
+
+        draft_path = outline_file.parent / f"{safe_title}.md"
 
         with st.spinner("Generating draft... This may take several minutes."):
             # Build command
