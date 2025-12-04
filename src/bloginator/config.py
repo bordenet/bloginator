@@ -48,6 +48,8 @@ class Config:
         "BLOGINATOR_LLM_BASE_URL", os.getenv("OLLAMA_HOST", "http://localhost:11434")
     )
     LLM_API_KEY: str | None = os.getenv("BLOGINATOR_LLM_API_KEY")
+    # Note: LLM_TIMEOUT is now managed by timeout_config module
+    # Kept here for backward compatibility - use timeout_config.LLM_REQUEST_TIMEOUT instead
     LLM_TIMEOUT: int = int(os.getenv("BLOGINATOR_LLM_TIMEOUT", "120"))
 
     # Generation defaults

@@ -36,15 +36,34 @@ A pre-commit hook scrutinizes:
 
 ## CRITICAL: LLM Mode Configuration
 
-**CLAUDE IS ALWAYS THE LLM FOR BLOG GENERATION**
+### Mock Mode: Claude as the LLM
 
-When running Bloginator to generate blogs:
+When running Bloginator for blog generation OR end-to-end testing:
 - The `.env` file MUST have `BLOGINATOR_LLM_MOCK=assistant`
 - The `.env` file MUST have `BLOGINATOR_LLM_PROVIDER=mock`
-- Claude (the AI assistant) acts as the LLM by responding to requests in `.bloginator/llm_responses/`
-- Use `scripts/auto_respond.py` to automatically generate LLM responses
+- **Claude (the AI assistant in this conversation) acts as the LLM** by responding to requests
+- Claude uses its FULL MODEL capabilities to serve these requests
+- Claude reads request files from `.bloginator/llm_requests/` and writes responses to `.bloginator/llm_responses/`
+- Use `scripts/auto_respond.py` to automatically generate LLM responses (Claude reads requests and writes high-quality responses)
+
+### Important: No Anthropic API Key Required
+
+- The user does NOT have an Anthropic API key
+- The user does NOT want to use external LLM services (Ollama, OpenAI, etc.)
+- Claude Code itself (the AI agent) IS the LLM for all testing and generation
+- This "mock" mode is actually Claude providing real, high-quality responses
 - NEVER switch to Ollama or other LLMs without explicit user request
-- The user wants Claude to BE the LLM, not to USE an external LLM
+
+### Testing and Validation
+
+When the user asks to "run critical end-to-end tests":
+
+1. Ensure `BLOGINATOR_LLM_MOCK=assistant` and `BLOGINATOR_LLM_PROVIDER=mock` in `.env`
+2. Run the test commands (e.g., `bloginator outline`, `bloginator draft`)
+3. Claude monitors `.bloginator/llm_requests/` and provides responses via `.bloginator/llm_responses/`
+4. This tests the full pipeline with Claude as the LLM backend
+
+The user wants Claude to **BE** the LLM, not to **USE** an external LLM.
 
 ## Mandatory Coding Standards
 

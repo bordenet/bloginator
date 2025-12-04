@@ -10,6 +10,7 @@ from bloginator.generation.llm_base import (
     print_llm_request,
     print_llm_response,
 )
+from bloginator.timeout_config import timeout_config
 
 
 class CustomLLMClient(LLMClient):
@@ -32,7 +33,7 @@ class CustomLLMClient(LLMClient):
         base_url: str = "http://localhost:1234/v1",
         api_key: str | None = None,
         headers: dict[str, str] | None = None,
-        timeout: int = 120,
+        timeout: int | None = None,
         verbose: bool = False,
     ):
         """Initialize custom LLM client.
@@ -42,13 +43,13 @@ class CustomLLMClient(LLMClient):
             base_url: API base URL (should end with /v1 for OpenAI compatibility)
             api_key: Optional API key (will be added to Authorization header)
             headers: Additional custom headers
-            timeout: Request timeout in seconds
+            timeout: Request timeout in seconds (uses TimeoutConfig default if None)
             verbose: Show LLM request/response interactions
         """
         self.model = model
         self.base_url = base_url.rstrip("/")
         self.api_key = api_key
-        self.timeout = timeout
+        self.timeout = timeout if timeout is not None else timeout_config.LLM_REQUEST_TIMEOUT
         self.verbose = verbose
 
         # Build headers
@@ -153,7 +154,9 @@ class CustomLLMClient(LLMClient):
         try:
             # Try to hit the models endpoint
             url = f"{self.base_url}/models"
-            response = requests.get(url, headers=self.headers, timeout=5)
+            response = requests.get(
+                url, headers=self.headers, timeout=timeout_config.MODEL_AVAILABILITY_TIMEOUT
+            )
             return bool(response.status_code == 200)
         except requests.exceptions.RequestException:
             return False

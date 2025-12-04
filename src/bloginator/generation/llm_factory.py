@@ -17,6 +17,7 @@ from bloginator.generation.llm_client import (
     OllamaClient,
     create_llm_client,
 )
+from bloginator.timeout_config import timeout_config
 
 
 def create_llm_from_config(verbose: bool = False) -> LLMClient:
@@ -49,7 +50,7 @@ def create_llm_from_config(verbose: bool = False) -> LLMClient:
         return create_llm_client(
             provider=LLMProvider.MOCK,
             model=config.LLM_MODEL,
-            timeout=config.LLM_TIMEOUT,
+            timeout=timeout_config.LLM_REQUEST_TIMEOUT,
             verbose=verbose,
         )
 
@@ -66,7 +67,7 @@ def create_llm_from_config(verbose: bool = False) -> LLMClient:
     # Common parameters
     kwargs: dict[str, Any] = {
         "model": config.LLM_MODEL,
-        "timeout": config.LLM_TIMEOUT,
+        "timeout": timeout_config.LLM_REQUEST_TIMEOUT,
         "verbose": verbose,
     }
 
