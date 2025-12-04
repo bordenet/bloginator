@@ -6,12 +6,20 @@ streamlit.testing.v1.AppTest framework.
 Coder A Assignment (Phase 3):
 - Test that each page renders without exceptions
 - Verify key UI elements are present
+
+NOTE: These tests require streamlit to be installed (pip install -e ".[web-ui]").
+They are skipped in CI to avoid installing multi-gigabyte dependencies.
+Run locally with: pytest tests/e2e/test_streamlit_pages.py -v
 """
 
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
+
+
+# Skip entire module if streamlit is not installed
+pytest.importorskip("streamlit", reason="Streamlit not installed (requires web-ui extras)")
 
 
 @pytest.mark.e2e
