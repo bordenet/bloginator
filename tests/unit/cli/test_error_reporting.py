@@ -2,9 +2,7 @@
 
 import json
 from pathlib import Path
-from unittest.mock import MagicMock
 
-import pytest
 from rich.console import Console
 
 from bloginator.cli.error_reporting import (
@@ -121,7 +119,9 @@ class TestErrorTrackerSaveToFile:
         tracker = ErrorTracker()
         tracker.record_skip(SkipCategory.TEMP_FILE, "~$a.docx")
         tracker.record_skip(SkipCategory.ALREADY_EXTRACTED, "old.md")
-        tracker.record_error(ErrorCategory.PERMISSION_DENIED, "locked.pdf", PermissionError("denied"))
+        tracker.record_error(
+            ErrorCategory.PERMISSION_DENIED, "locked.pdf", PermissionError("denied")
+        )
 
         report_path = tracker.save_to_file(tmp_path, prefix="extraction")
         data = json.loads(report_path.read_text())
