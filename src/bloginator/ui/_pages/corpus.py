@@ -347,9 +347,9 @@ def show_extraction_tab():
                                 height=300,
                                 key=f"skipped_{len(skipped_files)}",
                             )
-                    else:
-                        # Assume non-skip lines indicate current file being processed
-                        current_file = stripped
+                    elif stripped.startswith("Extracting:"):
+                        # Parse current file: "Extracting: /path/to/file"
+                        current_file = stripped[11:].strip()  # Remove "Extracting: " prefix
                         # Update current file display
                         current_file_container.info(f"📄 Current: {current_file}")
 
