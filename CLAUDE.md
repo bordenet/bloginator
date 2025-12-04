@@ -12,8 +12,17 @@ without exception for all work on this repository.
 - ALL temporary/experimental scripts go in `tmp/` directory (git-ignored)
 - ALL blog generation outputs go in `blogs/` directory (git-ignored)
 - ALL prompt experiments go in `prompts/experimentation/` (git-ignored)
+- ALL context handoff prompts go in `prompts/` (e.g., `prompts/finish-refactoring-options-b-c.md`)
 - NEVER create shell scripts or markdown files in the repository root
 - Exception: Only permanent, maintained scripts/docs belong in root
+
+### Markdown Documentation Policy
+
+- Keep all working markdown files in `docs/` updated as you work
+- Create index files (e.g., `docs/REFACTORING_NEXT_STEPS.md`) that reference other docs
+- Write comprehensive prompts to `prompts/` for context handoffs
+- Reference prompt files instead of pasting huge inline content
+- Each prompt should be 200-400 lines max, focused on execution steps
 
 ### Pre-commit Hook Enforcement
 
