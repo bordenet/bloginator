@@ -402,7 +402,7 @@ def _extract_source_files(
         for file_path in files:
             # Output current file path for Streamlit UI to parse
             progress.console.print(f"Extracting: {file_path}", highlight=False)
-            
+
             # Update ticker with current file (show full path)
             display_path = str(file_path)
             progress.update(task, current_file=display_path)
