@@ -6,7 +6,7 @@ import click
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
-from bloginator.search.searcher import _get_embedding_model
+from bloginator.search._embedding import _get_embedding_model
 
 
 console = Console()

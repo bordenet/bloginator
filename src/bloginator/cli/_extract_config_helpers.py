@@ -5,7 +5,6 @@ from datetime import datetime
 from pathlib import Path
 
 from rich.console import Console
-from rich.progress import BarColumn, Progress, SpinnerColumn, TaskProgressColumn, TextColumn
 from rich.table import Table
 
 from bloginator.cli._extract_files_engine import extract_source_files
@@ -236,13 +235,17 @@ def collect_source_files(
     Returns:
         List of file paths to extract
     """
-    files = []
+    files: list[Path] = []
 
     # Convert SMB URLs to mounted local paths
     if isinstance(resolved_path, str) and resolved_path.startswith("smb://"):
         resolved_path = resolve_smb_path(resolved_path, error_tracker)
         if not resolved_path:
             return files
+
+    # Type guard: resolved_path must be Path at this point
+    if not isinstance(resolved_path, Path):
+        return files
 
     if resolved_path.is_file():
         # Skip temp files even for single files

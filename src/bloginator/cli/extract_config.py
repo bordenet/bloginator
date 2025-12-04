@@ -1,6 +1,5 @@
 """Config-based multi-source extraction."""
 
-from datetime import datetime
 from pathlib import Path
 
 from rich.console import Console
