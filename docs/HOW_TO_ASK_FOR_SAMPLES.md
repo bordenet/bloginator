@@ -4,7 +4,7 @@
 
 Use this concise prompt when you want Claude to generate blog samples in mock LLM mode:
 
-```
+```text
 Generate end-to-end blog samples in mock LLM mode (you as the LLM) for these topics:
 
 [Paste your topic list here with title, keywords, and thesis for each]
@@ -20,7 +20,7 @@ Generated blogs go to output/generated/cli_blog_*/
 
 ## Example Usage
 
-```
+```text
 Generate end-to-end blog samples in mock LLM mode (you as the LLM) for these topics:
 
 1. **What Great Hiring Managers Actually Do**
@@ -52,7 +52,8 @@ and provide a quality assessment summary.
 ## Directory Structure
 
 Generated blogs appear in:
-```
+
+```text
 output/generated/cli_blog_YYYYMMDD_HHMMSS/
 ├── outline.md
 ├── draft.md
@@ -66,124 +67,143 @@ output/generated/cli_blog_YYYYMMDD_HHMMSS/
 - **Auto-Response**: Claude reads `.bloginator/llm_requests/` and writes to `.bloginator/llm_responses/`
 - **Testing Focus**: This workflow is for assessing LLM prompt quality, not production use
 
-
 # Sample Corpus Test Cases
 
-These test cases directly mirror content from the `test-corpus/Engineering_Culture` repository.
-Anyone cloning the repo can run these to validate the end-to-end pipeline.
+These test cases use content from the `test-corpus/Engineering_Culture` repository.
+They are organized into three categories based on expected signal quality.
 
-## Engineering Fundamentals Series
+---
 
-### 1. Building Dashboards That Drive Action
+## Category A: Exact Match (High Signal Baseline)
+
+**Purpose:** Titles match corpus document names exactly. Expect 80-95% coverage
+and output that closely mirrors the source document. These are our baseline tests
+to verify the pipeline doesn't introduce noise or hallucination.
+
+**Expected Behavior:** Generated blog should be nearly identical to source.
+
+### A1. What Dashboards are Good For
+
+**Keywords:** dashboard, observability, monitoring
+**Corpus Source:** `EngFundamentals/What_Dashboards_are_Good_For.md`
+**Expected Coverage:** 85-95%
+**Validation:** Output structure and key points should match source document closely.
+
+---
+
+### A2. The Road to an SLA
+
+**Keywords:** SLA, SLO, SLI, reliability
+**Corpus Source:** `EngFundamentals/The_Road_to_an_SLA.md`
+**Expected Coverage:** 85-95%
+**Validation:** Output should cover the same journey from SLI→SLO→SLA as source.
+
+---
+
+### A3. Understanding Conway's Law
+
+**Keywords:** Conway's Law, organization, architecture
+**Corpus Source:** `Culture/Understanding_Conways_Law.md`
+**Expected Coverage:** 85-95%
+**Validation:** Output should explain Conway's Law with same examples as source.
+
+---
+
+### A4. Constructive Feedback: The SBI Model
+
+**Keywords:** feedback, SBI, communication
+**Corpus Source:** `Culture/Constructive_Feedback_SBI_Model.md`
+**Expected Coverage:** 85-95%
+**Validation:** Output should explain Situation-Behavior-Impact model as in source.
+
+---
+
+### A5. SOA and Microservices
+
+**Keywords:** SOA, microservices, architecture
+**Corpus Source:** `EngFundamentals/SOA_and_Microservices.md`
+**Expected Coverage:** 85-95%
+**Validation:** Output should compare architectures with same tradeoffs as source.
+
+---
+
+## Category B: Similar Topics (Synthesized Content)
+
+**Purpose:** Titles are related but not identical to corpus. Expect 50-80% coverage
+with synthesized content drawing from multiple sources. Tests the system's ability
+to compose coherent content from related materials.
+
+**Expected Behavior:** Good quality blog synthesized from corpus materials.
+
+### B1. Building Dashboards That Drive Action
 
 **Keywords:** dashboard, observability, metrics, SLI
-**Audience:** engineers, SREs, tech leads
 **Corpus Source:** `EngFundamentals/How_to_Construct_a_Useful_Dashboard.md`, `EngFundamentals/What_Dashboards_are_Good_For.md`
-**Summary:** Explains how to construct dashboards that surface actionable insights rather than vanity metrics. Covers SLI selection, layout principles, and avoiding dashboard sprawl.
-**Sections:**
-
-- What dashboards are actually good for
-- Selecting meaningful SLIs and metrics
-- Dashboard layout and hierarchy principles
-- Common anti-patterns (vanity metrics, too many charts)
-- Maintaining dashboards over time
+**Expected Coverage:** 50-75%
+**Validation:** Should synthesize from both dashboard documents into coherent guidance.
 
 ---
 
-### 2. The Road to a Meaningful SLA
-
-**Keywords:** SLA, SLO, SLI, reliability, service-level
-**Audience:** engineers, product managers, SREs
-**Corpus Source:** `EngFundamentals/The_Road_to_an_SLA.md`
-**Summary:** Walks through the journey from defining SLIs to establishing SLOs and committing to SLAs. Covers the relationship between these concepts and how to set realistic targets.
-**Sections:**
-
-- Understanding SLI, SLO, and SLA relationships
-- Choosing the right indicators for your service
-- Setting realistic objectives based on data
-- Communicating SLAs to stakeholders
-- Error budgets and tradeoffs
-
----
-
-### 3. SOA and Microservices: Choosing the Right Architecture
-
-**Keywords:** SOA, microservices, architecture, distributed-systems
-**Audience:** engineers, architects, tech leads
-**Corpus Source:** `EngFundamentals/SOA_and_Microservices.md`
-**Summary:** Compares service-oriented architecture with microservices, helping teams understand when each approach fits. Covers tradeoffs, organizational implications, and migration strategies.
-**Sections:**
-
-- What SOA and microservices actually mean
-- When to choose monolith vs. distributed
-- Organizational implications (Conway's Law connection)
-- Migration strategies and pitfalls
-- Operational complexity tradeoffs
-
----
-
-## Engineering Culture Series
-
-### 4. Understanding Conway's Law in Practice
-
-**Keywords:** Conway's Law, organization, architecture, team-structure
-**Audience:** engineers, managers, architects
-**Corpus Source:** `Culture/Understanding_Conways_Law.md`
-**Summary:** Explores how organizational structure shapes system architecture and vice versa. Provides practical guidance for aligning teams and systems.
-**Sections:**
-
-- What Conway's Law actually says
-- How team boundaries become system boundaries
-- Inverse Conway Maneuver: designing teams for desired architecture
-- Real-world examples and anti-patterns
-- Practical steps for alignment
-
----
-
-### 5. Giving Effective Feedback with the SBI Model
-
-**Keywords:** feedback, SBI, communication, culture
-**Audience:** managers, leads, all engineers
-**Corpus Source:** `Culture/Constructive_Feedback_SBI_Model.md`
-**Summary:** Introduces the Situation-Behavior-Impact model for delivering clear, constructive feedback that drives improvement without defensiveness.
-**Sections:**
-
-- Why feedback often fails
-- The SBI model explained
-- Structuring feedback conversations
-- Receiving feedback effectively
-- Building a feedback culture
-
----
-
-## SDLC Series
-
-### 6. Building Self-Correcting Systems with Mechanisms
-
-**Keywords:** mechanisms, process, automation, self-correcting
-**Audience:** engineers, managers, tech leads
-**Corpus Source:** `SDLC/Mechanisms:_Building_Self-Correcting_Systems.md`
-**Summary:** Explains how to design processes and systems that automatically detect and correct problems, reducing reliance on heroics and manual intervention.
-**Sections:**
-
-- What makes a mechanism effective
-- Self-correcting vs. self-reporting systems
-- Examples of engineering mechanisms
-- Designing new mechanisms
-- Measuring mechanism effectiveness
-
----
-
-### 7. Writing Effective One-Pagers and PR-FAQs
+### B2. Writing Effective One-Pagers and PR-FAQs
 
 **Keywords:** one-pager, PR-FAQ, planning, documentation
-**Audience:** engineers, product managers, tech leads
 **Corpus Source:** `SDLC/The_One-Pager.md`, `SDLC/The_PR-FAQ.md`, `SDLC/Project_Planning_Mechanisms:_Documents.md`
-**Summary:** Covers the purpose and structure of one-pagers and PR-FAQs as planning mechanisms. Explains when to use each and how to write them effectively.
-**Sections:**
+**Expected Coverage:** 50-75%
+**Validation:** Should synthesize planning document guidance from multiple sources.
 
-- Purpose of planning documents
-- One-pager structure and best practices
-- PR-FAQ structure and best practices
-- Choosing between document types
-- Common pitfalls and how to avoid them
+---
+
+### B3. Building Self-Correcting Systems with Mechanisms
+
+**Keywords:** mechanisms, process, automation, self-correcting
+**Corpus Source:** `SDLC/Mechanisms:_Building_Self-Correcting_Systems.md`
+**Expected Coverage:** 60-80%
+**Validation:** Should expand on mechanisms concept with practical examples.
+
+---
+
+## Category C: Deliberate Mismatch (Negative Tests)
+
+**Purpose:** Topics have NO relation to the engineering corpus. The system
+MUST reject these or produce empty/minimal output. Tests that we don't
+hallucinate content when corpus doesn't support the topic.
+
+**Expected Behavior:** REJECTION or <10% coverage with clear warning.
+
+### C1. Training Your First Puppy
+
+**Keywords:** puppy, training, dog, obedience
+**Corpus Source:** NONE (engineering corpus has no pet content)
+**Expected Coverage:** <10%
+**Expected Outcome:** System should REJECT with "insufficient corpus coverage" error.
+
+---
+
+### C2. Best Recipes for Sourdough Bread
+
+**Keywords:** sourdough, bread, baking, fermentation
+**Corpus Source:** NONE (engineering corpus has no cooking content)
+**Expected Coverage:** <10%
+**Expected Outcome:** System should REJECT with "insufficient corpus coverage" error.
+
+---
+
+### C3. Cryptocurrency Investment Strategies
+
+**Keywords:** crypto, bitcoin, investment, blockchain
+**Corpus Source:** NONE (engineering corpus has no finance content)
+**Expected Coverage:** <10%
+**Expected Outcome:** System should REJECT with "insufficient corpus coverage" error.
+
+---
+
+## Test Matrix Summary
+
+| Category | Count | Expected Coverage | Expected Outcome |
+|----------|-------|-------------------|------------------|
+| A: Exact Match | 5 | 85-95% | Near-identical to source |
+| B: Similar | 3 | 50-80% | Good synthesized content |
+| C: Mismatch | 3 | <10% | REJECT / No output |
+
+**Total: 11 test cases** covering the full spectrum from high-signal baseline
+to deliberate rejection tests.
