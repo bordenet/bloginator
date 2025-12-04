@@ -220,7 +220,6 @@ class ErrorTracker:
             if len(error_list) > max_per_category:
                 console.print(f"  [dim]... and {len(error_list) - max_per_category} more[/dim]")
 
-
     def save_to_file(self, output_dir: Path, prefix: str = "extraction") -> Path:
         """Save skip and error report to a JSON file.
 
@@ -242,9 +241,7 @@ class ErrorTracker:
                 "total_skipped": self.total_skipped,
                 "total_errors": self.total_errors,
             },
-            "skipped": {
-                category.value: items for category, items in self.skipped.items()
-            },
+            "skipped": {category.value: items for category, items in self.skipped.items()},
             "errors": {
                 category.value: [
                     {"context": ctx, "error": str(exc), "type": type(exc).__name__}
@@ -327,7 +324,10 @@ class ErrorTracker:
             content_group = Group(
                 table,
                 *detail_lines,
-                Text(f"\n... (truncated, see full report for all {self.total_skipped} items)", style="italic yellow"),
+                Text(
+                    f"\n... (truncated, see full report for all {self.total_skipped} items)",
+                    style="italic yellow",
+                ),
             )
 
         if show_file_path:
@@ -336,7 +336,9 @@ class ErrorTracker:
                 Text(f"\nFull report: {show_file_path}", style="dim italic"),
             )
 
-        console.print(Panel(content_group, title="[bold cyan]Skipped Files[/bold cyan]", expand=False))
+        console.print(
+            Panel(content_group, title="[bold cyan]Skipped Files[/bold cyan]", expand=False)
+        )
         console.print()
 
 

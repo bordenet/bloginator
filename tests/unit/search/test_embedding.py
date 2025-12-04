@@ -1,7 +1,8 @@
 """Tests for embedding model management."""
 
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 
 from bloginator.search._embedding import _get_embedding_model
 
