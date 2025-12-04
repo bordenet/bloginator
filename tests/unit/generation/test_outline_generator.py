@@ -4,6 +4,8 @@ from unittest.mock import Mock
 
 import pytest
 
+from bloginator.generation._outline_coverage import analyze_section_coverage
+from bloginator.generation._outline_parser import parse_outline_response
 from bloginator.generation.outline_generator import OutlineGenerator
 from bloginator.models.outline import OutlineSection
 from bloginator.search import SearchResult
@@ -47,7 +49,7 @@ class TestOutlineGenerator:
         assert generator.searcher == mock_searcher
         assert generator.min_coverage_sources == 5
 
-    def test_parse_outline_response_simple(self, generator):
+    def test_parse_outline_response_simple(self):
         """Test parsing simple outline response."""
         llm_output = """
 ## Introduction
@@ -60,7 +62,7 @@ Historical context
 Summary
 """
 
-        sections = generator._parse_outline_response(llm_output)
+        sections = parse_outline_response(llm_output)
 
         assert len(sections) == 3
         assert sections[0].title == "Introduction"
@@ -70,7 +72,7 @@ Summary
         assert sections[2].title == "Conclusion"
         assert sections[2].description == "Summary"
 
-    def test_parse_outline_response_with_subsections(self, generator):
+    def test_parse_outline_response_with_subsections(self):
         """Test parsing outline with subsections."""
         llm_output = """
 ## Main Section
@@ -86,7 +88,7 @@ Sub description 2
 Another description
 """
 
-        sections = generator._parse_outline_response(llm_output)
+        sections = parse_outline_response(llm_output)
 
         assert len(sections) == 2
         assert sections[0].title == "Main Section"
@@ -96,7 +98,7 @@ Another description
         assert sections[0].subsections[1].title == "Subsection 2"
         assert sections[1].title == "Another Section"
 
-    def test_parse_outline_response_multiline_description(self, generator):
+    def test_parse_outline_response_multiline_description(self):
         """Test parsing with multiline descriptions."""
         llm_output = """
 ## Section
@@ -105,7 +107,7 @@ Second line of description.
 Third line too.
 """
 
-        sections = generator._parse_outline_response(llm_output)
+        sections = parse_outline_response(llm_output)
 
         assert len(sections) == 1
         assert sections[0].title == "Section"
@@ -114,9 +116,9 @@ Third line too.
         assert "Second line" in sections[0].description
         assert "Third line" in sections[0].description
 
-    def test_parse_outline_response_empty(self, generator):
+    def test_parse_outline_response_empty(self):
         """Test parsing empty response."""
-        sections = generator._parse_outline_response("")
+        sections = parse_outline_response("")
         assert sections == []
 
     def test_analyze_section_coverage_good(self, generator, mock_searcher):
@@ -134,7 +136,9 @@ Third line too.
         mock_searcher.search.return_value = search_results
 
         section = OutlineSection(title="Test Section")
-        generator._analyze_section_coverage(section, keywords=["test"])
+        analyze_section_coverage(
+            section, keywords=["test"], searcher=mock_searcher, min_coverage_sources=3
+        )
 
         # Should have high coverage
         assert section.coverage_pct > 50.0
@@ -155,7 +159,9 @@ Third line too.
         mock_searcher.search.return_value = search_results
 
         section = OutlineSection(title="Test Section")
-        generator._analyze_section_coverage(section, keywords=["test"])
+        analyze_section_coverage(
+            section, keywords=["test"], searcher=mock_searcher, min_coverage_sources=3
+        )
 
         # Should have low coverage
         assert section.coverage_pct < 50.0
@@ -166,37 +172,36 @@ Third line too.
         mock_searcher.search.return_value = []
 
         section = OutlineSection(title="Test Section")
-        generator._analyze_section_coverage(section, keywords=["test"])
+        analyze_section_coverage(
+            section, keywords=["test"], searcher=mock_searcher, min_coverage_sources=3
+        )
 
         assert section.coverage_pct == 0.0
         assert section.source_count == 0
         assert "No corpus coverage" in section.notes
 
     def test_analyze_section_coverage_few_sources(self, generator, mock_searcher):
-        """Test coverage with few unique sources."""
-        # 2 results from same document
+        """Test coverage with few unique sources but good similarity."""
+        # Many results from same document with high similarity
         search_results = [
             SearchResult(
-                chunk_id="chunk1",
-                content="Content 1",
-                distance=0.1,
+                chunk_id=f"chunk{i}",
+                content=f"Content {i}",
+                distance=0.05,  # High similarity (low distance)
                 metadata={"document_id": "doc1"},
-            ),
-            SearchResult(
-                chunk_id="chunk2",
-                content="Content 2",
-                distance=0.1,
-                metadata={"document_id": "doc1"},  # Same doc
-            ),
+            )
+            for i in range(10)
         ]
         mock_searcher.search.return_value = search_results
 
         section = OutlineSection(title="Test Section")
-        generator._analyze_section_coverage(section, keywords=["test"])
+        analyze_section_coverage(
+            section, keywords=["test"], searcher=mock_searcher, min_coverage_sources=3
+        )
 
-        # Only 1 unique source (below min_coverage_sources=3)
+        # Only 1 unique source (below min_coverage_sources=3) but high coverage
         assert section.source_count == 1
-        assert "Low corpus coverage" in section.notes
+        assert "Limited sources" in section.notes
 
     def test_analyze_section_coverage_recursive(self, generator, mock_searcher):
         """Test coverage analysis on nested sections."""
@@ -215,7 +220,9 @@ Third line too.
             subsections=[subsection],
         )
 
-        generator._analyze_section_coverage(section, keywords=["test"])
+        analyze_section_coverage(
+            section, keywords=["test"], searcher=mock_searcher, min_coverage_sources=3
+        )
 
         # Both should be analyzed
         assert section.coverage_pct > 0
