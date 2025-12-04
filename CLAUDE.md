@@ -5,7 +5,9 @@ without exception for all work on this repository.
 
 ## CRITICAL: Repository Cleanliness
 
-**NEVER commit temporary scripts or one-off files to the repository root.**
+### Active Implementation Plans
+
+- **Topic Drift Fix**: A plan to address topic drift in blog generation is being tracked in [docs/IMPLEMENTATION_PLAN_TOPIC_DRIFT_FIX.md](docs/IMPLEMENTATION_PLAN_TOPIC_DRIFT_FIX.md). This document should be updated regularly as work progresses.
 
 ### Temporary Files Policy
 
@@ -19,7 +21,7 @@ without exception for all work on this repository.
 ### Markdown Documentation Policy
 
 - Keep all working markdown files in `docs/` updated as you work
-- Create index files (e.g., `docs/REFACTORING_NEXT_STEPS.md`) that reference other docs
+- Create index files (e.g., `docs/IMPLEMENTATION_PLAN_TOPIC_DRIFT_FIX.md`) that reference other docs
 - Write comprehensive prompts to `prompts/` for context handoffs
 - Reference prompt files instead of pasting huge inline content
 - Each prompt should be 200-400 lines max, focused on execution steps
