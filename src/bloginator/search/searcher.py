@@ -6,98 +6,21 @@ from pathlib import Path
 from typing import Any, cast
 
 import chromadb
-from sentence_transformers import SentenceTransformer
 
+from bloginator.search._embedding import _get_embedding_model
+from bloginator.search._search_helpers import (
+    build_where_filter,
+    calculate_quality_score,
+    calculate_recency_score,
+    matches_tags,
+)
+from bloginator.search._search_result import SearchResult
 
-# Module-level cache for embedding models to avoid reloading
-_EMBEDDING_MODEL_CACHE: dict[str, SentenceTransformer] = {}
 
 logger = logging.getLogger(__name__)
 
-
-def _get_embedding_model(model_name: str) -> SentenceTransformer:
-    """Get or load embedding model with caching.
-
-    This function caches embedding models to avoid reloading them on every
-    CorpusSearcher initialization, which can take 10-60 seconds.
-
-    Args:
-        model_name: Name of the sentence-transformers model
-
-    Returns:
-        Loaded SentenceTransformer model
-
-    Note:
-        First load may take time to download model from HuggingFace.
-        Subsequent loads use cached instance.
-    """
-    if model_name not in _EMBEDDING_MODEL_CACHE:
-        logger.info(f"Loading embedding model '{model_name}' (this may take 10-60 seconds)...")
-        try:
-            model = SentenceTransformer(model_name)
-            _EMBEDDING_MODEL_CACHE[model_name] = model
-            logger.info(f"Embedding model '{model_name}' loaded successfully")
-        except Exception as e:
-            logger.error(f"Failed to load embedding model '{model_name}': {e}")
-            raise RuntimeError(
-                f"Failed to load embedding model '{model_name}'. "
-                f"This may be due to network issues or missing model files. "
-                f"Error: {e}"
-            ) from e
-    else:
-        logger.debug(f"Using cached embedding model '{model_name}'")
-
-    return _EMBEDDING_MODEL_CACHE[model_name]
-
-
-class SearchResult:
-    """Encapsulates a search result with scoring information.
-
-    Attributes:
-        chunk_id: ID of the chunk
-        content: Text content of the chunk
-        metadata: Metadata dictionary
-        distance: Cosine distance from query (lower = more similar)
-        similarity_score: Similarity score (1 - distance, higher = more similar)
-        recency_score: Recency score based on document date
-        quality_score: Quality score based on rating
-        combined_score: Final weighted score
-    """
-
-    def __init__(
-        self,
-        chunk_id: str,
-        content: str,
-        metadata: dict[str, Any],
-        distance: float,
-    ):
-        """Initialize search result.
-
-        Args:
-            chunk_id: Chunk identifier
-            content: Text content
-            metadata: Metadata dictionary
-            distance: Cosine distance from query
-        """
-        self.chunk_id = chunk_id
-        self.content = content
-        self.metadata = metadata
-        self.distance = distance
-        # Clamp similarity to [0.0, 1.0] to handle edge cases where distance > 1.0
-        self.similarity_score = max(0.0, min(1.0, 1.0 - distance))
-
-        # Initialize scoring attributes
-        self.recency_score: float = 0.5
-        self.quality_score: float = 0.5
-        self.combined_score: float = self.similarity_score
-
-    def __repr__(self) -> str:
-        """String representation."""
-        return (
-            f"SearchResult(id={self.chunk_id[:8]}..., "
-            f"score={self.combined_score:.3f}, "
-            f"similarity={self.similarity_score:.3f})"
-        )
+# Re-export SearchResult for backward compatibility
+__all__ = ["CorpusSearcher", "SearchResult"]
 
 
 class CorpusSearcher:
@@ -169,7 +92,7 @@ class CorpusSearcher:
         query_embedding = self.embedding_model.encode([query])[0]
 
         # Build metadata filter
-        where = self._build_where_filter(quality_filter, format_filter)
+        where = build_where_filter(quality_filter, format_filter)
 
         # Query ChromaDB
         raw_results = self.collection.query(
@@ -191,7 +114,7 @@ class CorpusSearcher:
                 )
 
                 # Filter by tags if specified
-                if tags_filter and not self._matches_tags(result.metadata, tags_filter):
+                if tags_filter and not matches_tags(result.metadata, tags_filter):
                     continue
 
                 search_results.append(result)
@@ -235,7 +158,7 @@ class CorpusSearcher:
         query_embeddings = self.embedding_model.encode(queries)
 
         # Build metadata filter
-        where = self._build_where_filter(quality_filter, format_filter)
+        where = build_where_filter(quality_filter, format_filter)
 
         # Query ChromaDB with all embeddings at once
         raw_results = self.collection.query(
@@ -259,7 +182,7 @@ class CorpusSearcher:
                     )
 
                     # Filter by tags if specified
-                    if tags_filter and not self._matches_tags(result.metadata, tags_filter):
+                    if tags_filter and not matches_tags(result.metadata, tags_filter):
                         continue
 
                     search_results.append(result)
@@ -267,47 +190,6 @@ class CorpusSearcher:
             all_search_results.append(search_results[:n_results])
 
         return all_search_results
-
-    def _build_where_filter(
-        self, quality_filter: str | None, format_filter: str | None
-    ) -> dict[str, Any] | None:
-        """Build ChromaDB where filter from parameters.
-
-        Args:
-            quality_filter: Quality rating filter
-            format_filter: Document format filter
-
-        Returns:
-            Where filter dictionary or None
-        """
-        where: dict[str, Any] = {}
-
-        if quality_filter:
-            where["quality_rating"] = quality_filter
-
-        if format_filter:
-            where["format"] = format_filter
-
-        return where if where else None
-
-    def _matches_tags(self, metadata: dict[str, Any], tags_filter: list[str]) -> bool:
-        """Check if metadata matches any of the tag filters.
-
-        Args:
-            metadata: Chunk metadata
-            tags_filter: List of tags to match
-
-        Returns:
-            True if any tag matches
-        """
-        tags_str = metadata.get("tags", "")
-        if not tags_str:
-            return False
-
-        doc_tags = [t.strip().lower() for t in tags_str.split(",")]
-        filter_tags = [t.strip().lower() for t in tags_filter]
-
-        return any(tag in doc_tags for tag in filter_tags)
 
     def search_with_recency(
         self,
@@ -333,7 +215,7 @@ class CorpusSearcher:
         # Calculate recency scores
         now = datetime.now()
         for result in results:
-            result.recency_score = self._calculate_recency_score(result.metadata, now)
+            result.recency_score = calculate_recency_score(result.metadata, now)
 
             # Combined score: (1 - recency_weight) * similarity + recency_weight * recency
             result.combined_score = (
@@ -367,7 +249,7 @@ class CorpusSearcher:
 
         # Calculate quality scores
         for result in results:
-            result.quality_score = self._calculate_quality_score(result.metadata)
+            result.quality_score = calculate_quality_score(result.metadata)
 
             # Combined score: (1 - quality_weight) * similarity + quality_weight * quality
             result.combined_score = (
@@ -409,8 +291,8 @@ class CorpusSearcher:
 
         # Calculate all scores
         for result in results:
-            result.recency_score = self._calculate_recency_score(result.metadata, now)
-            result.quality_score = self._calculate_quality_score(result.metadata)
+            result.recency_score = calculate_recency_score(result.metadata, now)
+            result.quality_score = calculate_quality_score(result.metadata)
 
             # Combined score: normalize weights to sum to 1.0
             similarity_weight = 1.0 - recency_weight - quality_weight
@@ -423,57 +305,6 @@ class CorpusSearcher:
         # Sort by combined score and return top n
         results.sort(key=lambda r: r.combined_score, reverse=True)
         return results[:n_results]
-
-    def _calculate_recency_score(self, metadata: dict[str, Any], now: datetime) -> float:
-        """Calculate recency score based on document date.
-
-        Uses exponential decay: more recent = higher score.
-        - Today: 1.0
-        - 1 year ago: ~0.5
-        - 5 years ago: ~0.1
-
-        Args:
-            metadata: Chunk metadata containing dates
-            now: Current datetime
-
-        Returns:
-            Recency score between 0.0 and 1.0
-        """
-        created_date_str = metadata.get("created_date", "")
-
-        if not created_date_str:
-            # No date available, use neutral score
-            return 0.5
-
-        try:
-            created_date = datetime.fromisoformat(created_date_str)
-            days_old = (now - created_date).days
-
-            # Exponential decay: 1.0 / (1.0 + days_old / 365.0)
-            # This gives roughly 0.5 for 1 year old, 0.1 for 9 years old
-            recency_score = 1.0 / (1.0 + days_old / 365.0)
-
-            return max(0.0, min(1.0, recency_score))  # Clamp to [0, 1]
-        except (ValueError, AttributeError):
-            return 0.5  # Invalid date, use neutral score
-
-    def _calculate_quality_score(self, metadata: dict[str, Any]) -> float:
-        """Calculate quality score based on quality rating.
-
-        Args:
-            metadata: Chunk metadata containing quality_rating
-
-        Returns:
-            Quality score between 0.0 and 1.0
-        """
-        quality_ratings = {
-            "preferred": 1.0,
-            "standard": 0.5,
-            "deprecated": 0.1,
-        }
-
-        quality_rating = metadata.get("quality_rating", "standard")
-        return quality_ratings.get(quality_rating, 0.5)
 
     def get_stats(self) -> dict[str, Any]:
         """Get search index statistics.

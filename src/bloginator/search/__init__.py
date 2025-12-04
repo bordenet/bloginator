@@ -7,7 +7,8 @@ This module handles:
 - Combined scoring and ranking
 """
 
-from bloginator.search.searcher import CorpusSearcher, SearchResult
+from bloginator.search._search_result import SearchResult
+from bloginator.search.searcher import CorpusSearcher
 
 
 # Backward compatibility alias
