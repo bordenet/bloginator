@@ -56,8 +56,8 @@ from bloginator.services.history_manager import HistoryManager
 )
 @click.option(
     "--model",
-    default="llama3",
-    help="LLM model to use (default: llama3)",
+    default=None,
+    help="LLM model to use (default: from BLOGINATOR_LLM_MODEL env var, falls back to ministral-3:14b)",
 )
 @click.option(
     "--sources-per-section",
@@ -328,7 +328,9 @@ def draft(
         voice_color = (
             "green"
             if draft_obj.voice_score >= 0.7
-            else "yellow" if draft_obj.voice_score >= 0.5 else "red"
+            else "yellow"
+            if draft_obj.voice_score >= 0.5
+            else "red"
         )
         stats_table.add_row(
             "Voice Score:",
