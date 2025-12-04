@@ -1,5 +1,6 @@
 """Draft generation with RAG and citation tracking."""
 
+import logging
 from collections.abc import Callable
 
 from bloginator.generation.llm_client import LLMClient
@@ -7,6 +8,10 @@ from bloginator.models.draft import Citation, Draft, DraftSection
 from bloginator.models.outline import Outline, OutlineSection
 from bloginator.prompts.loader import PromptLoader
 from bloginator.search import CorpusSearcher, SearchResult
+from bloginator.search.validators import validate_search_results
+
+
+logger = logging.getLogger(__name__)
 
 
 class DraftGenerator:
@@ -183,6 +188,13 @@ class DraftGenerator:
                 n_results=self.sources_per_section,
             )
 
+        # Validate and filter search results
+        filtered_results, validation_warnings = validate_search_results(
+            search_results, expected_keywords=keywords
+        )
+        for warning in validation_warnings:
+            logger.warning(f"Draft generation validation warning: {warning}")
+
         # Report progress
         if progress_callback:
             progress_callback(
@@ -191,8 +203,8 @@ class DraftGenerator:
                 total_sections,
             )
 
-        # Build context from search results
-        source_context = self._build_source_context(search_results)
+        # Build context from filtered search results
+        source_context = self._build_source_context(filtered_results)
 
         # Load prompt template from external YAML file
         prompt_template = self.prompt_loader.load("draft/base.yaml")
@@ -226,7 +238,7 @@ class DraftGenerator:
             max_tokens=max_words * 2,  # Rough token estimate
         )
 
-        # Create citations from search results
+        # Create citations from filtered search results
         citations = [
             Citation(
                 chunk_id=r.chunk_id,
@@ -235,7 +247,7 @@ class DraftGenerator:
                 content_preview=r.content[:100],
                 similarity_score=r.similarity_score,
             )
-            for r in search_results[:5]  # Keep top 5 citations
+            for r in filtered_results[:5]  # Keep top 5 citations from filtered results
         ]
 
         # Generate subsections recursively
@@ -322,7 +334,14 @@ class DraftGenerator:
             n_results=self.sources_per_section,
         )
 
-        source_context = self._build_source_context(search_results)
+        # Validate and filter search results
+        filtered_results, validation_warnings = validate_search_results(
+            search_results, expected_keywords=keywords
+        )
+        for warning in validation_warnings:
+            logger.warning(f"Draft refinement validation warning: {warning}")
+
+        source_context = self._build_source_context(filtered_results)
 
         # Refine with LLM
         system_prompt = """You are refining content based on feedback.
@@ -348,7 +367,7 @@ Revise the content to address the feedback while maintaining coherence."""
 
         # Update citations
         new_citations = section.citations.copy()
-        for result in search_results[:3]:
+        for result in filtered_results[:3]:  # Use filtered results for citations
             citation = Citation(
                 chunk_id=result.chunk_id,
                 document_id=result.metadata.get("document_id", "unknown"),
