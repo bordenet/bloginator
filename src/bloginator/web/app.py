@@ -72,7 +72,3 @@ def create_app(
     logger.info(f"Bloginator web UI initialized (version {version})")
 
     return app
-
-
-# Create default app instance
-app = create_app()
