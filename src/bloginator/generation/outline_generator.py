@@ -1,5 +1,6 @@
 """Outline generation with RAG and coverage analysis."""
 
+import logging
 from pathlib import Path
 
 from bloginator.generation._outline_coverage import (
@@ -16,6 +17,9 @@ from bloginator.generation._outline_prompt_builder import (
 from bloginator.generation.llm_client import LLMClient
 from bloginator.models.outline import Outline
 from bloginator.search import CorpusSearcher
+
+
+logger = logging.getLogger(__name__)
 
 
 class OutlineGenerator:
@@ -93,7 +97,8 @@ class OutlineGenerator:
 
         # GROUNDING: Search corpus multiple times for different keyword angles
         # to build sections directly from corpus rather than LLM hallucination
-        search_queries = build_search_queries(title, keywords)
+        search_queries = build_search_queries(title, keywords, thesis)
+        logger.info(f"Generated {len(search_queries)} search queries: {search_queries}")
 
         # Collect all unique chunks to extract natural section boundaries
         all_results = []
@@ -101,10 +106,24 @@ class OutlineGenerator:
         for query in search_queries:
             if query.strip():
                 results = self.searcher.search(query=query, n_results=3)
+                logger.info(f"Search query '{query}' returned {len(results)} results")
                 for result in results:
                     if result.chunk_id not in seen_chunk_ids:
                         all_results.append(result)
                         seen_chunk_ids.add(result.chunk_id)
+
+        # Log top results
+        if all_results:
+            logger.info(f"Retrieved {len(all_results)} unique results. Top 3:")
+            for i, result in enumerate(all_results[:3], 1):
+                preview = result.content[:100].replace("\n", " ")
+                logger.info(
+                    f"  Result {i}: similarity={result.similarity_score:.3f}, "
+                    f"source={result.metadata.get('filename', 'unknown')}, "
+                    f"preview='{preview}...'"
+                )
+        else:
+            logger.warning("No corpus results found for any query.")
 
         # Build corpus context from results
         corpus_context = build_corpus_context(all_results)

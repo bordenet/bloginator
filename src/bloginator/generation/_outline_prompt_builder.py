@@ -11,49 +11,79 @@ from bloginator.search import SearchResult
 def build_search_queries(
     title: str,
     keywords: list[str],
+    thesis: str = "",
 ) -> list[str]:
-    """Build multiple search queries for corpus grounding.
+    """Build specific, contextualized search queries.
 
-    Generates variations to find different aspects of the topic
-    (implementation, best practices, guides, etc.).
+    Creates longer queries that provide better topic discrimination
+    by including title, keywords, and thesis context.
 
     Args:
         title: Document title
         keywords: Topic keywords
+        thesis: Optional thesis statement for additional context
 
     Returns:
-        List of search queries
+        List of search queries with increasing specificity
     """
-    return [
-        title,  # Full title first
-        f"{keywords[0]} {keywords[1]}" if len(keywords) > 1 else keywords[0],
-        f"{keywords[0]} implementation" if keywords else "",
-        f"{keywords[0]} best practices" if keywords else "",
-        f"{' '.join(keywords[:2])} guide" if len(keywords) > 1 else "",
-    ]
+    queries = []
+
+    # Query 1: Full title (most specific)
+    queries.append(title)
+
+    # Query 2: Title + first 2 keywords for context
+    if len(keywords) >= 2:
+        queries.append(f"{title} {keywords[0]} {keywords[1]}")
+
+    # Query 3: Keywords with thesis context (if available)
+    if thesis and len(keywords) >= 1:
+        # Extract key phrases from thesis (first 50 chars)
+        thesis_snippet = thesis[:50].strip()
+        queries.append(f"{keywords[0]} {keywords[1] if len(keywords) > 1 else ''} {thesis_snippet}")
+
+    # Query 4: Longer keyword combination for broader coverage
+    if len(keywords) >= 3:
+        queries.append(f"{keywords[0]} {keywords[1]} {keywords[2]}")
+    elif len(keywords) >= 2:
+        queries.append(f"{keywords[0]} {keywords[1]} practices")
+
+    # Remove empty strings and deduplicate
+    queries = [q.strip() for q in queries if q.strip()]
+    return list(dict.fromkeys(queries))  # Preserve order, remove duplicates
 
 
 def build_corpus_context(results: list[SearchResult]) -> str:
-    """Build corpus context string from search results.
+    """Build rich corpus context with metadata and longer previews.
 
-    Extracts preview text from search results to ground outline
-    generation in actual corpus content.
+    Provides LLM with sufficient context to understand corpus content
+    and validate topic relevance. Includes similarity scores and source
+    metadata to help LLM assess result quality.
 
     Args:
         results: Search results from corpus searcher
 
     Returns:
-        Formatted corpus context string
+        Formatted corpus context string with metadata
     """
     if not results:
-        return ""
+        return "No corpus material found for this topic."
 
-    context = "Key topics found in corpus:\n\n"
-    for i, result in enumerate(results[:5], 1):
-        preview = result.content[:200].replace("\n", " ").strip()
-        context += f"{i}. {preview}...\n\n"
+    context_parts = ["CORPUS SEARCH RESULTS (validate topic match!):\n"]
 
-    return context
+    # Increase from 5 to 8 results for better coverage
+    for i, result in enumerate(results[:8], 1):
+        # Increase from 200 to 500 characters for better context
+        preview = result.content[:500].replace("\n", " ").strip()
+
+        # Add rich metadata
+        similarity = f"{result.similarity_score:.3f}" if result.similarity_score else "N/A"
+        source = result.metadata.get("filename", "unknown")
+
+        context_parts.append(
+            f"[{i}] Similarity: {similarity} | Source: {source}\n" f"{preview}...\n"
+        )
+
+    return "\n".join(context_parts)
 
 
 class OutlinePromptBuilder:
