@@ -1,25 +1,26 @@
 # File Size Refactoring - Progress Checkpoint
 
-**Status:** IN PROGRESS (5/10 tasks complete - MAJOR PROGRESS)
+**Status:** IN PROGRESS (6/10 tasks complete - MAJOR PROGRESS)
 **Last Updated:** 2025-12-04
 **Base Commit:** 9973a26 (retry logic for Streamlit generation)
-**Progress Commits:** 63f9aee (TASK 1), 1660329 (TASK 4), 5c2bd02 (TASK 5), 84d7a93 (TASK 6), f822a98 (TASK 7)
+**Progress Commits:** 63f9aee (TASK 1), 1660329 (TASK 4), 5c2bd02 (TASK 5), 84d7a93 (TASK 6), f822a98 (TASK 7), 748eee8 (TASK 8)
 
 ## Quick Start for Next Agent
 
 If continuing this refactoring:
 1. **Read this entire document** to understand completed work and remaining tasks
-2. **Start at TASK 7** (corpus_config.py, 545 lines) - see specification below
+2. **Start at TASK 9** (prompt_tuner.py, 710 lines) - see specification below
 3. **Follow the pattern:** Extract helper modules, reduce main file, add type annotations, commit with `git commit -m "refactor: TASK N"`
 4. **Quality gates:** All files must pass `./scripts/fast-quality-gate.sh` before commit
 5. **Update this document** as you complete each task (add ✅, remove from todo)
 
-**Current Progress:** 5/10 files refactored.
+**Current Progress:** 6/10 files refactored.
 - TASK 1: 722 → 810 lines (5 files, all <300 lines)
 - TASK 4: 489 → 529 lines (5 files, all <200 lines)
 - TASK 5: 488 → 524 lines (4 files, all <320 lines)
 - TASK 6: 611 → 671 lines (4 files, all <300 lines)
-- TASK 7: 545 → 630 lines (3 files, all <427 lines) - NEW
+- TASK 7: 545 → 630 lines (3 files, all <427 lines)
+- TASK 8: 546 → 675 lines (2 files, all <516 lines) - NEW
 
 ---
 
@@ -146,9 +147,29 @@ Refactoring 10 Python files (5,390 lines → target <4,000 lines) to ensure no s
 
 ---
 
+### ✅ TASK 8: Refactor outline_generator.py (546 → 2 files) - COMPLETE
+
+**Status:** COMPLETE ✓ (commit: 748eee8, pushed to origin)
+
+**Files Created:**
+- `src/bloginator/generation/_outline_prompt_builder.py` (159 lines) ✓
+- `src/bloginator/generation/outline_generator.py` (516 lines) ✓
+
+**Total:** 675 lines (546 original, organized for clarity)
+
+**Changes:**
+- Extracted prompt building logic to OutlinePromptBuilder class
+- Extracted search query building to separate function
+- Extracted corpus context formatting to separate function
+- outline_generator focuses on RAG logic and coverage analysis
+- All prompt construction isolated for reusability
+
+**Quality:** All tests passing (14/14), quality gates clean, no mypy errors
+
+---
+
 ## Remaining Tasks
 
-### 📋 TASK 8: Refactor outline_generator.py (546 lines)
 ### 📋 TASK 9: Refactor prompt_tuner.py (710 lines)
 ### 📋 TASK 10: Refactor draft.py (450 lines)
 ### 📋 TASK 11: Refactor template_manager.py (421 lines)
