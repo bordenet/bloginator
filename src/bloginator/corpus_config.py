@@ -134,7 +134,7 @@ class CorpusSource(BaseModel):
     def is_url(self) -> bool:
         """Check if path is a URL."""
         result = urlparse(self.path)
-        return result.scheme in ("http", "https", "ftp")
+        return result.scheme in ("http", "https", "ftp", "smb")
 
     def is_local_path(self) -> bool:
         """Check if path is a local file system path."""

@@ -3,6 +3,7 @@
 import os
 import re
 import sys
+from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -10,7 +11,7 @@ import fitz  # PyMuPDF
 
 
 @contextmanager
-def suppress_stderr():
+def suppress_stderr() -> Generator[None, None, None]:
     """Context manager to suppress stderr output.
 
     This is useful for suppressing C-level warnings from PyMuPDF
@@ -24,7 +25,7 @@ def suppress_stderr():
         # Redirect stderr to devnull
         devnull = os.open(os.devnull, os.O_WRONLY)
         os.dup2(devnull, 2)
-        sys.stderr = os.fdopen(devnull, 'w')
+        sys.stderr = os.fdopen(devnull, "w")
 
         yield
 

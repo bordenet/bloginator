@@ -115,6 +115,8 @@ def index(source: Path, output: Path, chunk_size: int, force: bool) -> None:
             # Update ticker with current file (show full path)
             display_path = str(meta_file)
             progress.update(task, current_file=display_path)
+            # Output for Streamlit UI to parse
+            progress.console.print(f"Indexing: {display_path}", highlight=False)
 
             try:
                 # Load document metadata

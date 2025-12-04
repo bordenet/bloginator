@@ -1,9 +1,12 @@
 """Config-based multi-source extraction."""
 
 import os
+import platform
+import subprocess
 import uuid
 from datetime import datetime
 from pathlib import Path
+from urllib.parse import urlparse
 
 from rich.console import Console
 from rich.progress import BarColumn, Progress, SpinnerColumn, TaskProgressColumn, TextColumn
@@ -179,14 +182,6 @@ def _process_all_sources(
     total_failed = 0
 
     for source_cfg in enabled_sources:
-        # Skip URL sources (not implemented)
-        if source_cfg.is_url():
-            error_tracker.record_skip(SkipCategory.URL_SOURCE, source_cfg.name)
-            console.print(
-                f"[yellow]⊘ Skipping URL source '{source_cfg.name}' (not yet implemented)[/yellow]"
-            )
-            continue
-
         # Resolve and validate path
         resolved_path = _resolve_source_path(source_cfg, config_dir, error_tracker, console)
         if not resolved_path:
@@ -213,7 +208,7 @@ def _process_all_sources(
 
 def _resolve_source_path(
     source_cfg: CorpusSource, config_dir: Path, error_tracker: ErrorTracker, console: Console
-) -> Path | None:
+) -> Path | str | None:
     """Resolve and validate source path.
 
     Args:
@@ -223,21 +218,22 @@ def _resolve_source_path(
         console: Rich console
 
     Returns:
-        Resolved Path or None if resolution failed
+        Resolved Path (local) or str (URL like smb://) or None if resolution failed
     """
     try:
         resolved_path = source_cfg.resolve_path(config_dir)
-        if not isinstance(resolved_path, Path):
-            console.print(
-                f"[yellow]⊘ Skipping '{source_cfg.name}' (path resolution issue)[/yellow]"
-            )
-            return None
     except Exception as e:
         category = error_tracker.categorize_exception(e)
         error_tracker.record_error(category, f"source '{source_cfg.name}'", e)
         console.print(f"[red]✗ Failed to resolve '{source_cfg.name}': {type(e).__name__}[/red]")
         return None
 
+    # Handle URLs (like smb://) - accept without existence check
+    if isinstance(resolved_path, str):
+        console.print(f"[cyan]→ Using network path '{source_cfg.name}': {resolved_path}[/cyan]")
+        return resolved_path
+
+    # Handle local paths - check existence
     if not resolved_path.exists():
         error_tracker.record_skip(
             SkipCategory.PATH_NOT_FOUND, f"{source_cfg.name}: {resolved_path}"
@@ -253,7 +249,7 @@ def _resolve_source_path(
 
 def _process_source(
     source_cfg: CorpusSource,
-    resolved_path: Path,
+    resolved_path: Path | str,
     output: Path,
     corpus_config: CorpusConfig,
     existing_docs: dict[str, tuple[str, datetime]],
@@ -265,7 +261,7 @@ def _process_source(
 
     Args:
         source_cfg: Source configuration
-        resolved_path: Resolved source path
+        resolved_path: Resolved source path (local Path or network URL string)
         output: Output directory
         corpus_config: Corpus configuration
         existing_docs: Dictionary of existing extractions
@@ -308,13 +304,126 @@ def _process_source(
     return extracted_count, skipped_count, failed_count
 
 
+def _resolve_smb_path(smb_url: str, error_tracker: ErrorTracker) -> Path | None:
+    """Resolve SMB URL to a mounted local path.
+
+    Attempts to mount the SMB share if not already mounted, then returns
+    the local filesystem path.
+
+    Args:
+        smb_url: SMB URL (e.g., smb://server/share/path)
+        error_tracker: Error tracker instance
+
+    Returns:
+        Local Path to mounted share or None if resolution failed
+    """
+    try:
+        parsed = urlparse(smb_url)
+        server = parsed.netloc
+        share_path = parsed.path.lstrip("/")
+
+        if platform.system() == "Darwin":
+            # macOS mounts SMB shares at /Volumes/{share_name}
+            # Extract the share name (first path component)
+            # e.g., "scratch/TL/MattB/..." -> share is "scratch"
+            share_name = share_path.split("/")[0] if share_path else ""
+            hostname = server.split(".")[0] if "." in server else server
+
+            # Try mount point using share name first (most common on macOS)
+            mount_candidates = [
+                Path("/Volumes") / share_name,  # /Volumes/scratch or /Volumes/homes
+                Path("/Volumes") / hostname,  # /Volumes/lucybear-nas
+                Path("/Volumes") / server,  # /Volumes/lucybear-nas._smb._tcp.local
+                Path("/Volumes") / hostname.replace("-", "_"),  # /Volumes/lucybear_nas
+            ]
+
+            # Check existing mount points
+            for mount_point in mount_candidates:
+                if mount_point.exists():
+                    # Reconstruct path from share onward
+                    path_parts = share_path.split("/")[1:] if "/" in share_path else []
+                    full_path = mount_point.joinpath(*path_parts) if path_parts else mount_point
+                    if full_path.exists():
+                        return full_path
+
+            # Try to mount using open command (will show Finder dialog if needed)
+            try:
+                subprocess.run(
+                    ["open", smb_url],
+                    check=False,
+                    timeout=15,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+                # Give macOS time to mount and auto-open Finder
+                import time
+
+                time.sleep(3)
+
+                # Check all candidates again after mount attempt
+                for mount_point in mount_candidates:
+                    if mount_point.exists():
+                        path_parts = share_path.split("/")[1:] if "/" in share_path else []
+                        full_path = mount_point.joinpath(*path_parts) if path_parts else mount_point
+                        if full_path.exists():
+                            return full_path
+            except (subprocess.TimeoutExpired, subprocess.CalledProcessError):
+                pass
+
+            # As last resort, try to find any volume that matches the share or server name
+            try:
+                volumes = Path("/Volumes").iterdir()
+                for vol in volumes:
+                    vol_name_lower = vol.name.lower()
+                    if (
+                        (share_name and share_name.lower() in vol_name_lower)
+                        or hostname.lower() in vol_name_lower
+                        or server.lower() in vol_name_lower
+                    ):
+                        path_parts = share_path.split("/")[1:] if "/" in share_path else []
+                        full_path = vol.joinpath(*path_parts) if path_parts else vol
+                        if full_path.exists():
+                            return full_path
+            except (OSError, PermissionError):
+                pass
+
+        elif platform.system() == "Linux":
+            # Linux: try /mnt/ or check mount points
+            for mount_base in [Path("/mnt"), Path("/media"), Path("/home")]:
+                if mount_base.exists():
+                    try:
+                        for mount_point in mount_base.iterdir():
+                            try:
+                                full_path = mount_point / share_path
+                                if full_path.exists():
+                                    return full_path
+                            except (OSError, PermissionError):
+                                continue
+                    except (OSError, PermissionError):
+                        continue
+
+        # If we get here, couldn't resolve
+        error_tracker.record_skip(
+            SkipCategory.PATH_NOT_FOUND,
+            f"{smb_url} (could not find mounted SMB share - ensure it's mounted in Finder)",
+        )
+        return None
+
+    except Exception as e:
+        error_tracker.record_skip(
+            SkipCategory.PATH_NOT_FOUND,
+            f"{smb_url} (SMB resolution error: {type(e).__name__})",
+        )
+        return None
+
+
 def _collect_source_files(
-    resolved_path: Path, corpus_config: CorpusConfig, error_tracker: ErrorTracker
+    resolved_path: Path | str, corpus_config: CorpusConfig, error_tracker: ErrorTracker
 ) -> list[Path]:
     """Collect files from a source path.
 
     Args:
-        resolved_path: Resolved source path
+        resolved_path: Resolved source path (local Path or SMB URL string)
         corpus_config: Corpus configuration
         error_tracker: Error tracker for skip reporting
 
@@ -322,6 +431,12 @@ def _collect_source_files(
         List of file paths to extract
     """
     files = []
+
+    # Convert SMB URLs to mounted local paths
+    if isinstance(resolved_path, str) and resolved_path.startswith("smb://"):
+        resolved_path = _resolve_smb_path(resolved_path, error_tracker)
+        if not resolved_path:
+            return files
 
     if resolved_path.is_file():
         # Skip temp files even for single files
