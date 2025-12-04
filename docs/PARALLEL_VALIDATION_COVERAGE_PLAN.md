@@ -181,10 +181,18 @@ class TestLLMRoundTrip:
 
 | Task | Status | Commit | Timestamp |
 |------|--------|--------|-----------|
-| Create test_cli_workflows.py | 🔄 In Progress | - | 2024-12-04 15:30 |
-| Create test_llm_roundtrip.py | ⬜ Not Started | - | - |
-| All tests passing | ⬜ Not Started | - | - |
+| Create test_cli_workflows.py | ✅ Complete | TBD | 2024-12-04 16:00 |
+| Create test_llm_roundtrip.py | 🔄 In Progress | - | 2024-12-04 16:00 |
+| All tests passing | 🔄 In Progress | - | - |
 | Coverage meets 80% | ⬜ Not Started | - | - |
+
+**Phase 1 Details (CLI E2E Tests)**:
+- 17 tests implemented covering all major CLI commands
+- Test classes: TestCLIBasicCommands, TestTemplateCommands, TestExtractCommand,
+  TestIndexCommand, TestSearchCommand, TestBlocklistCommands, TestMetricsCommand,
+  TestDiffAndRevertCommands, TestFullWorkflow
+- Full extract → index → search → outline workflow tested with mock LLM
+- All tests pass in ~15 seconds
 
 ---
 
