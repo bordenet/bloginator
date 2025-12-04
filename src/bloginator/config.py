@@ -21,8 +21,10 @@ class Config:
     """Application configuration from environment variables.
 
     Attributes:
+        DATA_DIR: Base directory for all Bloginator data (corpus, chroma, output)
         CORPUS_DIR: Directory containing blog corpus files
         CHROMA_DIR: Directory for ChromaDB vector store
+        OUTPUT_DIR: Directory for generated content output
         LLM_PROVIDER: LLM provider (ollama, custom, openai, anthropic)
         LLM_MODEL: Model name to use
         LLM_BASE_URL: Base URL for LLM API (for custom/ollama)
@@ -32,11 +34,52 @@ class Config:
         LLM_MAX_TOKENS: Default max tokens for generation
     """
 
-    # Corpus and storage
+    # Base data directory - can be set to external location like /tmp/bloginator
+    # Default is .bloginator in current directory (git-ignored)
+    DATA_DIR: Path = Path(os.getenv("BLOGINATOR_DATA_DIR", ".bloginator"))
+
+    # Corpus and storage - relative to DATA_DIR unless absolute path provided
     # Support both BLOGINATOR_* and legacy variable names
+    _corpus_dir_env = os.getenv("BLOGINATOR_CORPUS_DIR", "corpus")
+    _chroma_dir_env = os.getenv("BLOGINATOR_CHROMA_DIR", os.getenv("CHROMA_DB_PATH", "chroma"))
+    _output_dir_env = os.getenv("BLOGINATOR_OUTPUT_DIR", "output")
+
+    @classmethod
+    def _resolve_path(cls, path_str: str, subdir: str) -> Path:
+        """Resolve path relative to DATA_DIR if not absolute.
+
+        Args:
+            path_str: Path string from environment
+            subdir: Default subdirectory name if path is relative
+
+        Returns:
+            Resolved absolute path
+        """
+        path = Path(path_str)
+        if path.is_absolute():
+            return path
+        # Relative paths go under DATA_DIR
+        return cls.DATA_DIR / path_str
+
+    @property
+    def corpus_dir(self) -> Path:
+        """Get corpus directory path."""
+        return self._resolve_path(self._corpus_dir_env, "corpus")
+
+    @property
+    def chroma_dir(self) -> Path:
+        """Get ChromaDB directory path."""
+        return self._resolve_path(self._chroma_dir_env, "chroma")
+
+    @property
+    def output_dir(self) -> Path:
+        """Get output directory path."""
+        return self._resolve_path(self._output_dir_env, "output")
+
+    # Class-level aliases for backward compatibility (static access)
     CORPUS_DIR: Path = Path(os.getenv("BLOGINATOR_CORPUS_DIR", "corpus"))
     CHROMA_DIR: Path = Path(
-        os.getenv("BLOGINATOR_CHROMA_DIR", os.getenv("CHROMA_DB_PATH", ".bloginator/chroma"))
+        os.getenv("BLOGINATOR_CHROMA_DIR", os.getenv("CHROMA_DB_PATH", "chroma"))
     )
     OUTPUT_DIR: Path = Path(os.getenv("BLOGINATOR_OUTPUT_DIR", "output"))
 
@@ -70,10 +113,20 @@ class Config:
 
     @classmethod
     def ensure_directories(cls) -> None:
-        """Create necessary directories if they don't exist."""
-        cls.CORPUS_DIR.mkdir(parents=True, exist_ok=True)
-        cls.CHROMA_DIR.mkdir(parents=True, exist_ok=True)
-        cls.OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+        """Create necessary directories if they don't exist (mkdir -p style).
+
+        Creates DATA_DIR and all subdirectories with parents=True for lazy
+        directory creation. This allows DATA_DIR to be set to external
+        locations like /tmp/bloginator that may not exist yet.
+        """
+        # First ensure base data directory exists
+        cls.DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+        # Then create subdirectories using resolved paths
+        instance = cls()
+        instance.corpus_dir.mkdir(parents=True, exist_ok=True)
+        instance.chroma_dir.mkdir(parents=True, exist_ok=True)
+        instance.output_dir.mkdir(parents=True, exist_ok=True)
 
     @classmethod
     def get_llm_headers(cls) -> dict[str, str]:
