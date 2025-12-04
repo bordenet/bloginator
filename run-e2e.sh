@@ -72,6 +72,14 @@ source "$SCRIPT_DIR/scripts/e2e-lib.sh"
 
 cd "$SCRIPT_DIR"
 
+# Load .env file if it exists
+if [ -f ".env" ]; then
+    verbose "Loading environment variables from .env file..."
+    set -o allexport
+    source .env
+    set +o allexport
+fi
+
 ################################################################################
 # Configuration
 ################################################################################
@@ -236,7 +244,6 @@ step_check_ollama() {
     task_start "Checking Ollama service"
 
     verbose "Ollama host: $OLLAMA_HOST"
-    verbose "Ollama model: $OLLAMA_MODEL"
 
     if ! check_ollama_service "$OLLAMA_HOST" 2>/dev/null; then
         task_fail "Ollama not reachable at $OLLAMA_HOST"
@@ -246,16 +253,41 @@ step_check_ollama() {
     fi
 
     verbose "Ollama is running"
+    verbose "Desired model: $OLLAMA_MODEL"
 
-    if ! check_ollama_model "$OLLAMA_HOST" "$OLLAMA_MODEL" 2>/dev/null; then
-        task_fail "Model $OLLAMA_MODEL not available"
+    local available_models
+    available_models=$(list_ollama_models "$OLLAMA_HOST")
+
+    if [ -z "$available_models" ]; then
+        task_fail "No models available in Ollama."
         echo ""
-        echo "Pull the model with: ollama pull $OLLAMA_MODEL"
+        echo "Pull a model with: ollama pull <model-name>"
         exit 1
     fi
 
-    verbose "Model $OLLAMA_MODEL is available"
-    task_ok "Ollama service verified"
+    if echo "$available_models" | grep -q -w "$OLLAMA_MODEL"; then
+        verbose "Model $OLLAMA_MODEL is available"
+        task_ok "Ollama service verified"
+    else
+        task_warn "Model '$OLLAMA_MODEL' not found."
+        echo ""
+        echo "Available models:"
+        echo "$available_models" | awk '{print "  - " $1}'
+        echo ""
+
+        local first_model
+        first_model=$(echo "$available_models" | head -n 1)
+
+        if confirm "Do you want to use the first available model ('$first_model') instead?"; then
+            OLLAMA_MODEL="$first_model"
+            export OLLAMA_MODEL
+            verbose "Using model $OLLAMA_MODEL"
+            task_ok "Ollama service verified (using fallback model)"
+        else
+            task_fail "Aborting. Please pull the desired model or specify an available one."
+            exit 1
+        fi
+    fi
 }
 
 step_setup_corpus() {
