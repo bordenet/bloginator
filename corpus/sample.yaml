@@ -1,0 +1,105 @@
+# Sample Corpus Configuration
+# ============================
+# Uses the publicly available Engineering_Culture repository
+# for testing bloginator with real blog content.
+#
+# Setup:
+#   ./scripts/setup-macos.sh  # Downloads Engineering_Culture to test-corpus/
+#
+# Usage:
+#   bloginator extract --config corpus/sample.yaml
+#   bloginator index output/extracted -o chroma_db
+#   bloginator outline "Your Blog Title" --keywords "keyword1, keyword2"
+
+sources:
+  - name: "engineering-culture"
+    path: "test-corpus/Engineering_Culture"
+    type: "directory"
+    enabled: true
+    quality: "preferred"
+
+    voice_notes: |
+      Engineering leadership and culture blog posts.
+      Topics: Conway's Law, mechanisms, feedback models, dashboards.
+      Style: Professional, instructive, example-driven.
+
+    tags:
+      - "engineering"
+      - "leadership"
+      - "culture"
+      - "sdlc"
+
+  # Individual topic areas (optional - enable for focused extraction)
+  - name: "culture-posts"
+    path: "test-corpus/Engineering_Culture/Culture"
+    type: "directory"
+    enabled: false  # Enable for Culture-only extraction
+    quality: "preferred"
+
+    voice_notes: |
+      Engineering culture and team dynamics.
+      Topics: Conway's Law, feedback, communication, hypercare.
+
+    tags:
+      - "culture"
+      - "leadership"
+      - "communication"
+
+  - name: "sdlc-posts"
+    path: "test-corpus/Engineering_Culture/SDLC"
+    type: "directory"
+    enabled: false  # Enable for SDLC-only extraction
+    quality: "preferred"
+
+    voice_notes: |
+      Software development lifecycle practices.
+      Topics: PR-FAQ, one-pagers, mechanisms, what-vs-how.
+
+    tags:
+      - "sdlc"
+      - "planning"
+      - "documentation"
+
+  - name: "eng-fundamentals"
+    path: "test-corpus/Engineering_Culture/EngFundamentals"
+    type: "directory"
+    enabled: false  # Enable for fundamentals-only extraction
+    quality: "preferred"
+
+    voice_notes: |
+      Engineering fundamentals and observability.
+      Topics: SOA, microservices, SLAs, dashboards.
+
+    tags:
+      - "fundamentals"
+      - "observability"
+      - "architecture"
+
+# Extraction settings optimized for sample corpus
+extraction:
+  chunk_size: 1000
+  follow_symlinks: true
+  recursive: true
+
+  include_extensions:
+    - ".md"
+    - ".markdown"
+
+  ignore_patterns:
+    - ".*"
+    - "_*"
+    - "README.md"  # Skip repo README
+
+# Indexing with equal weights for sample corpus
+indexing:
+  quality_weights:
+    preferred: 1.0
+    reference: 1.0
+    supplemental: 1.0
+
+  recency_decay: 0.0  # No recency decay for test corpus
+
+  tag_boosts:
+    "engineering": 1.0
+    "culture": 1.0
+    "sdlc": 1.0
