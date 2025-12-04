@@ -1,9 +1,9 @@
 # File Size Refactoring - Progress Checkpoint
 
-**Status:** IN PROGRESS (4/10 tasks complete - MAJOR PROGRESS)
+**Status:** IN PROGRESS (5/10 tasks complete - MAJOR PROGRESS)
 **Last Updated:** 2025-12-04
 **Base Commit:** 9973a26 (retry logic for Streamlit generation)
-**Progress Commits:** 63f9aee (TASK 1), 1660329 (TASK 4), 5c2bd02 (TASK 5), 84d7a93 (TASK 6), bd8f1ad (imports)
+**Progress Commits:** 63f9aee (TASK 1), 1660329 (TASK 4), 5c2bd02 (TASK 5), 84d7a93 (TASK 6), f822a98 (TASK 7)
 
 ## Quick Start for Next Agent
 
@@ -14,11 +14,12 @@ If continuing this refactoring:
 4. **Quality gates:** All files must pass `./scripts/fast-quality-gate.sh` before commit
 5. **Update this document** as you complete each task (add ✅, remove from todo)
 
-**Current Progress:** 4/10 files refactored.
+**Current Progress:** 5/10 files refactored.
 - TASK 1: 722 → 810 lines (5 files, all <300 lines)
 - TASK 4: 489 → 529 lines (5 files, all <200 lines)
-- TASK 5: 488 → 524 lines (4 files, all <320 lines) - NEW
-- TASK 6: 611 → 671 lines (4 files, all <300 lines) - NEW
+- TASK 5: 488 → 524 lines (4 files, all <320 lines)
+- TASK 6: 611 → 671 lines (4 files, all <300 lines)
+- TASK 7: 545 → 630 lines (3 files, all <427 lines) - NEW
 
 ---
 
@@ -122,13 +123,30 @@ Refactoring 10 Python files (5,390 lines → target <4,000 lines) to ensure no s
 
 ---
 
+### ✅ TASK 7: Refactor corpus_config.py (545 → 3 files) - COMPLETE
+
+**Status:** COMPLETE ✓ (commit: f822a98, pushed to origin)
+
+**Files Created:**
+- `src/bloginator/models/_date_range.py` (44 lines) ✓
+- `src/bloginator/models/_corpus_source.py` (159 lines) ✓
+- `src/bloginator/corpus_config.py` (427 lines) - Manager + Config classes ✓
+
+**Total:** 630 lines (545 original, organized for clarity)
+
+**Changes:**
+- Moved DateRange model to dedicated module under models/
+- Moved CorpusSource model to dedicated module under models/
+- corpus_config.py now imports and re-exports models for backward compatibility
+- All existing imports continue to work without changes
+- ExtractionSettings and IndexingSettings remain in corpus_config.py
+- CorpusConfig and CorpusConfigManager remain in corpus_config.py
+
+**Quality:** All tests passing, mypy clean, quality gates pass
+
+---
+
 ## Remaining Tasks
-
-### 📋 TASK 7: Refactor corpus_config.py (545 lines)
-
-**Target:** Move models to proper location + keep manager
-- Create `src/bloginator/models/_corpus_source.py` (CorpusSource, DateRange, ~200 lines)
-- Keep `src/bloginator/corpus_config.py` (CorpusConfigManager, ~250 lines)
 
 ### 📋 TASK 8: Refactor outline_generator.py (546 lines)
 ### 📋 TASK 9: Refactor prompt_tuner.py (710 lines)

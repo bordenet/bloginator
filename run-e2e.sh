@@ -93,8 +93,8 @@ export CLEAN=false
 export LAUNCH_GUI=false
 export RESUME=false
 export RESTART=false
-export OLLAMA_HOST="${OLLAMA_HOST:-http://localhost:11434}"
-export OLLAMA_MODEL="${OLLAMA_MODEL:-mixtral:8x7b}"
+export OLLAMA_HOST="${OLLAMA_HOST:-${BLOGINATOR_LLM_BASE_URL:-http://localhost:11434}}"
+export OLLAMA_MODEL="${OLLAMA_MODEL:-${BLOGINATOR_LLM_MODEL:-mixtral:8x7b}}"
 
 ################################################################################
 # Argument Parsing
