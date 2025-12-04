@@ -82,27 +82,26 @@ def create_output_directory() -> Path:
     return output_dir
 
 
-def run_bloginator_command(
-    cmd: list[str], timeout: int = 600, max_retries: int = 3
-) -> tuple[bool, str, str]:
-    """Run bloginator CLI command with retry logic and timeout.
-
-    Uses exponential backoff on timeout: 1x, 2x, 4x the base timeout.
+def run_bloginator_command(cmd: list[str]) -> tuple[bool, str, str]:
+    """Run bloginator CLI command with a custom retry schedule.
 
     Args:
         cmd: Command and arguments as list
-        timeout: Timeout in seconds for first attempt
-        max_retries: Maximum number of retry attempts on timeout
 
     Returns:
         Tuple of (success, stdout, stderr).
     """
     st.info(f"Running command: `{' '.join(cmd)}`")
 
-    for attempt_num in range(max_retries + 1):
-        attempt_timeout = timeout * (2**attempt_num)  # Exponential backoff
+    # Custom timeout schedule in seconds: [45m, 90m, 6h]
+    timeout_schedule = [2700, 5400, 21600]
+    max_retries = len(timeout_schedule) - 1
+
+    for attempt_num, attempt_timeout in enumerate(timeout_schedule):
         if attempt_num > 0:
             st.info(f"Retry attempt {attempt_num} (timeout: {attempt_timeout // 60} minutes)...")
+        else:
+            st.info(f"Initial attempt (timeout: {attempt_timeout // 60} minutes)...")
 
         try:
             # nosec B603 - subprocess without shell=True is safe, cmd is built from controlled inputs

@@ -235,7 +235,7 @@ def show_outline_generation() -> None:
                 cmd.extend(["--format", "markdown"])
 
             # Execute command (10 minute initial timeout for outlines, with retries up to 80 min)
-            success, stdout, stderr = run_bloginator_command(cmd, timeout=600, max_retries=3)
+            success, stdout, stderr = run_bloginator_command(cmd)
 
             if success:
                 _display_outline_success(outline_path)

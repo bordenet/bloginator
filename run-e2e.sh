@@ -96,6 +96,17 @@ export RESTART=false
 export OLLAMA_HOST="${OLLAMA_HOST:-${BLOGINATOR_LLM_BASE_URL:-http://localhost:11434}}"
 export OLLAMA_MODEL="${OLLAMA_MODEL:-${BLOGINATOR_LLM_MODEL:-mixtral:8x7b}}"
 
+# For --generate-only mode
+export GENERATE_ONLY=false
+export BLOG_TITLE=""
+export BLOG_KEYWORDS=""
+export BLOG_THESIS=""
+export BLOG_CLASSIFICATION="guidance"
+export BLOG_AUDIENCE="all-disciplines"
+export BLOG_NUM_SECTIONS=5
+export BLOG_SOURCES_PER_SECTION=5
+export BLOG_MAX_WORDS_PER_SECTION=300
+
 ################################################################################
 # Argument Parsing
 ################################################################################
@@ -106,47 +117,55 @@ NAME
     run-e2e.sh - End-to-end workflow demo
 
 SYNOPSIS
-    ./run-e2e.sh [OPTIONS]
+    ./run-e2e.sh [MODE] [OPTIONS]
 
 DESCRIPTION
-    Runs the complete Bloginator workflow: extract corpus, build search index,
-    generate outline, and generate blog draft.
+    Runs Bloginator workflows. Can run the complete end-to-end process
+    (corpus extraction, indexing, generation) or run only the generation
+    step using a pre-built index.
 
-OPTIONS
-    -y, --yes         Auto-confirm all prompts
-    -v, --verbose     Show detailed output
-    --skip-build      Skip environment setup (assumes installed)
-    --skip-ollama     Skip Ollama service checks
-    --clean           Clean outputs before running
-    --resume          Resume from last completed step
-    --restart         Clear state and start over
-    --gui             Launch Streamlit UI after completion
-    --ollama-host     Ollama server URL (default: http://localhost:11434)
-    --ollama-model    Ollama model (default: mixtral:8x7b)
-    -h, --help        Display this help
+MODES
+    (default)         Run the full end-to-end workflow.
+    --generate-only   Run only the generation steps (outline and draft).
+                      Requires a pre-existing index. All --blog-* options
+                      are required for this mode.
+
+GENERAL OPTIONS
+    -y, --yes         Auto-confirm all prompts.
+    -v, --verbose     Show detailed output.
+    -h, --help        Display this help.
+
+FULL WORKFLOW OPTIONS
+    --skip-build      Skip environment setup (assumes installed).
+    --skip-ollama     Skip Ollama service checks.
+    --clean           Clean outputs before running.
+    --restart         Clear state and start over.
+    --gui             Launch Streamlit UI after completion.
+    --ollama-host     Ollama server URL (default: from .env or http://localhost:11434).
+    --ollama-model    Ollama model (default: from .env or mixtral:8x7b).
+
+GENERATION OPTIONS (for --generate-only mode)
+    --title           Blog post title.
+    --keywords        Comma-separated keywords for the blog post.
+    --thesis          The main thesis or argument of the post.
+    --classification  Content classification (default: guidance).
+    --audience        Target audience (default: all-disciplines).
+    --num-sections    Number of sections in the outline (default: 5).
+    --sources-per-section Number of sources per section for draft (default: 5).
+    --max-section-words Max words per section for draft (default: 300).
 
 EXAMPLES
-    ./run-e2e.sh              # Full demo from scratch
-    ./run-e2e.sh -y -v        # Non-interactive, verbose
-    ./run-e2e.sh --skip-build # Run demo (already installed)
-    ./run-e2e.sh --clean      # Clean outputs before running
-    ./run-e2e.sh --gui        # Run demo then launch Streamlit
+    # Full demo from scratch
+    ./run-e2e.sh -y -v
 
-WORKFLOW
-     1. Setup environment (Python venv, dependencies)
-     2. Check Ollama service and model availability
-     3. Setup corpus (create default config if needed)
-     4. Extract documents from corpus
-     5. Build semantic search index with embeddings
-     6. Perform sample search demonstration
-     7. Generate blog outline from corpus
-     8. Generate full blog draft from outline
-     9. (Optional) Launch Streamlit web UI
+    # Clean and restart the full demo
+    ./run-e2e.sh --clean --restart
 
-REQUIREMENTS
-    - Python 3.10+
-    - Ollama with mixtral:8x7b (or compatible) model
-    - Corpus configured in corpus/corpus.yaml
+    # Generate a specific blog post using an existing index
+    ./run-e2e.sh --generate-only \
+      --title "Guidance for building great dashboards" \
+      --keywords "SLI metrics,golden signals,dashboard design" \
+      --thesis "Consider audience, outcomes, and style guides for valuable dashboards."
 EOF
 }
 
@@ -163,6 +182,18 @@ parse_args() {
             --gui) LAUNCH_GUI=true; shift ;;
             --ollama-host) OLLAMA_HOST="$2"; shift 2 ;;
             --ollama-model) OLLAMA_MODEL="$2"; shift 2 ;;
+
+            # Generation options
+            --generate-only) GENERATE_ONLY=true; shift ;;
+            --title) BLOG_TITLE="$2"; shift 2 ;;
+            --keywords) BLOG_KEYWORDS="$2"; shift 2 ;;
+            --thesis) BLOG_THESIS="$2"; shift 2 ;;
+            --classification) BLOG_CLASSIFICATION="$2"; shift 2 ;;
+            --audience) BLOG_AUDIENCE="$2"; shift 2 ;;
+            --num-sections) BLOG_NUM_SECTIONS="$2"; shift 2 ;;
+            --sources-per-section) BLOG_SOURCES_PER_SECTION="$2"; shift 2 ;;
+            --max-section-words) BLOG_MAX_WORDS_PER_SECTION="$2"; shift 2 ;;
+
             -h|--help) show_help; exit 0 ;;
             *) echo "Unknown option: $1"; exit 1 ;;
         esac
@@ -406,6 +437,91 @@ step_cleanup_state() {
     task_ok "Ready to run"
 }
 
+run_generation_workflow() {
+    task_start "Running generation-only workflow"
+
+    # Validate required arguments
+    if [[ -z "$BLOG_TITLE" || -z "$BLOG_KEYWORDS" || -z "$BLOG_THESIS" ]]; then
+        task_fail "Missing required arguments for --generate-only mode"
+        echo "Error: --title, --keywords, and --thesis are required."
+        show_help
+        exit 1
+    fi
+
+    # Check if index exists
+    if [[ ! -d ".bloginator/chroma" ]]; then
+        task_fail "Chroma index not found at .bloginator/chroma"
+        echo "Error: The generation workflow requires a pre-existing index."
+        echo "Please run the full e2e workflow first without --generate-only."
+        exit 1
+    fi
+
+    # Create a timestamped output directory
+    local timestamp
+    timestamp=$(date +"%Y%m%d_%H%M%S")
+    local output_dir="output/generated/cli_blog_${timestamp}"
+    mkdir -p "$output_dir"
+    local outline_path="$output_dir/outline"
+    local draft_path="$output_dir/draft.md"
+
+    verbose "Output will be saved to $output_dir"
+
+    # --- Generate Outline ---
+    task_start "Generating blog outline from specification"
+    verbose "Title: $BLOG_TITLE"
+    verbose "Keywords: $BLOG_KEYWORDS"
+
+    local outline_cmd=(
+        "outline"
+        "--index" ".bloginator/chroma"
+        "--title" "$BLOG_TITLE"
+        "--keywords" "$BLOG_KEYWORDS"
+        "--thesis" "$BLOG_THESIS"
+        "--classification" "$BLOG_CLASSIFICATION"
+        "--audience" "$BLOG_AUDIENCE"
+        "--sections" "$BLOG_NUM_SECTIONS"
+        "--output" "$outline_path"
+        "--format" "both"
+    )
+
+    if ! run_bloginator "${outline_cmd[@]}"; then
+        task_fail "Failed to generate outline"
+        exit 1
+    fi
+    task_ok "Blog outline generated"
+
+    # --- Generate Draft ---
+    local outline_json_path="${outline_path}.json"
+    if [[ ! -f "$outline_json_path" ]]; then
+        task_fail "Outline JSON not found at $outline_json_path"
+        exit 1
+    fi
+
+    task_start "Generating blog draft from outline"
+    local draft_cmd=(
+        "draft"
+        "--index" ".bloginator/chroma"
+        "--outline" "$outline_json_path"
+        "--output" "$draft_path"
+        "--sources-per-section" "$BLOG_SOURCES_PER_SECTION"
+        "--max-section-words" "$BLOG_MAX_WORDS_PER_SECTION"
+    )
+
+    if ! run_bloginator "${draft_cmd[@]}"; then
+        task_fail "Failed to generate draft"
+        exit 1
+    fi
+    task_ok "Blog draft generated"
+
+    echo ""
+    print_header "✓ Generation complete!"
+    echo ""
+    echo "Generated files:"
+    echo "  - Outline: ${outline_path}.md"
+    echo "  - Draft:   ${draft_path}"
+    echo ""
+}
+
 ################################################################################
 # Main
 ################################################################################
@@ -413,21 +529,37 @@ step_cleanup_state() {
 main() {
     parse_args "$@"
 
-    print_header "Bloginator E2E Workflow"
-    echo ""
-
-    # Handle restart flag
-    if [[ "$RESTART" == "true" ]]; then
-        step_cleanup_state
-    fi
-
-    # Run workflow steps
+    # The --generate-only flag is a workflow choice, not a setup-skipper.
+    # Environment should always be set up first, unless skipped via --skip-build.
     if [[ "$SKIP_BUILD" != "true" ]]; then
         step_setup_environment
     else
         verbose "Skipping environment setup (--skip-build)"
+        if [ -f "venv/bin/activate" ]; then
+            # shellcheck source=/dev/null
+            source venv/bin/activate
+        else
+            echo "Error: --skip-build specified, but venv not found. Cannot proceed."
+            exit 1
+        fi
     fi
 
+    # Decide which workflow to run
+    if [[ "$GENERATE_ONLY" == "true" ]]; then
+        print_header "Bloginator Generation Workflow"
+        run_generation_workflow
+        exit 0
+    fi
+
+    print_header "Bloginator E2E Workflow"
+    echo ""
+
+    # Handle restart flag for full workflow
+    if [[ "$RESTART" == "true" ]]; then
+        step_cleanup_state
+    fi
+
+    # Run full workflow steps
     if [[ "$SKIP_OLLAMA" != "true" ]]; then
         step_check_ollama
     else
