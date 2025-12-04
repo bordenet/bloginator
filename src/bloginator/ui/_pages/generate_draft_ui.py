@@ -105,13 +105,13 @@ def show_draft_generation() -> None:
                 str(max_section_words),
             ]
 
-            # Execute command (30 minute timeout for drafts)
-            success, stdout, stderr = run_bloginator_command(cmd, timeout=1800)
+            # Execute command (30 minute initial timeout for drafts, with retries up to 120 min)
+            success, stdout, stderr = run_bloginator_command(cmd, timeout=1800, max_retries=3)
 
             if success:
                 _display_draft_success(draft_path)
             else:
-                display_generation_error(success, stderr, timeout_seconds=1800)
+                display_generation_error(success, stderr)
 
 
 def _display_draft_success(draft_path: Path) -> None:
