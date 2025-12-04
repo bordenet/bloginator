@@ -263,3 +263,9 @@ optimization_run.log
 #Ignore vscode AI rules
 .github/instructions/codacy.instructions.md
 tmp/
+
+# Setup cache
+.setup-cache/
+
+# Setup cache (generated during setup)
+.setup-cache/

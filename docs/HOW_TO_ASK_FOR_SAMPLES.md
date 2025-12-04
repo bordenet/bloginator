@@ -66,112 +66,124 @@ output/generated/cli_blog_YYYYMMDD_HHMMSS/
 - **Auto-Response**: Claude reads `.bloginator/llm_requests/` and writes to `.bloginator/llm_responses/`
 - **Testing Focus**: This workflow is for assessing LLM prompt quality, not production use
 
-# Current battery of test cases
 
-## Recruiting & Interviewing Series
+# Sample Corpus Test Cases
 
-### 1. What Great Hiring Managers Actually Do
+These test cases directly mirror content from the `test-corpus/Engineering_Culture` repository.
+Anyone cloning the repo can run these to validate the end-to-end pipeline.
 
-**Keywords:** recruiting, interviewing  
-**Audience:** hiring managers, leads  
-**Summary:** Defines the hiring manager’s central role as the process owner. Covers how they calibrate expectations, select interviewers, and make final decisions objectively.  
+## Engineering Fundamentals Series
+
+### 1. Building Dashboards That Drive Action
+
+**Keywords:** dashboard, observability, metrics, SLI
+**Audience:** engineers, SREs, tech leads
+**Corpus Source:** `EngFundamentals/How_to_Construct_a_Useful_Dashboard.md`, `EngFundamentals/What_Dashboards_are_Good_For.md`
+**Summary:** Explains how to construct dashboards that surface actionable insights rather than vanity metrics. Covers SLI selection, layout principles, and avoiding dashboard sprawl.
 **Sections:**
 
-- Purpose and impact of the hiring manager
-- Translating business needs into hiring criteria
-- Partnering with recruiters and interviewers
-- Common pitfalls (micromanagement, unclear bar)
-- How to build a consistent hiring rhythm
+- What dashboards are actually good for
+- Selecting meaningful SLIs and metrics
+- Dashboard layout and hierarchy principles
+- Common anti-patterns (vanity metrics, too many charts)
+- Maintaining dashboards over time
 
 ---
 
-### 2. How Strong Interviewers Shape Hiring Decisions
+### 2. The Road to a Meaningful SLA
 
-**Keywords:** recruiting, interviewing, loops  
-**Audience:** interviewers, tech leads  
-**Summary:** Explains what good interviewers actually do: prepare thoroughly, ask consistent questions, and document crisp, behavioral evidence tied to competencies.  
+**Keywords:** SLA, SLO, SLI, reliability, service-level
+**Audience:** engineers, product managers, SREs
+**Corpus Source:** `EngFundamentals/The_Road_to_an_SLA.md`
+**Summary:** Walks through the journey from defining SLIs to establishing SLOs and committing to SLAs. Covers the relationship between these concepts and how to set realistic targets.
 **Sections:**
 
-- Purpose of the interviewer in the loop
-- Pre-interview preparation checklist
-- Writing strong feedback tied to competencies
-- Dos and don’ts in interviewer behavior
-- Measuring interviewer effectiveness over time
+- Understanding SLI, SLO, and SLA relationships
+- Choosing the right indicators for your service
+- Setting realistic objectives based on data
+- Communicating SLAs to stakeholders
+- Error budgets and tradeoffs
 
 ---
 
-### 3. How to Run Smarter Interview Loops
+### 3. SOA and Microservices: Choosing the Right Architecture
 
-**Keywords:** interviewing, recruiting, pre-loop brief, post-loop debrief  
-**Audience:** interview coordinators, hiring managers, interviewers  
-**Summary:** Describes how structured interview loops improve signal quality and candidate experience. Covers how to conduct pre-brief and post-brief meetings effectively.  
+**Keywords:** SOA, microservices, architecture, distributed-systems
+**Audience:** engineers, architects, tech leads
+**Corpus Source:** `EngFundamentals/SOA_and_Microservices.md`
+**Summary:** Compares service-oriented architecture with microservices, helping teams understand when each approach fits. Covers tradeoffs, organizational implications, and migration strategies.
 **Sections:**
 
-- Anatomy of a clean interview loop
-- Structuring pre-brief sessions to align questions
-- Keeping candidates comfortable and informed
-- Running objective post-loop debriefs
-- Loop-level documentation and decision hygiene
+- What SOA and microservices actually mean
+- When to choose monolith vs. distributed
+- Organizational implications (Conway's Law connection)
+- Migration strategies and pitfalls
+- Operational complexity tradeoffs
 
 ---
 
-## Agile Rituals Series
+## Engineering Culture Series
 
-### 4. Daily Stand-Up Meetings That Don’t Suck
+### 4. Understanding Conway's Law in Practice
 
-**Keywords:** agile, ritual, best-practices, stand-up  
-**Audience:** software teams, scrum masters  
-**Summary:** Provides best practices for running 15-minute daily stand-ups that remain focused, consistent, and energizing.  
+**Keywords:** Conway's Law, organization, architecture, team-structure
+**Audience:** engineers, managers, architects
+**Corpus Source:** `Culture/Understanding_Conways_Law.md`
+**Summary:** Explores how organizational structure shapes system architecture and vice versa. Provides practical guidance for aligning teams and systems.
 **Sections:**
 
-- Purpose of the stand-up
-- Common anti-patterns (status reports, tangent debates)
-- How to facilitate efficiently in 15 minutes
-- Techniques for distributed/hybrid teams
-- Example agenda and checklist
+- What Conway's Law actually says
+- How team boundaries become system boundaries
+- Inverse Conway Maneuver: designing teams for desired architecture
+- Real-world examples and anti-patterns
+- Practical steps for alignment
 
 ---
 
-### 5. Running an Effective Sprint Planning Session
+### 5. Giving Effective Feedback with the SBI Model
 
-**Keywords:** agile, ritual, sprint planning, best-practices  
-**Audience:** engineering teams, product managers  
-**Summary:** Explains how to structure sprint planning meetings that yield clear commitments, realistic estimates, and shared context.  
+**Keywords:** feedback, SBI, communication, culture
+**Audience:** managers, leads, all engineers
+**Corpus Source:** `Culture/Constructive_Feedback_SBI_Model.md`
+**Summary:** Introduces the Situation-Behavior-Impact model for delivering clear, constructive feedback that drives improvement without defensiveness.
 **Sections:**
 
-- Objectives of sprint planning
-- The pre-work: backlog readiness and story sizing
-- Recommended flow and time allocation
-- Identifying blockers early
-- Linking sprint goals to performance metrics
+- Why feedback often fails
+- The SBI model explained
+- Structuring feedback conversations
+- Receiving feedback effectively
+- Building a feedback culture
 
 ---
 
-## Operational Excellence Series
+## SDLC Series
 
-### 6. Running a Fast, Calm Incident Response
+### 6. Building Self-Correcting Systems with Mechanisms
 
-**Keywords:** oe, incident-management  
-**Audience:** on-call engineers, SREs  
-**Summary:** Explores how teams use Slack and bots to manage incidents efficiently while maintaining composure and focus.  
+**Keywords:** mechanisms, process, automation, self-correcting
+**Audience:** engineers, managers, tech leads
+**Corpus Source:** `SDLC/Mechanisms:_Building_Self-Correcting_Systems.md`
+**Summary:** Explains how to design processes and systems that automatically detect and correct problems, reducing reliance on heroics and manual intervention.
 **Sections:**
 
-- Anatomy of a production incident
-- Roles and escalation paths
-- Using Slack and automation effectively
-- Real-time communication principles
-- Recovery vs. resolution mindset
+- What makes a mechanism effective
+- Self-correcting vs. self-reporting systems
+- Examples of engineering mechanisms
+- Designing new mechanisms
+- Measuring mechanism effectiveness
 
 ---
 
-### 7. The Role of the Incident Commander
+### 7. Writing Effective One-Pagers and PR-FAQs
 
-**Keywords:** oe, incident-management, incident commander  
-**Audience:** engineers, tech leads  
-**Summary:** Deep dive into the “Incident Commander” role — the single thread of authority who drives incident mitigation and decision-making.  
+**Keywords:** one-pager, PR-FAQ, planning, documentation
+**Audience:** engineers, product managers, tech leads
+**Corpus Source:** `SDLC/The_One-Pager.md`, `SDLC/The_PR-FAQ.md`, `SDLC/Project_Planning_Mechanisms:_Documents.md`
+**Summary:** Covers the purpose and structure of one-pagers and PR-FAQs as planning mechanisms. Explains when to use each and how to write them effectively.
 **Sections:**
 
-- Responsibilities and behaviors of an IC
-- Delegation patterns and support roles (comms, scribe)
-- Maintaining calm authority under pressure
-- When to hand off command
+- Purpose of planning documents
+- One-pager structure and best practices
+- PR-FAQ structure and best practices
+- Choosing between document types
+- Common pitfalls and how to avoid them

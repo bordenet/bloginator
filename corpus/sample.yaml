@@ -13,7 +13,7 @@
 
 sources:
   - name: "engineering-culture"
-    path: "test-corpus/Engineering_Culture"
+    path: "../test-corpus/Engineering_Culture"
     type: "directory"
     enabled: true
     quality: "preferred"
@@ -31,7 +31,7 @@ sources:
 
   # Individual topic areas (optional - enable for focused extraction)
   - name: "culture-posts"
-    path: "test-corpus/Engineering_Culture/Culture"
+    path: "../test-corpus/Engineering_Culture/Culture"
     type: "directory"
     enabled: false  # Enable for Culture-only extraction
     quality: "preferred"
@@ -46,7 +46,7 @@ sources:
       - "communication"
 
   - name: "sdlc-posts"
-    path: "test-corpus/Engineering_Culture/SDLC"
+    path: "../test-corpus/Engineering_Culture/SDLC"
     type: "directory"
     enabled: false  # Enable for SDLC-only extraction
     quality: "preferred"
@@ -61,7 +61,7 @@ sources:
       - "documentation"
 
   - name: "eng-fundamentals"
-    path: "test-corpus/Engineering_Culture/EngFundamentals"
+    path: "../test-corpus/Engineering_Culture/EngFundamentals"
     type: "directory"
     enabled: false  # Enable for fundamentals-only extraction
     quality: "preferred"
