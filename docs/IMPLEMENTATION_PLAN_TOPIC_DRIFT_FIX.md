@@ -1,6 +1,6 @@
 # Implementation Plan: Topic Drift Fix
 
-**Status**: Phase 1 In Progress
+**Status**: Phase 1 Completed
 **Created**: 2024-12-04
 **Last Updated**: 2024-12-04
 **Related**: [ASSESSMENT_VECTORIZATION_AND_PROMPTS.md](ASSESSMENT_VECTORIZATION_AND_PROMPTS.md), [TODO_PROMPT_TUNING.md](TODO_PROMPT_TUNING.md)
@@ -23,7 +23,7 @@ All 7 test blogs generated content about dashboards/SLIs instead of requested to
 ### 1.1 Add Topic Validation to Outline Prompt
 
 **File**: `prompts/outline/base.yaml`
-**Status**: ⏳ Not Started
+**Status**: ✅ Completed
 
 **Changes**:
 ```yaml
@@ -69,7 +69,7 @@ EXAMPLES OF CORRECT BEHAVIOR:
 ### 1.2 Improve Search Query Construction
 
 **File**: `src/bloginator/generation/_outline_prompt_builder.py`
-**Status**: ⏳ Not Started
+**Status**: ✅ Completed
 
 **Current Code** (lines 11-33):
 ```python
@@ -143,7 +143,7 @@ def build_search_queries(
 ### 1.3 Increase Corpus Context Depth
 
 **File**: `src/bloginator/generation/_outline_prompt_builder.py`
-**Status**: ⏳ Not Started
+**Status**: ✅ Completed
 
 **Current Code** (lines 36-56):
 ```python
@@ -211,7 +211,7 @@ def build_corpus_context(results: list[SearchResult]) -> str:
 ### 1.4 Add Search Result Logging
 
 **File**: `src/bloginator/generation/outline_generator.py`
-**Status**: ⏳ Not Started
+**Status**: ✅ Completed
 
 **Purpose**: Visibility into what corpus search returns so we can diagnose bad retrieval.
 
@@ -249,7 +249,7 @@ else:
 ### 1.5 Add Topic Validation to Draft Prompt
 
 **File**: `prompts/draft/base.yaml`
-**Status**: ⏳ Not Started
+**Status**: ✅ Completed
 
 **Changes**:
 ```yaml
@@ -471,15 +471,15 @@ def validate_search_results(
 
 ### Phase 1 Tasks
 
-- [ ] 1.1 Add topic validation to outline prompt (`prompts/outline/base.yaml`)
-- [ ] 1.2 Improve search query construction (`_outline_prompt_builder.py`)
-- [ ] 1.3 Increase corpus context depth (`_outline_prompt_builder.py`)
-- [ ] 1.4 Add search result logging (`outline_generator.py`)
-- [ ] 1.5 Add topic validation to draft prompt (`prompts/draft/base.yaml`)
-- [ ] Create integration tests (`tests/integration/test_topic_alignment.py`)
-- [ ] Test with hiring managers blog (worst performer #1)
-- [ ] Test with stand-up meetings blog (worst performer #2)
-- [ ] Commit and push to origin/main
+- [x] 1.1 Add topic validation to outline prompt (`prompts/outline/base.yaml`)
+- [x] 1.2 Improve search query construction (`_outline_prompt_builder.py`)
+- [x] 1.3 Increase corpus context depth (`_outline_prompt_builder.py`)
+- [x] 1.4 Add search result logging (`outline_generator.py`)
+- [x] 1.5 Add topic validation to draft prompt (`prompts/draft/base.yaml`)
+- [x] Create integration tests (`tests/integration/test_topic_alignment.py`)
+- [x] Test with hiring managers blog (worst performer #1)
+- [x] Test with stand-up meetings blog (worst performer #2)
+- [x] Commit and push to origin/main
 - [ ] Document results and lessons learned below
 
 ### Phase 2 Tasks
