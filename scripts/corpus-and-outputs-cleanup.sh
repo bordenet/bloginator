@@ -3,31 +3,58 @@
 ################################################################################
 # Bloginator Corpus and Outputs Cleanup
 ################################################################################
-# PURPOSE: Clean up generated artifacts while preserving configuration
-#   - Clears extracted documents (output/extracted)
-#   - Clears ChromaDB index (.bloginator/chroma, chroma_db)
-#   - Clears generated content (output/generated)
-#   - Clears LLM request/response files (.bloginator/llm_*)
-#   - Uses bloginator CLI commands where available
 #
-# PRESERVES:
-#   - .env (environment configuration)
-#   - corpus/corpus.yaml (corpus configuration)
-#   - corpus/sample.yaml (sample corpus configuration)
-#   - User templates (.bloginator/templates/)
-#   - Blocklist (.bloginator/blocklist.json)
+# NAME
+#   corpus-and-outputs-cleanup.sh - Reset Bloginator workspace to clean state
 #
-# USAGE:
-#   ./scripts/corpus-and-outputs-cleanup.sh [OPTIONS]
+# SYNOPSIS
+#   corpus-and-outputs-cleanup.sh [-y|--yes] [-v|--verbose] [-h|--help]
 #
-# OPTIONS:
-#   -y, --yes       Auto-confirm all prompts
-#   -v, --verbose   Show detailed output
-#   -h, --help      Display help message
+# DESCRIPTION
+#   Cleans up all generated artifacts from Bloginator operations while
+#   preserving configuration files. Uses bloginator CLI commands where
+#   available to exercise the API, falling back to direct file operations
+#   when necessary.
 #
-# EXAMPLES:
-#   ./scripts/corpus-and-outputs-cleanup.sh            # Interactive cleanup
-#   ./scripts/corpus-and-outputs-cleanup.sh -y         # Non-interactive
+#   This script is intended for development and testing workflows where
+#   you need to reset to a known clean state before running end-to-end tests.
+#
+# REMOVES
+#   output/extracted/       Extracted document text and metadata
+#   output/generated/       Generated outlines and drafts
+#   .bloginator/chroma/     ChromaDB vector index
+#   .bloginator/history/    Generation history (via CLI)
+#   .bloginator/llm_*/      LLM request/response files
+#   chroma_db/              Legacy ChromaDB location
+#
+# PRESERVES
+#   .env                    Environment configuration (NEVER touched)
+#   corpus/*.yaml           Corpus configuration files
+#   .bloginator/templates/  Custom prompt templates
+#   .bloginator/blocklist.json  Proprietary term blocklist
+#
+# OPTIONS
+#   -y, --yes       Auto-confirm all prompts (non-interactive mode)
+#   -v, --verbose   Show detailed output for each operation
+#   -h, --help      Display this help message and exit
+#
+# EXAMPLES
+#   Interactive cleanup:
+#     ./scripts/corpus-and-outputs-cleanup.sh
+#
+#   Non-interactive (for CI/scripts):
+#     ./scripts/corpus-and-outputs-cleanup.sh -y
+#
+#   Verbose output for debugging:
+#     ./scripts/corpus-and-outputs-cleanup.sh -y -v
+#
+# EXIT STATUS
+#   0   Cleanup completed successfully
+#   1   User cancelled or error occurred
+#
+# AUTHOR
+#   Bloginator Team
+#
 ################################################################################
 
 set -euo pipefail
@@ -60,7 +87,8 @@ export VERBOSE=0
 ################################################################################
 
 show_help() {
-    head -35 "${BASH_SOURCE[0]}" | tail -30
+    # Extract and display the header documentation (lines 2-55)
+    sed -n '2,55p' "${BASH_SOURCE[0]}" | sed 's/^# \?//'
     exit 0
 }
 
