@@ -22,7 +22,7 @@ def generate_draft_with_progress(
     progress: Progress,
     logger: logging.Logger,
     console: Console,
-) -> object:
+) -> Draft:
     """Generate draft with progress tracking.
 
     Args:
