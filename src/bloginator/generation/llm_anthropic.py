@@ -8,6 +8,7 @@ from bloginator.generation.llm_base import (
     print_llm_request,
     print_llm_response,
 )
+from bloginator.timeout_config import timeout_config
 
 
 class AnthropicClient(LLMClient):
@@ -26,7 +27,7 @@ class AnthropicClient(LLMClient):
         self,
         model: str = "claude-3-5-sonnet-20241022",
         api_key: str | None = None,
-        timeout: int = 120,
+        timeout: int | None = None,
         verbose: bool = False,
         **kwargs: object,
     ) -> None:
@@ -35,7 +36,7 @@ class AnthropicClient(LLMClient):
         Args:
             model: Claude model name
             api_key: Anthropic API key (or set ANTHROPIC_API_KEY env var)
-            timeout: Request timeout in seconds
+            timeout: Request timeout in seconds (uses TimeoutConfig default if None)
             verbose: Show LLM request/response interactions
             **kwargs: Ignored (for compatibility)
         """
@@ -47,7 +48,7 @@ class AnthropicClient(LLMClient):
             ) from e
 
         self.model = model
-        self.timeout = timeout
+        self.timeout = timeout if timeout is not None else timeout_config.LLM_REQUEST_TIMEOUT
         self.verbose = verbose
 
         # Get API key from parameter or environment

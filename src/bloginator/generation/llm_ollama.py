@@ -10,6 +10,7 @@ from bloginator.generation.llm_base import (
     print_llm_request,
     print_llm_response,
 )
+from bloginator.timeout_config import timeout_config
 
 
 class OllamaClient(LLMClient):
@@ -28,7 +29,7 @@ class OllamaClient(LLMClient):
         self,
         model: str = "llama3",
         base_url: str = "http://localhost:11434",
-        timeout: int = 120,
+        timeout: int | None = None,
         verbose: bool = False,
     ):
         """Initialize Ollama client.
@@ -36,12 +37,12 @@ class OllamaClient(LLMClient):
         Args:
             model: Model name (e.g., "llama3", "mistral", "codellama")
             base_url: Ollama server URL
-            timeout: Request timeout in seconds
+            timeout: Request timeout in seconds (uses TimeoutConfig default if None)
             verbose: Show LLM request/response interactions
         """
         self.model = model
         self.base_url = base_url.rstrip("/")
-        self.timeout = timeout
+        self.timeout = timeout if timeout is not None else timeout_config.LLM_REQUEST_TIMEOUT
         self.verbose = verbose
 
     def generate(
@@ -133,7 +134,7 @@ class OllamaClient(LLMClient):
         try:
             # Check if server is running
             url = f"{self.base_url}/api/tags"
-            response = requests.get(url, timeout=5)
+            response = requests.get(url, timeout=timeout_config.OLLAMA_TAG_CHECK_TIMEOUT)
             response.raise_for_status()
 
             # Check if our model is available
@@ -154,7 +155,7 @@ class OllamaClient(LLMClient):
         """
         try:
             url = f"{self.base_url}/api/tags"
-            response = requests.get(url, timeout=5)
+            response = requests.get(url, timeout=timeout_config.OLLAMA_TAG_CHECK_TIMEOUT)
             response.raise_for_status()
 
             data = response.json()
