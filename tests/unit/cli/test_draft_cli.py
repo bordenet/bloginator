@@ -58,9 +58,9 @@ class TestDraftCLI:
         result = runner.invoke(draft, [])
         assert result.exit_code != 0
 
-    @patch("bloginator.cli.draft.CorpusSearcher")
+    @patch("bloginator.cli._draft_initialization.CorpusSearcher")
     @patch("bloginator.cli.draft.DraftGenerator")
-    @patch("bloginator.cli.draft.create_llm_from_config")
+    @patch("bloginator.cli._draft_initialization.create_llm_from_config")
     def test_draft_basic_generation(
         self,
         mock_llm,
@@ -100,9 +100,9 @@ class TestDraftCLI:
         assert result.exit_code == 0
         assert temp_output.exists()
 
-    @patch("bloginator.cli.draft.CorpusSearcher")
+    @patch("bloginator.cli._draft_initialization.CorpusSearcher")
     @patch("bloginator.cli.draft.DraftGenerator")
-    @patch("bloginator.cli.draft.create_llm_from_config")
+    @patch("bloginator.cli._draft_initialization.create_llm_from_config")
     def test_draft_with_invalid_outline(
         self,
         mock_llm,
@@ -125,9 +125,9 @@ class TestDraftCLI:
         # Should fail with error
         assert result.exit_code != 0
 
-    @patch("bloginator.cli.draft.CorpusSearcher")
+    @patch("bloginator.cli._draft_initialization.CorpusSearcher")
     @patch("bloginator.cli.draft.DraftGenerator")
-    @patch("bloginator.cli.draft.create_llm_from_config")
+    @patch("bloginator.cli._draft_initialization.create_llm_from_config")
     def test_draft_with_missing_outline(
         self, mock_llm, mock_generator_class, mock_searcher_class, runner, temp_index, temp_output
     ):
@@ -142,10 +142,10 @@ class TestDraftCLI:
         # Should fail with error
         assert result.exit_code != 0
 
-    @patch("bloginator.cli.draft.CorpusSearcher")
+    @patch("bloginator.cli._draft_initialization.CorpusSearcher")
     @patch("bloginator.cli.draft.DraftGenerator")
-    @patch("bloginator.cli.draft.create_llm_from_config")
-    @patch("bloginator.cli.draft.SafetyValidator")
+    @patch("bloginator.cli._draft_initialization.create_llm_from_config")
+    @patch("bloginator.cli._draft_validators.SafetyValidator")
     def test_draft_blocklist_violation_prevents_output(
         self,
         mock_validator_class,
@@ -201,9 +201,9 @@ class TestDraftCLI:
         assert result.exit_code != 0
         assert "validation failed" in result.output.lower() or "violation" in result.output.lower()
 
-    @patch("bloginator.cli.draft.CorpusSearcher")
+    @patch("bloginator.cli._draft_initialization.CorpusSearcher")
     @patch("bloginator.cli.draft.DraftGenerator")
-    @patch("bloginator.cli.draft.create_llm_from_config")
+    @patch("bloginator.cli._draft_initialization.create_llm_from_config")
     def test_draft_with_citations(
         self,
         mock_llm,
@@ -247,9 +247,9 @@ class TestDraftCLI:
 
         assert result.exit_code == 0
 
-    @patch("bloginator.cli.draft.CorpusSearcher")
+    @patch("bloginator.cli._draft_initialization.CorpusSearcher")
     @patch("bloginator.cli.draft.DraftGenerator")
-    @patch("bloginator.cli.draft.create_llm_from_config")
+    @patch("bloginator.cli._draft_initialization.create_llm_from_config")
     def test_draft_with_voice_similarity_threshold(
         self,
         mock_llm,
@@ -294,9 +294,9 @@ class TestDraftCLI:
 
         assert result.exit_code == 0
 
-    @patch("bloginator.cli.draft.CorpusSearcher")
+    @patch("bloginator.cli._draft_initialization.CorpusSearcher")
     @patch("bloginator.cli.draft.DraftGenerator")
-    @patch("bloginator.cli.draft.create_llm_from_config")
+    @patch("bloginator.cli._draft_initialization.create_llm_from_config")
     def test_draft_handles_llm_timeout(
         self,
         mock_llm,
@@ -326,9 +326,9 @@ class TestDraftCLI:
         assert result.exit_code != 0
         assert "timeout" in result.output.lower() or "error" in result.output.lower()
 
-    @patch("bloginator.cli.draft.CorpusSearcher")
+    @patch("bloginator.cli._draft_initialization.CorpusSearcher")
     @patch("bloginator.cli.draft.DraftGenerator")
-    @patch("bloginator.cli.draft.create_llm_from_config")
+    @patch("bloginator.cli._draft_initialization.create_llm_from_config")
     def test_draft_handles_llm_rate_limiting(
         self,
         mock_llm,
