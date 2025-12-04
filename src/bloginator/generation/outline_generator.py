@@ -160,28 +160,40 @@ class OutlineGenerator:
 
         outline.calculate_stats()
 
-        # VALIDATION: Remove sections with zero coverage (hallucinated content)
-        # and warn about very low coverage
-        zero_coverage_sections = []
-        for section in outline.get_all_sections():
-            if section.coverage_pct == 0.0:
-                zero_coverage_sections.append(section.title)
+        # CRITICAL CHECK: Validate sections match keywords
+        # Count sections that contain at least one keyword
+        keyword_matched_sections = 0
+        total_sections = len(outline.get_all_sections())
 
-        if zero_coverage_sections:
+        for section in outline.get_all_sections():
+            section_text = f"{section.title} {section.description}".lower()
+            if any(kw.lower() in section_text for kw in keywords):
+                keyword_matched_sections += 1
+
+        keyword_match_ratio = keyword_matched_sections / total_sections if total_sections > 0 else 0
+
+        # If <50% of sections match keywords, outline is hallucinated
+        if keyword_match_ratio < 0.5 and total_sections > 0:
+            if outline.validation_notes:
+                outline.validation_notes = ""
             outline.validation_notes = (
-                f"⚠️ REMOVED {len(zero_coverage_sections)} sections with 0% corpus coverage (hallucinated content):\n"
-                f"{chr(10).join(f'  - {t}' for t in zero_coverage_sections[:5])}"
-                + (
-                    f"\n  ... and {len(zero_coverage_sections) - 5} more"
-                    if len(zero_coverage_sections) > 5
-                    else ""
-                )
+                f"❌ OUTLINE REJECTED: Only {keyword_matched_sections}/{total_sections} sections "
+                f"({keyword_match_ratio*100:.0f}%) match provided keywords.\n\n"
+                f"The outline appears to be hallucinated (not grounded in your corpus).\n\n"
+                f"Keywords provided: {', '.join(keywords)}\n\n"
+                f"Outline generated:\n"
+                f"{chr(10).join(f'  - {s.title}' for s in outline.sections[:5])}"
+                f"{'...' if len(outline.sections) > 5 else ''}\n\n"
+                f"RECOMMENDATION:\n"
+                f"1. Search corpus manually for: {keywords[0]}\n"
+                f"2. Verify corpus actually contains material about this topic\n"
+                f"3. Try with different keywords that better match corpus content\n"
+                f"4. Add more source documents if corpus is too sparse"
             )
-            # Filter out zero-coverage sections from the outline
-            outline.sections = self._filter_sections_by_coverage(
-                outline.sections, min_coverage=0.01
-            )
-            outline.calculate_stats()  # Recalculate after filtering
+            # Keep only sections that match keywords
+            outline.sections = self._filter_by_keyword_match(outline.sections, keywords)
+            outline.calculate_stats()
+            return outline
 
         # ADDITIONAL FILTERING: Remove sections with very low coverage (<5%)
         # unless they're directly in the keywords
@@ -274,6 +286,29 @@ class OutlineGenerator:
             sections.append(current_section)
 
         return sections
+
+    def _filter_by_keyword_match(
+        self,
+        sections: list[OutlineSection],
+        keywords: list[str],
+    ) -> list[OutlineSection]:
+        """Filter sections to keep only those matching keywords.
+
+        Args:
+            sections: Sections to filter
+            keywords: Keywords to match against
+
+        Returns:
+            Filtered list of sections matching keywords
+        """
+        filtered = []
+        for section in sections:
+            section_text = f"{section.title} {section.description}".lower()
+            if any(kw.lower() in section_text for kw in keywords):
+                # Recursively filter subsections
+                section.subsections = self._filter_by_keyword_match(section.subsections, keywords)
+                filtered.append(section)
+        return filtered
 
     def _filter_sections_by_coverage(
         self,
