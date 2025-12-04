@@ -1,9 +1,9 @@
 # File Size Refactoring - Progress Checkpoint
 
-**Status:** IN PROGRESS (8/10 tasks complete - 80% DONE)
+**Status:** IN PROGRESS (9/10 tasks complete - 90% DONE)
 **Last Updated:** 2025-12-05
 **Base Commit:** 9973a26 (retry logic for Streamlit generation)
-**Progress Commits:** 63f9aee (TASK 1), 1660329 (TASK 4), 5c2bd02 (TASK 5), 84d7a93 (TASK 6), f822a98 (TASK 7), 748eee8 (TASK 8), a7c0123 (TASK 9), 797f37a (TASK 10)
+**Progress Commits:** 63f9aee (TASK 1), 1660329 (TASK 4), 5c2bd02 (TASK 5), 84d7a93 (TASK 6), f822a98 (TASK 7), 748eee8 (TASK 8), a7c0123 (TASK 9), 797f37a (TASK 10), 92481e1 (TASK 11)
 
 ## Quick Start for Next Agent
 
@@ -14,7 +14,7 @@ If continuing this refactoring:
 4. **Quality gates:** All files must pass `./scripts/fast-quality-gate.sh` before commit
 5. **Update this document** as you complete each task (add ✅, remove from todo)
 
-**Current Progress:** 8/10 files refactored (80% complete).
+**Current Progress:** 9/10 files refactored (90% complete).
 - TASK 1: 722 → 810 lines (5 files, all <300 lines)
 - TASK 4: 489 → 529 lines (5 files, all <200 lines)
 - TASK 5: 488 → 524 lines (4 files, all <320 lines)
@@ -22,7 +22,8 @@ If continuing this refactoring:
 - TASK 7: 545 → 630 lines (3 files, all <427 lines)
 - TASK 8: 546 → 675 lines (2 files, all <516 lines)
 - TASK 9: 710 → 313 lines (7 files, all <300 lines)
-- TASK 10: 450 → 249 lines (5 files, all <200 lines) - NEW ✅ COMPLETE
+- TASK 10: 450 → 249 lines (5 files, all <200 lines)
+- TASK 11: 421 → 270 lines (3 files, all <270 lines) - NEW ✅ COMPLETE
 
 ---
 
@@ -225,9 +226,30 @@ Refactoring 10 Python files (5,390 lines → target <4,000 lines) to ensure no s
 
 ---
 
+### ✅ TASK 11: Refactor template_manager.py (421 → 270 lines) - COMPLETE
+
+**Status:** COMPLETE ✓ (commit: 92481e1)
+
+**Files Created:**
+- `src/bloginator/services/_template_storage.py` (153 lines) ✓ - File I/O operations
+- `src/bloginator/services/_builtin_templates.py` (110 lines) ✓ - Built-in template data
+- `src/bloginator/services/template_manager.py` (270 lines) ✓ - TemplateManager orchestrator
+
+**Total:** 533 lines (421 original, organized across 3 focused modules)
+
+**Changes:**
+- Extracted file I/O (save/load/delete templates and presets) to _template_storage
+- Extracted built-in template definitions to _builtin_templates
+- TemplateManager now orchestrates CRUD and rendering logic only
+- All backward compatible via imports
+- Also fixed web/app.py module-level app creation issue
+
+**Quality:** All tests passing (5/5), quality gates pass, no mypy errors
+
+---
+
 ## Remaining Tasks
 
-### 📋 TASK 11: Refactor template_manager.py (421 lines)
 ### 📋 TASK 12: Refactor outline.py (406 lines)
 
 See the original plan file for detailed specifications for each remaining task.
@@ -300,8 +322,9 @@ If continuing from this checkpoint:
 
 **Current State:**
 - TASK 10: 100% complete ✓ (commit: 797f37a)
-- TASK 11 & 12: Not yet started
-- 8/10 tasks complete, 80% of refactoring done
+- TASK 11: 100% complete ✓ (commit: 92481e1)
+- TASK 12: Not yet started
+- 9/10 tasks complete, 90% of refactoring done
 
 ---
 
