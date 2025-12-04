@@ -1,6 +1,7 @@
 """Shared utilities for document extraction."""
 
 import json
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -111,3 +112,62 @@ def is_temp_file(filename: str) -> bool:
         True if this is a temporary file that should be skipped
     """
     return filename.startswith("~$")
+
+
+def wait_for_file_availability(
+    file_path: Path, timeout_seconds: float = 10.0, poll_interval: float = 0.2
+) -> bool:
+    """Wait for a file to become available with non-zero size.
+
+    This is critical for OneDrive files which may appear in directory listings
+    but aren't locally available until accessed. OneDrive downloads files on-demand.
+
+    Args:
+        file_path: Path to the file to check
+        timeout_seconds: Maximum time to wait (default: 10 seconds)
+        poll_interval: Time between polls (default: 200ms)
+
+    Returns:
+        True if file is available with size > 0, False if timeout reached
+
+    Raises:
+        FileNotFoundError: If file doesn't exist at all
+    """
+    if not file_path.exists():
+        raise FileNotFoundError(f"File does not exist: {file_path}")
+
+    start_time = time.time()
+    elapsed = 0.0
+
+    while elapsed < timeout_seconds:
+        try:
+            file_size = file_path.stat().st_size
+
+            # File is available if size > 0
+            if file_size > 0:
+                return True
+
+            # File exists but is 0 bytes - OneDrive placeholder
+            # Trigger download by attempting to open it
+            try:
+                with file_path.open("rb") as f:
+                    # Read first byte to trigger download
+                    f.read(1)
+            except Exception:
+                # If open fails, continue polling
+                pass
+
+            # Wait before next poll
+            time.sleep(poll_interval)
+            elapsed = time.time() - start_time
+
+        except (OSError, PermissionError):
+            # File stat failed, wait and retry
+            time.sleep(poll_interval)
+            elapsed = time.time() - start_time
+
+    # Timeout reached - check final state
+    try:
+        return file_path.stat().st_size > 0
+    except (OSError, PermissionError):
+        return False

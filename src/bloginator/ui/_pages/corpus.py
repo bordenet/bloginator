@@ -289,47 +289,101 @@ def show_extraction_tab():
 
     # Run extraction
     if st.button("🚀 Run Extraction", type="primary", use_container_width=True):
-        with st.spinner("Extracting documents..."):
-            try:
-                cmd = [
-                    "bloginator",
-                    "extract",
-                    "-o",
-                    output_dir,
-                    "--config",
-                    str(corpus_config),
-                ]
+        # Create placeholders for real-time progress
+        current_file_container = st.empty()
+        skipped_files_container = st.empty()
+        status_container = st.empty()
 
-                if force_extract:
-                    cmd.append("--force")
+        try:
+            cmd = [
+                "bloginator",
+                "extract",
+                "-o",
+                output_dir,
+                "--config",
+                str(corpus_config),
+            ]
 
-                # nosec B603 - subprocess without shell=True is safe, cmd is controlled
-                result = subprocess.run(  # nosec B603
-                    cmd,
-                    capture_output=True,
-                    text=True,
-                    timeout=300,  # 5 minute timeout
-                )
+            if force_extract:
+                cmd.append("--force")
 
-                if result.returncode == 0:
-                    st.success("✓ Extraction complete!")
-                    st.code(result.stdout, language="text")
+            # Run with real-time output streaming
+            # nosec B603 - subprocess without shell=True is safe, cmd is controlled
+            process = subprocess.Popen(  # nosec B603
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                bufsize=1,  # Line buffered
+            )
 
-                    # Count extracted files
-                    extracted_dir = Path(output_dir)
-                    if extracted_dir.exists():
-                        json_count = len(list(extracted_dir.glob("*.json")))
-                        txt_count = len(list(extracted_dir.glob("*.txt")))
-                        st.metric("Extracted Files", f"{json_count} documents")
-                        st.caption(f"{txt_count} text files, {json_count} metadata files")
-                else:
-                    st.error(f"✗ Extraction failed (exit code {result.returncode})")
-                    st.code(result.stderr, language="text")
+            stdout_lines = []
+            stderr_lines = []
+            skipped_files = []  # Track skipped files
+            current_file = "Starting..."
 
-            except subprocess.TimeoutExpired:
-                st.error("✗ Extraction timed out (>5 minutes)")
-            except Exception as e:
-                st.error(f"✗ Error: {str(e)}")
+            # Read output line by line as it comes
+            while True:
+                # Check if process is still running
+                if process.poll() is not None:
+                    break
+
+                # Read available output
+                line = process.stdout.readline()
+                if line:
+                    stdout_lines.append(line)
+
+                    # Parse line to detect skip events or current file
+                    stripped = line.strip()
+                    if stripped.startswith("[SKIP]"):
+                        # Parse skip event: [SKIP] /path/to/file (reason)
+                        skip_info = stripped[6:].strip()  # Remove "[SKIP] " prefix
+                        skipped_files.append(f"• {skip_info}")
+                        # Update skipped files display
+                        if skipped_files:
+                            skipped_files_container.text_area(
+                                "Skipped Files",
+                                value="\n".join(skipped_files),
+                                height=300,
+                                key=f"skipped_{len(skipped_files)}",
+                            )
+                    else:
+                        # Assume non-skip lines indicate current file being processed
+                        current_file = stripped
+                        # Update current file display
+                        current_file_container.info(f"📄 Current: {current_file}")
+
+            # Get remaining output
+            stdout_remaining, stderr_remaining = process.communicate()
+            if stdout_remaining:
+                stdout_lines.extend(stdout_remaining.splitlines(keepends=True))
+            if stderr_remaining:
+                stderr_lines.extend(stderr_remaining.splitlines(keepends=True))
+
+            # Clear current file indicator
+            current_file_container.empty()
+
+            if process.returncode == 0:
+                status_container.success("✓ Extraction complete!")
+
+                # Count extracted files
+                extracted_dir = Path(output_dir)
+                if extracted_dir.exists():
+                    json_count = len(list(extracted_dir.glob("*.json")))
+                    txt_count = len(list(extracted_dir.glob("*.txt")))
+                    st.metric("Extracted Files", f"{json_count} documents")
+                    st.caption(f"{txt_count} text files, {json_count} metadata files")
+
+                # Show final skip count
+                if skipped_files:
+                    st.info(f"📋 {len(skipped_files)} file(s) skipped (see list above)")
+            else:
+                status_container.error(f"✗ Extraction failed (exit code {process.returncode})")
+                if stderr_lines:
+                    st.code("".join(stderr_lines), language="text")
+
+        except Exception as e:
+            status_container.error(f"✗ Error: {str(e)}")
 
 
 def show_indexing_tab():
@@ -471,54 +525,125 @@ def show_indexing_tab():
             help="Maximum characters per chunk",
         )
 
+    # Force re-index option
+    force_reindex = st.checkbox(
+        "Force Re-index",
+        value=False,
+        key="index_force_reindex",
+        help="Delete existing index and rebuild from scratch",
+    )
+
     # Run indexing
     if st.button("🔨 Build Index", type="primary", use_container_width=True):
-        with st.spinner("Building index... This may take a few minutes."):
-            try:
-                cmd = [
-                    "bloginator",
-                    "index",
-                    str(extracted_dir),
-                    "-o",
-                    index_dir,
-                    "--chunk-size",
-                    str(chunk_size),
-                ]
+        # Create placeholders for real-time progress
+        current_doc_container = st.empty()
+        skipped_docs_container = st.empty()
+        status_container = st.empty()
 
-                # nosec B603 - subprocess without shell=True is safe, cmd is controlled
-                result = subprocess.run(  # nosec B603
-                    cmd,
-                    capture_output=True,
-                    text=True,
-                    timeout=1800,  # 30 minute timeout
-                )
+        try:
+            # If force re-index, purge existing index first
+            if force_reindex:
+                import shutil
 
-                if result.returncode == 0:
-                    st.success("✓ Index built successfully!")
-                    st.code(result.stdout, language="text")
+                index_path = Path(index_dir)
+                if index_path.exists():
+                    shutil.rmtree(index_path)
+                    st.info(f"🗑️ Purged existing index: {index_dir}")
 
-                    # Show index stats
-                    index_path = Path(index_dir)
-                    if index_path.exists():
-                        try:
-                            import chromadb
+            cmd = [
+                "bloginator",
+                "index",
+                str(extracted_dir),
+                "-o",
+                index_dir,
+                "--chunk-size",
+                str(chunk_size),
+            ]
 
-                            client = chromadb.PersistentClient(path=index_dir)
-                            collections = client.list_collections()
-                            if collections:
-                                collection = collections[0]
-                                chunk_count = collection.count()
-                                st.metric("Indexed Chunks", f"{chunk_count:,}")
-                        except Exception as e:
-                            st.warning(f"Could not read index stats: {e}")
-                else:
-                    st.error(f"✗ Indexing failed (exit code {result.returncode})")
-                    st.code(result.stderr, language="text")
+            # Run with real-time output streaming
+            # nosec B603 - subprocess without shell=True is safe, cmd is controlled
+            process = subprocess.Popen(  # nosec B603
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                bufsize=1,  # Line buffered
+            )
 
-            except subprocess.TimeoutExpired:
-                st.error("✗ Indexing timed out (>30 minutes)")
-            except Exception as e:
-                st.error(f"✗ Error: {str(e)}")
+            stdout_lines = []
+            stderr_lines = []
+            skipped_docs = []  # Track skipped documents
+            current_doc = "Starting..."
+
+            # Read output line by line as it comes
+            while True:
+                # Check if process is still running
+                if process.poll() is not None:
+                    break
+
+                # Read available output
+                line = process.stdout.readline()
+                if line:
+                    stdout_lines.append(line)
+
+                    # Parse line to detect skip events or current document
+                    stripped = line.strip()
+                    if stripped.startswith("[SKIP]"):
+                        # Parse skip event: [SKIP] /path/to/doc (reason)
+                        skip_info = stripped[6:].strip()  # Remove "[SKIP] " prefix
+                        skipped_docs.append(f"• {skip_info}")
+                        # Update skipped documents display
+                        if skipped_docs:
+                            skipped_docs_container.text_area(
+                                "Skipped Documents",
+                                value="\n".join(skipped_docs),
+                                height=300,
+                                key=f"skipped_docs_{len(skipped_docs)}",
+                            )
+                    else:
+                        # Assume non-skip lines indicate current document being processed
+                        current_doc = stripped
+                        # Update current document display
+                        current_doc_container.info(f"🔨 Current: {current_doc}")
+
+            # Get remaining output
+            stdout_remaining, stderr_remaining = process.communicate()
+            if stdout_remaining:
+                stdout_lines.extend(stdout_remaining.splitlines(keepends=True))
+            if stderr_remaining:
+                stderr_lines.extend(stderr_remaining.splitlines(keepends=True))
+
+            # Clear current document indicator
+            current_doc_container.empty()
+
+            if process.returncode == 0:
+                status_container.success("✓ Index built successfully!")
+
+                # Show index stats
+                index_path = Path(index_dir)
+                if index_path.exists():
+                    try:
+                        import chromadb
+
+                        client = chromadb.PersistentClient(path=index_dir)
+                        collections = client.list_collections()
+                        if collections:
+                            collection = collections[0]
+                            chunk_count = collection.count()
+                            st.metric("Indexed Chunks", f"{chunk_count:,}")
+                    except Exception as e:
+                        st.warning(f"Could not read index stats: {e}")
+
+                # Show final skip count
+                if skipped_docs:
+                    st.info(f"📋 {len(skipped_docs)} document(s) skipped (see list above)")
+            else:
+                status_container.error(f"✗ Indexing failed (exit code {process.returncode})")
+                if stderr_lines:
+                    st.code("".join(stderr_lines), language="text")
+
+        except Exception as e:
+            status_container.error(f"✗ Error: {str(e)}")
 
 
 def show_status_tab():

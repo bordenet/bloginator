@@ -73,7 +73,9 @@
       "Bash(git restore:*)",
       "Bash(.venv/bin/python:*)",
       "Bash(python3.11:*)",
-      "Bash(git tag:*)"
+      "Bash(git tag:*)",
+      "Bash(mypy:*)",
+      "Bash(streamlit run:*)"
     ],
     "deny": [],
     "ask": []

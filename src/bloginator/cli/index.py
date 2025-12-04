@@ -1,13 +1,19 @@
 """CLI command for indexing extracted documents."""
 
 import json
+import shutil
 from pathlib import Path
 
 import click
 from rich.console import Console
-from rich.progress import Progress
+from rich.progress import BarColumn, Progress, SpinnerColumn, TaskProgressColumn, TextColumn
 
-from bloginator.cli.error_reporting import ErrorCategory, ErrorTracker, create_error_panel
+from bloginator.cli.error_reporting import (
+    ErrorCategory,
+    ErrorTracker,
+    SkipCategory,
+    create_error_panel,
+)
 from bloginator.extraction import chunk_text_by_paragraphs
 from bloginator.indexing import CorpusIndexer
 from bloginator.models import Document
@@ -28,7 +34,13 @@ from bloginator.models import Document
     type=int,
     help="Maximum chunk size in characters (default: 1000)",
 )
-def index(source: Path, output: Path, chunk_size: int) -> None:
+@click.option(
+    "--force",
+    is_flag=True,
+    default=False,
+    help="Force rebuild: purge existing index and rebuild from scratch",
+)
+def index(source: Path, output: Path, chunk_size: int, force: bool) -> None:
     """Build searchable index from extracted documents in SOURCE.
 
     SOURCE should be the output directory from the 'extract' command,
@@ -39,6 +51,12 @@ def index(source: Path, output: Path, chunk_size: int) -> None:
         bloginator index output/extracted -o output/index --chunk-size 500
     """
     console = Console()
+
+    # If force flag is set, purge existing index
+    if force and output.exists():
+        console.print(f"[yellow]🗑️  Purging existing index: {output}[/yellow]")
+        shutil.rmtree(output)
+        console.print("[green]✓ Index purged successfully[/green]\n")
 
     # Initialize error tracker
     error_tracker = ErrorTracker()
@@ -75,10 +93,29 @@ def index(source: Path, output: Path, chunk_size: int) -> None:
     skipped_count = 0
     failed_count = 0
 
-    with Progress() as progress:
-        task = progress.add_task("[green]Indexing...", total=len(meta_files))
+    # Create ticker-style progress bar (single line that updates in place)
+    progress = Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        TaskProgressColumn(),
+        TextColumn("• {task.fields[current_file]}"),
+        console=console,
+        transient=True,  # Disappears when complete
+    )
+
+    with progress:
+        task = progress.add_task(
+            "[green]Indexing",
+            total=len(meta_files),
+            current_file="starting...",
+        )
 
         for meta_file in meta_files:
+            # Update ticker with current file (show full path)
+            display_path = str(meta_file)
+            progress.update(task, current_file=display_path)
+
             try:
                 # Load document metadata
                 doc_data = json.loads(meta_file.read_text())
@@ -86,6 +123,12 @@ def index(source: Path, output: Path, chunk_size: int) -> None:
 
                 # Check if document needs reindexing (incremental indexing with checksums)
                 if not indexer.document_needs_reindexing(document):
+                    source_path = document.source_path or document.filename
+                    error_tracker.record_skip(SkipCategory.ALREADY_EXTRACTED, source_path)
+                    # Output parseable skip event for Streamlit
+                    progress.console.print(
+                        f"[SKIP] {source_path} (already_indexed)", highlight=False
+                    )
                     skipped_count += 1
                     progress.update(task, advance=1)
                     continue
@@ -100,7 +143,9 @@ def index(source: Path, output: Path, chunk_size: int) -> None:
                     error = FileNotFoundError(f"Missing text file: {text_file}")
                     category = ErrorCategory.FILE_NOT_FOUND
                     error_tracker.record_error(category, document.filename, error)
-                    console.print(f"[yellow]⚠ {document.filename}: Missing text file[/yellow]")
+                    progress.console.print(
+                        f"[yellow]⚠ {document.filename}: Missing text file[/yellow]"
+                    )
                     failed_count += 1
                     progress.update(task, advance=1)
                     continue
@@ -124,10 +169,15 @@ def index(source: Path, output: Path, chunk_size: int) -> None:
                 category = error_tracker.categorize_exception(e, meta_file)
                 context = document.filename if "document" in locals() else meta_file.name
                 error_tracker.record_error(category, context, e)
-                console.print(f"[red]✗ {context}: {type(e).__name__}[/red]")
+                progress.console.print(f"[red]✗ {context}: {type(e).__name__}[/red]")
                 failed_count += 1
 
             progress.update(task, advance=1)
+
+    # Save report to file if there were skips or errors
+    report_file: Path | None = None
+    if error_tracker.total_skipped > 0 or error_tracker.total_errors > 0:
+        report_file = error_tracker.save_to_file(output, prefix="indexing")
 
     # Show statistics
     info = indexer.get_collection_info()
@@ -144,6 +194,10 @@ def index(source: Path, output: Path, chunk_size: int) -> None:
     console.print(f"  Total chunks: {info['total_chunks']}")
     console.print(f"  Collection: {info['collection_name']}")
     console.print(f"  Output directory: {info['output_dir']}")
+
+    # Print skip summary if there were skips (with file path)
+    if skipped_count > 0 and error_tracker.total_skipped > 0:
+        error_tracker.print_skip_summary(console, show_file_path=report_file)
 
     # Print error summary if there were failures
     if failed_count > 0:

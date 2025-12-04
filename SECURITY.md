@@ -15,7 +15,7 @@ We take security vulnerabilities seriously. If you discover a security issue, pl
 
 **Do not** open a public GitHub issue for security vulnerabilities.
 
-Instead, email security details to: **matt@bordenet.com**
+Instead, email security details to: **mattbordenet@hotmail.com**
 
 Include:
 - Description of the vulnerability
