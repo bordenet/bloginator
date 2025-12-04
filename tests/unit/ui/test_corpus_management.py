@@ -949,7 +949,176 @@ class TestSkipSummaryDisplay:
 
         try:
             json.loads(report_file.read_text())
-            assert False, "Should have raised JSONDecodeError"
+            raise AssertionError("Should have raised JSONDecodeError")
         except json.JSONDecodeError:
             # Expected - should be handled gracefully in UI
             pass
+
+
+class TestRealTimeSkipEventParsing:
+    """Tests for real-time skip event parsing from CLI output."""
+
+    def test_extract_skip_event_from_output_line(self) -> None:
+        """Test parsing [SKIP] prefix from extraction output."""
+        line = "[SKIP] /path/to/file.md (already_extracted)\n"
+
+        if line.strip().startswith("[SKIP]"):
+            skip_info = line.strip()[6:].strip()
+            assert skip_info == "/path/to/file.md (already_extracted)"
+
+    def test_extract_multiple_skip_events(self) -> None:
+        """Test parsing multiple skip events from output stream."""
+        output_lines = [
+            "[SKIP] /path/to/file1.md (already_extracted)\n",
+            "Processing file2.pdf\n",
+            "[SKIP] /path/to/~$temp.docx (temp_file)\n",
+            "Processing file3.docx\n",
+            "[SKIP] /path/to/.DS_Store (ignore_pattern)\n",
+        ]
+
+        skipped_files = []
+        for line in output_lines:
+            if line.strip().startswith("[SKIP]"):
+                skip_info = line.strip()[6:].strip()
+                skipped_files.append(f"• {skip_info}")
+
+        assert len(skipped_files) == 3
+        assert "• /path/to/file1.md (already_extracted)" in skipped_files
+        assert "• /path/to/~$temp.docx (temp_file)" in skipped_files
+        assert "• /path/to/.DS_Store (ignore_pattern)" in skipped_files
+
+    def test_current_file_from_non_skip_line(self) -> None:
+        """Test extracting current file from non-skip lines."""
+        line = "Processing: /Users/matt/Documents/important_file.pdf\n"
+
+        if not line.strip().startswith("[SKIP]"):
+            current_file = line.strip()
+            assert "important_file.pdf" in current_file
+
+    def test_skip_event_with_absolute_path(self) -> None:
+        """Test skip event parsing with absolute file paths."""
+        line = "[SKIP] /Users/matt/Library/CloudStorage/OneDrive/Documents/file.md (already_extracted)\n"
+
+        skip_info = line.strip()[6:].strip()
+
+        assert "OneDrive" in skip_info
+        assert "already_extracted" in skip_info
+        assert skip_info.endswith(")")
+
+    def test_skip_event_preserves_full_path(self) -> None:
+        """Test that skip event preserves complete file paths."""
+        long_path = "[SKIP] /Users/matt/Very/Long/Path/With/Many/Directories/important_document_2025.md (already_extracted)\n"
+
+        skip_info = long_path.strip()[6:].strip()
+
+        assert "/Users/matt/Very/Long/Path" in skip_info
+        assert "important_document_2025.md" in skip_info
+
+    def test_skip_accumulation_in_list(self) -> None:
+        """Test that skip events accumulate in a growing list."""
+        output = [
+            "[SKIP] file1.md (already_extracted)",
+            "[SKIP] file2.docx (temp_file)",
+            "[SKIP] file3.pdf (already_extracted)",
+            "[SKIP] file4.txt (unsupported_extension)",
+            "[SKIP] file5.zip (temp_file)",
+        ]
+
+        skipped_files = []
+        for line in output:
+            if line.startswith("[SKIP]"):
+                skip_info = line[6:].strip()
+                skipped_files.append(f"• {skip_info}")
+
+        assert len(skipped_files) == 5
+        assert skipped_files[0] == "• file1.md (already_extracted)"
+        assert skipped_files[-1] == "• file5.zip (temp_file)"
+
+    def test_mixed_output_and_skip_events(self) -> None:
+        """Test handling mixed regular output and skip events."""
+        output_lines = [
+            "Starting extraction...",
+            "[SKIP] file1.md (already_extracted)",
+            "Processing: file2.pdf",
+            "[SKIP] file3.docx (temp_file)",
+            "Processing: file4.txt",
+            "[SKIP] file5.zip (unsupported)",
+            "Extraction complete!",
+        ]
+
+        current_file = None
+        skipped_files = []
+
+        for line in output_lines:
+            if line.startswith("[SKIP]"):
+                skip_info = line[6:].strip()
+                skipped_files.append(f"• {skip_info}")
+            else:
+                current_file = line
+
+        assert len(skipped_files) == 3
+        assert current_file == "Extraction complete!"
+
+    def test_index_skip_event_parsing(self) -> None:
+        """Test parsing skip events during indexing."""
+        line = "[SKIP] document_001.json (unchanged_document)\n"
+
+        if line.strip().startswith("[SKIP]"):
+            skip_info = line.strip()[6:].strip()
+            assert skip_info == "document_001.json (unchanged_document)"
+
+    def test_skip_event_with_parentheses_in_reason(self) -> None:
+        """Test skip events where reason might have special formatting."""
+        line = "[SKIP] /path/to/file.md (already_extracted)\n"
+
+        skip_info = line.strip()[6:].strip()
+
+        assert skip_info.count("(") == 1
+        assert skip_info.count(")") == 1
+        assert skip_info.endswith(")")
+
+    def test_display_list_updates_continuously(self) -> None:
+        """Test that skip list display updates as new skips are detected."""
+        mock_container = Mock()
+        skipped_files = []
+
+        lines = [
+            "[SKIP] file1.md (already_extracted)",
+            "[SKIP] file2.docx (temp_file)",
+            "[SKIP] file3.pdf (already_extracted)",
+        ]
+
+        for line in lines:
+            if line.startswith("[SKIP]"):
+                skip_info = line[6:].strip()
+                skipped_files.append(f"• {skip_info}")
+                mock_container.text_area(
+                    "Skipped Files",
+                    value="\n".join(skipped_files),
+                    height=300,
+                    key=f"skipped_{len(skipped_files)}",
+                )
+
+        assert mock_container.text_area.call_count == 3
+
+    def test_skip_display_handles_empty_list(self) -> None:
+        """Test that skip display handles empty skip list."""
+        skipped_files = []
+
+        should_display = len(skipped_files) > 0
+
+        assert should_display is False
+
+    def test_skip_display_handles_many_skips(self) -> None:
+        """Test skip display with large number of skips."""
+        output = [f"[SKIP] file{i}.md (reason_{i})" for i in range(100)]
+
+        skipped_files = []
+        for line in output:
+            skip_info = line[6:].strip()
+            skipped_files.append(f"• {skip_info}")
+
+        assert len(skipped_files) == 100
+        combined = "\n".join(skipped_files)
+        assert "file0.md" in combined
+        assert "file99.md" in combined
