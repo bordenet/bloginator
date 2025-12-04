@@ -2,14 +2,20 @@
 
 from pathlib import Path
 
+from bloginator.generation._outline_coverage import (
+    analyze_section_coverage,
+    filter_by_keyword_match,
+    filter_sections_by_coverage,
+)
+from bloginator.generation._outline_parser import build_outline_from_corpus, parse_outline_response
 from bloginator.generation._outline_prompt_builder import (
     OutlinePromptBuilder,
     build_corpus_context,
     build_search_queries,
 )
 from bloginator.generation.llm_client import LLMClient
-from bloginator.models.outline import Outline, OutlineSection
-from bloginator.search import CorpusSearcher, SearchResult
+from bloginator.models.outline import Outline
+from bloginator.search import CorpusSearcher
 
 
 class OutlineGenerator:
@@ -124,7 +130,7 @@ class OutlineGenerator:
         )
 
         # Parse LLM response into sections
-        sections = self._parse_outline_response(response.content)
+        sections = parse_outline_response(response.content)
 
         # FALLBACK: If LLM generated mostly off-topic sections,
         # build outline from corpus search results instead
@@ -138,11 +144,11 @@ class OutlineGenerator:
 
             # If <30% match, use corpus-based outline instead
             if match_ratio < 0.3 and all_results:
-                sections = self._build_outline_from_corpus(all_results, keywords, num_sections)
+                sections = build_outline_from_corpus(all_results, keywords, num_sections)
 
         # Analyze coverage for each section
         for section in sections:
-            self._analyze_section_coverage(section, keywords)
+            analyze_section_coverage(section, keywords, self.searcher, self.min_coverage_sources)
 
         # Create outline
         outline = Outline(
@@ -205,7 +211,7 @@ class OutlineGenerator:
                 f"4. Add more source documents if corpus is too sparse"
             )
             # Keep only sections that match keywords
-            outline.sections = self._filter_by_keyword_match(outline.sections, keywords)
+            outline.sections = filter_by_keyword_match(outline.sections, keywords)
             outline.calculate_stats()
             return outline
 
@@ -222,7 +228,7 @@ class OutlineGenerator:
 
         if very_low_coverage_sections:
             old_section_count = len(outline.get_all_sections())
-            outline.sections = self._filter_sections_by_coverage(outline.sections, min_coverage=5.0)
+            outline.sections = filter_sections_by_coverage(outline.sections, min_coverage=5.0)
             new_section_count = len(outline.get_all_sections())
             if outline.validation_notes:
                 outline.validation_notes += "\n\n"
@@ -252,226 +258,6 @@ class OutlineGenerator:
 
         return outline
 
-    def _parse_outline_response(self, content: str) -> list[OutlineSection]:
-        """Parse LLM outline response into OutlineSection objects.
-
-        Args:
-            content: LLM generated outline text
-
-        Returns:
-            List of top-level OutlineSection objects
-        """
-        sections = []
-        current_section: OutlineSection | None = None
-        current_subsection: OutlineSection | None = None
-
-        lines = content.strip().split("\n")
-
-        for line in lines:
-            line = line.strip()
-            if not line:
-                continue
-
-            # Main section (## Heading)
-            if line.startswith("## "):
-                if current_section:
-                    sections.append(current_section)
-                title = line[3:].strip()
-                current_section = OutlineSection(title=title)
-                current_subsection = None
-
-            # Subsection (### Heading)
-            elif line.startswith("### "):
-                if current_section:
-                    title = line[4:].strip()
-                    current_subsection = OutlineSection(title=title)
-                    current_section.subsections.append(current_subsection)
-
-            # Description text (for current section/subsection)
-            elif current_subsection:
-                current_subsection.description += (
-                    " " + line if current_subsection.description else line
-                )
-            elif current_section:
-                current_section.description += " " + line if current_section.description else line
-
-        # Add final section
-        if current_section:
-            sections.append(current_section)
-
-        return sections
-
-    def _build_outline_from_corpus(
-        self,
-        results: list[SearchResult],
-        keywords: list[str],
-        num_sections: int = 5,
-    ) -> list[OutlineSection]:
-        """Build outline directly from corpus search results.
-
-        This is a fallback when LLM outline generation produces hallucinations.
-        Extracts natural sections based on actual corpus content.
-
-        Args:
-            results: Search results from corpus
-            keywords: Keywords to focus on
-            num_sections: Target number of sections
-
-        Returns:
-            List of OutlineSection objects based on corpus content
-        """
-        sections = []
-
-        # Extract first heading or natural topic boundaries from each result
-        for result in results[:num_sections]:
-            # Try to extract a meaningful title from the content
-            lines = result.content.split("\n")
-            title = "Untitled Section"
-
-            # Look for markdown headings
-            for line in lines[:5]:
-                if line.startswith("##"):
-                    title = line.replace("##", "").strip()
-                    break
-                elif line.startswith("#"):
-                    title = line.replace("#", "").strip()
-                    break
-
-            # Use first non-empty line as fallback
-            if title == "Untitled Section":
-                for line in lines:
-                    if line.strip() and not line.startswith(("[", ">")):
-                        title = line.strip()[:80]  # Limit length
-                        break
-
-            # Extract description from first 100 chars
-            description = result.content[:150].replace("\n", " ").strip()
-            if len(description) > 100:
-                description = description[:100] + "..."
-
-            # Create section with keyword awareness
-            section = OutlineSection(
-                title=title,
-                description=description,
-            )
-            sections.append(section)
-
-            if len(sections) >= num_sections:
-                break
-
-        return sections if sections else []
-
-    def _filter_by_keyword_match(
-        self,
-        sections: list[OutlineSection],
-        keywords: list[str],
-    ) -> list[OutlineSection]:
-        """Filter sections to keep only those matching keywords.
-
-        Args:
-            sections: Sections to filter
-            keywords: Keywords to match against
-
-        Returns:
-            Filtered list of sections matching keywords
-        """
-        filtered = []
-        for section in sections:
-            section_text = f"{section.title} {section.description}".lower()
-            if any(kw.lower() in section_text for kw in keywords):
-                # Recursively filter subsections
-                section.subsections = self._filter_by_keyword_match(section.subsections, keywords)
-                filtered.append(section)
-        return filtered
-
-    def _filter_sections_by_coverage(
-        self,
-        sections: list[OutlineSection],
-        min_coverage: float = 0.01,
-    ) -> list[OutlineSection]:
-        """Filter out sections with coverage below minimum threshold.
-
-        Args:
-            sections: Sections to filter
-            min_coverage: Minimum coverage threshold (default: 0.01%)
-
-        Returns:
-            Filtered list of sections (recursively filters subsections too)
-        """
-        filtered = []
-        for section in sections:
-            if section.coverage_pct >= min_coverage:
-                # Recursively filter subsections
-                section.subsections = self._filter_sections_by_coverage(
-                    section.subsections, min_coverage
-                )
-                filtered.append(section)
-        return filtered
-
-    def _analyze_section_coverage(self, section: OutlineSection, keywords: list[str]) -> None:
-        """Analyze corpus coverage for a section.
-
-        Updates section.coverage_pct and section.source_count based on
-        how well the corpus covers this section's topic.
-
-        Args:
-            section: Section to analyze
-            keywords: Document keywords for context
-        """
-        # Build search query from section title + keywords
-        query = f"{section.title} {' '.join(keywords[:3])}"
-
-        try:
-            # Search corpus for relevant content
-            results = self.searcher.search(
-                query=query,
-                n_results=10,
-            )
-
-            # Calculate coverage based on search results
-            if not results:
-                section.coverage_pct = 0.0
-                section.source_count = 0
-                section.notes = "No corpus coverage found for this topic"
-            else:
-                # Coverage based on:
-                # - Number of results (more = better coverage)
-                # - Similarity scores (higher = more relevant)
-                avg_similarity = sum(r.similarity_score for r in results) / len(results)
-
-                # Scale coverage:
-                # - 10+ results with high similarity = 100%
-                # - Fewer results or lower similarity = proportionally less
-                result_factor = min(len(results) / 10.0, 1.0)
-                similarity_factor = avg_similarity
-
-                section.coverage_pct = (result_factor * similarity_factor) * 100.0
-
-                # Count unique source documents
-                unique_docs = set()
-                for result in results:
-                    doc_id = result.metadata.get("document_id", "")
-                    if doc_id:
-                        unique_docs.add(doc_id)
-
-                section.source_count = len(unique_docs)
-
-                # Add warning for low coverage
-                if section.coverage_pct < 50.0:
-                    section.notes = f"⚠️ Low corpus coverage ({section.coverage_pct:.0f}%)"
-                elif section.source_count < self.min_coverage_sources:
-                    section.notes = f"Limited sources ({section.source_count} documents)"
-
-        except Exception as e:
-            # Fallback on error
-            section.coverage_pct = 0.0
-            section.source_count = 0
-            section.notes = f"Coverage analysis failed: {str(e)}"
-
-        # Recursively analyze subsections
-        for subsection in section.subsections:
-            self._analyze_section_coverage(subsection, keywords)
-
     def generate_from_template(
         self,
         template_path: Path,
@@ -497,11 +283,11 @@ class OutlineGenerator:
         template_content = template_path.read_text()
 
         # Parse template into sections
-        sections = self._parse_outline_response(template_content)
+        sections = parse_outline_response(template_content)
 
         # Analyze coverage for each section
         for section in sections:
-            self._analyze_section_coverage(section, keywords)
+            analyze_section_coverage(section, keywords, self.searcher, self.min_coverage_sources)
 
         # Create outline
         outline = Outline(

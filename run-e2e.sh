@@ -166,6 +166,14 @@ EXAMPLES
       --title "Guidance for building great dashboards" \
       --keywords "SLI metrics,golden signals,dashboard design" \
       --thesis "Consider audience, outcomes, and style guides for valuable dashboards."
+
+    # Canned sample for a detailed blog post generation
+    ./run-e2e.sh --generate-only \\
+      --title "Guidance for building great dashboards" \\
+      --keywords "SLI metrics,golden signals,dashboard design,OE,service level indicators" \\
+      --thesis "It's important for us to consider the audience we're addressing with any given dashboard, intended outcomes, and then adopt a repeatable style guide so the dashboards we create add maximum value." \\
+      --classification "guidance" \\
+      --audience "all-disciplines"
 EOF
 }
 
