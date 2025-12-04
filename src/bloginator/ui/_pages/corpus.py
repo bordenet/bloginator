@@ -340,13 +340,13 @@ def show_extraction_tab():
                         skip_info = stripped[6:].strip()  # Remove "[SKIP] " prefix
                         skipped_files.append(f"• {skip_info}")
                         # Update skipped files display
-                        if skipped_files:
-                            skipped_files_container.text_area(
-                                "Skipped Files",
-                                value="\n".join(skipped_files),
-                                height=300,
-                                key=f"skipped_{len(skipped_files)}",
-                            )
+                        skipped_files_container.text_area(
+                            "Skipped Files",
+                            value="\n".join(skipped_files),
+                            height=300,
+                            key="extraction_skipped_files",
+                            disabled=True,
+                        )
                     elif stripped.startswith("Extracting:"):
                         # Parse current file: "Extracting: /path/to/file"
                         current_file = stripped[11:].strip()  # Remove "Extracting: " prefix
@@ -475,7 +475,7 @@ def show_indexing_tab():
                 if index_dir.exists():
                     shutil.rmtree(index_dir)
                     st.success(
-                        "✓ Index deleted. You can now rebuild it with the Build Index button above."
+                        "✓ Index deleted. You can now rebuild it with the Build Index button below."
                     )
                 else:
                     st.info("No index found to delete")
@@ -593,16 +593,16 @@ def show_indexing_tab():
                         skip_info = stripped[6:].strip()  # Remove "[SKIP] " prefix
                         skipped_docs.append(f"• {skip_info}")
                         # Update skipped documents display
-                        if skipped_docs:
-                            skipped_docs_container.text_area(
-                                "Skipped Documents",
-                                value="\n".join(skipped_docs),
-                                height=300,
-                                key=f"skipped_docs_{len(skipped_docs)}",
-                            )
-                    else:
-                        # Assume non-skip lines indicate current document being processed
-                        current_doc = stripped
+                        skipped_docs_container.text_area(
+                            "Skipped Documents",
+                            value="\n".join(skipped_docs),
+                            height=300,
+                            key="indexing_skipped_docs",
+                            disabled=True,
+                        )
+                    elif stripped.startswith("Indexing:"):
+                        # Parse current document: "Indexing: /path/to/file"
+                        current_doc = stripped[9:].strip()  # Remove "Indexing: " prefix
                         # Update current document display
                         current_doc_container.info(f"🔨 Current: {current_doc}")
 
