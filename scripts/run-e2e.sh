@@ -603,7 +603,7 @@ main() {
     if [[ "$LAUNCH_GUI" == "true" ]]; then
         echo "Launching Streamlit UI..."
         echo ""
-        exec ./run-streamlit.sh --no-browser
+        exec "$SCRIPT_DIR/run-streamlit.sh" --no-browser
     fi
 }
 

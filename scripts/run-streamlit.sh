@@ -165,7 +165,7 @@ check_dependencies() {
     task_start "Checking dependencies"
 
     # Check for UI module
-    if [[ ! -f "$SCRIPT_DIR/src/bloginator/ui/app.py" ]]; then
+    if [[ ! -f "$PROJECT_ROOT/src/bloginator/ui/app.py" ]]; then
         task_fail "UI module not found at src/bloginator/ui/app.py"
         exit 1
     fi
