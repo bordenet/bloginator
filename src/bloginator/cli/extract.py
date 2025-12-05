@@ -50,6 +50,12 @@ from bloginator.cli.extract_single import extract_single_source
     default=None,
     help="Number of parallel workers (default: auto-detect based on CPU count)",
 )
+@click.option(
+    "-v",
+    "--verbose",
+    is_flag=True,
+    help="Show verbose output with detailed progress information",
+)
 def extract(
     source: Path | None,
     output: Path,
@@ -58,6 +64,7 @@ def extract(
     tags: str | None,
     force: bool,
     workers: int | None,
+    verbose: bool,
 ) -> None:
     """Extract documents from SOURCE to OUTPUT directory.
 
@@ -86,6 +93,10 @@ def extract(
     console = Console()
     output.mkdir(parents=True, exist_ok=True)
 
+    # Show verbose mode indicator
+    if verbose:
+        console.print("[cyan]Verbose mode enabled[/cyan]")
+
     # Show workers info if specified
     if workers is not None:
         console.print(f"[cyan]Using {workers} parallel workers[/cyan]")
@@ -93,12 +104,11 @@ def extract(
     # Determine extraction mode
     if config:
         # MODE 2: Config-based multi-source extraction
-        # Note: workers parameter available for future parallel implementation
-        extract_from_config(config, output, console, force)
+        extract_from_config(config, output, console, force, verbose)
     elif source:
         # MODE 1: Legacy single-source extraction with parallel processing
         tag_list = [t.strip() for t in tags.split(",")] if tags else []
-        extract_single_source(source, output, quality, tag_list, console, force, workers)
+        extract_single_source(source, output, quality, tag_list, console, force, workers, verbose)
     else:
         console.print("[red]Error: Must provide either SOURCE or --config[/red]")
         raise click.UsageError("Must provide either SOURCE argument or --config option")

@@ -54,7 +54,7 @@ def _resolve_smb_darwin(
 
     Args:
         server: SMB server name
-        share_path: Share path
+        share_path: Share path (e.g., "scratch/TL/MattB/Reading")
         smb_url: Full SMB URL
         error_tracker: Error tracker instance
 
@@ -63,23 +63,35 @@ def _resolve_smb_darwin(
     """
     import time
 
-    # Extract the share name (first path component)
-    share_name = share_path.split("/")[0] if share_path else ""
+    # Parse mount table to find the exact mount point for this URL
+    mounted_path = _find_mounted_smb_path(server, share_path)
+    if mounted_path and mounted_path.exists():
+        return mounted_path
+
+    # Extract path components for fallback heuristics
+    path_parts = share_path.split("/") if share_path else []
+    share_name = path_parts[0] if path_parts else ""
+    last_component = path_parts[-1] if path_parts else ""
     hostname = server.split(".")[0] if "." in server else server
 
-    # Try mount point using share name first (most common on macOS)
+    # Build mount point candidates - macOS often mounts at last path component
     mount_candidates = [
-        Path("/Volumes") / share_name,
+        Path("/Volumes") / last_component,  # Most common: last path component
+        Path("/Volumes") / share_name,  # Share root
         Path("/Volumes") / hostname,
         Path("/Volumes") / server,
-        Path("/Volumes") / hostname.replace("-", "_"),
+        Path("/Volumes") / last_component.replace(" ", "%20"),  # URL-encoded spaces
     ]
 
     # Check existing mount points
     for mount_point in mount_candidates:
         if mount_point.exists():
-            path_parts = share_path.split("/")[1:] if "/" in share_path else []
-            full_path = mount_point.joinpath(*path_parts) if path_parts else mount_point
+            # For last_component mount, the path IS the mount point
+            if mount_point.name == last_component:
+                return mount_point
+            # For share root, need to add remaining path parts
+            remaining = path_parts[1:] if len(path_parts) > 1 else []
+            full_path = mount_point.joinpath(*remaining) if remaining else mount_point
             if full_path.exists():
                 return full_path
 
@@ -97,28 +109,13 @@ def _resolve_smb_darwin(
         # Check all candidates again after mount attempt
         for mount_point in mount_candidates:
             if mount_point.exists():
-                path_parts = share_path.split("/")[1:] if "/" in share_path else []
-                full_path = mount_point.joinpath(*path_parts) if path_parts else mount_point
+                if mount_point.name == last_component:
+                    return mount_point
+                remaining = path_parts[1:] if len(path_parts) > 1 else []
+                full_path = mount_point.joinpath(*remaining) if remaining else mount_point
                 if full_path.exists():
                     return full_path
     except (subprocess.TimeoutExpired, subprocess.CalledProcessError):
-        pass
-
-    # As last resort, try to find any volume that matches
-    try:
-        volumes = Path("/Volumes").iterdir()
-        for vol in volumes:
-            vol_name_lower = vol.name.lower()
-            if (
-                (share_name and share_name.lower() in vol_name_lower)
-                or hostname.lower() in vol_name_lower
-                or server.lower() in vol_name_lower
-            ):
-                path_parts = share_path.split("/")[1:] if "/" in share_path else []
-                full_path = vol.joinpath(*path_parts) if path_parts else vol
-                if full_path.exists():
-                    return full_path
-    except (OSError, PermissionError):
         pass
 
     error_tracker.record_skip(
@@ -126,6 +123,56 @@ def _resolve_smb_darwin(
         f"{smb_url} (could not find mounted SMB share - ensure it's mounted in Finder)",
     )
     return None
+
+
+def _find_mounted_smb_path(server: str, share_path: str) -> Path | None:
+    """Find mounted SMB path by parsing mount table.
+
+    Args:
+        server: SMB server name
+        share_path: Share path (e.g., "scratch/TL/MattB/Reading")
+
+    Returns:
+        Local mounted Path or None
+    """
+    try:
+        result = subprocess.run(
+            ["mount"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if result.returncode != 0:
+            return None
+
+        # Normalize server name for matching
+        server_lower = server.lower()
+
+        for line in result.stdout.splitlines():
+            # Format: //user@server/path on /Volumes/name (smbfs, ...)
+            if " on /Volumes/" not in line or "smbfs" not in line:
+                continue
+
+            parts = line.split(" on ")
+            if len(parts) < 2:
+                continue
+
+            smb_part = parts[0]  # //user@server/path
+            volume_part = parts[1].split(" (")[0]  # /Volumes/name
+
+            # Check if this mount is for our server and path
+            if server_lower in smb_part.lower():
+                # URL-decode for comparison (spaces become %20 in mount output)
+                smb_part_decoded = smb_part.replace("%20", " ")
+                # Check if share_path matches
+                if share_path and share_path.lower() in smb_part_decoded.lower():
+                    mount_path = Path(volume_part)
+                    if mount_path.exists():
+                        return mount_path
+
+        return None
+    except (subprocess.TimeoutExpired, subprocess.CalledProcessError, OSError):
+        return None
 
 
 def _resolve_smb_linux(share_path: str, error_tracker: ErrorTracker) -> Path | None:
