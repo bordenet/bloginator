@@ -47,7 +47,7 @@ Bloginator will recursively scan this directory and index all supported files.
 
 ```bash
 # Copy example config
-cp corpus.yaml.example corpus.yaml
+cp corpus.sample.yaml corpus.yaml
 
 # Edit with your sources
 nano corpus.yaml
