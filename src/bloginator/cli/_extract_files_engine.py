@@ -80,6 +80,9 @@ def extract_source_files(
             progress.update(task, current_file=display_path)
 
             try:
+                # Record file for statistics (not extracted yet)
+                error_tracker.record_file(file_path, extracted=False)
+
                 # Check if we should skip this file
                 skip, doc_id = should_skip_file(file_path, existing_docs, force)
 
@@ -187,6 +190,9 @@ def extract_source_files(
                 meta_file.write_text(doc.model_dump_json(indent=2), encoding="utf-8")
 
                 extracted_count += 1
+                # Update file stats to mark as extracted
+                error_tracker.extracted_by_type[file_path.suffix.lower() or "(no extension)"] += 1
+                error_tracker.total_extracted += 1
 
             except Exception as e:
                 # Categorize and track error

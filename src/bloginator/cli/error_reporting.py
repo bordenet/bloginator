@@ -47,6 +47,25 @@ class ErrorTracker:
         self.total_errors = 0
         self.skipped: dict[SkipCategory, list[str]] = defaultdict(list)
         self.total_skipped = 0
+        # File type tracking
+        self.files_by_type: dict[str, int] = defaultdict(int)
+        self.extracted_by_type: dict[str, int] = defaultdict(int)
+        self.total_files_found = 0
+        self.total_extracted = 0
+
+    def record_file(self, file_path: Path, extracted: bool = True) -> None:
+        """Record a file for type statistics.
+
+        Args:
+            file_path: Path to the file
+            extracted: True if successfully extracted, False if just found
+        """
+        ext = file_path.suffix.lower() or "(no extension)"
+        self.files_by_type[ext] += 1
+        self.total_files_found += 1
+        if extracted:
+            self.extracted_by_type[ext] += 1
+            self.total_extracted += 1
 
     def record_error(self, category: ErrorCategory, context: str, exception: Exception) -> None:
         """Record an error with its category and context.
@@ -253,6 +272,82 @@ class ErrorTracker:
 
         report_file.write_text(json.dumps(report, indent=2), encoding="utf-8")
         return report_file
+
+    def generate_corpus_report(self, output_path: Path | None = None) -> Path:
+        """Generate a comprehensive corpus extraction report to /tmp.
+
+        Args:
+            output_path: Optional output path. Defaults to /tmp/bloginator_corpus_report.md
+
+        Returns:
+            Path to the generated report file
+        """
+        if output_path is None:
+            output_path = Path("/tmp/bloginator_corpus_report.md")
+
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        lines = [
+            "# Bloginator Corpus Extraction Report",
+            f"\nGenerated: {timestamp}",
+            "",
+            "## Summary",
+            "",
+            f"- **Total Files Found**: {self.total_files_found}",
+            f"- **Successfully Extracted**: {self.total_extracted}",
+            f"- **Skipped**: {self.total_skipped}",
+            f"- **Errors**: {self.total_errors}",
+            "",
+            "## Files by Type",
+            "",
+            "| Extension | Found | Extracted | Skipped/Failed |",
+            "|-----------|-------|-----------|----------------|",
+        ]
+
+        # Sort by count descending
+        for ext, count in sorted(self.files_by_type.items(), key=lambda x: x[1], reverse=True):
+            extracted = self.extracted_by_type.get(ext, 0)
+            skipped_failed = count - extracted
+            lines.append(f"| {ext} | {count} | {extracted} | {skipped_failed} |")
+
+        lines.append("")
+        lines.append("## Skipped Files")
+        lines.append("")
+
+        if self.total_skipped > 0:
+            for category, skip_list in sorted(
+                self.skipped.items(), key=lambda x: len(x[1]), reverse=True
+            ):
+                lines.append(f"### {category.value.replace('_', ' ').title()} ({len(skip_list)})")
+                lines.append("")
+                for item in skip_list[:20]:  # Limit to 20 per category
+                    lines.append(f"- {item}")
+                if len(skip_list) > 20:
+                    lines.append(f"- ... and {len(skip_list) - 20} more")
+                lines.append("")
+        else:
+            lines.append("*No files were skipped.*")
+            lines.append("")
+
+        lines.append("## Errors")
+        lines.append("")
+
+        if self.total_errors > 0:
+            for category, error_list in sorted(
+                self.errors.items(), key=lambda x: len(x[1]), reverse=True
+            ):
+                lines.append(f"### {category.value.replace('_', ' ').title()} ({len(error_list)})")
+                lines.append("")
+                for ctx, exc in error_list[:10]:  # Limit to 10 per category
+                    lines.append(f"- **{ctx}**: {type(exc).__name__}: {exc!s}")
+                if len(error_list) > 10:
+                    lines.append(f"- ... and {len(error_list) - 10} more")
+                lines.append("")
+        else:
+            lines.append("*No errors occurred.*")
+            lines.append("")
+
+        output_path.write_text("\n".join(lines), encoding="utf-8")
+        return output_path
 
     def print_skip_summary(
         self, console: Console, max_display_lines: int = 32, show_file_path: Path | None = None

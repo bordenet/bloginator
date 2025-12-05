@@ -23,17 +23,32 @@ class ExtractionSettings(BaseModel):
     include_extensions: list[str] = Field(
         default_factory=lambda: [
             # Documents
-            ".md", ".markdown", ".txt", ".text", ".pdf", ".docx", ".doc",
+            ".md",
+            ".markdown",
+            ".txt",
+            ".text",
+            ".pdf",
+            ".docx",
+            ".doc",
             # Rich text
-            ".rtf", ".odt", ".html", ".htm",
+            ".rtf",
+            ".odt",
+            ".html",
+            ".htm",
             # Presentations
-            ".pptx", ".ppt",
+            ".pptx",
+            ".ppt",
             # Data/structured
-            ".xlsx", ".xml",
+            ".xlsx",
+            ".xml",
             # Email
-            ".eml", ".msg",
+            ".eml",
+            ".msg",
             # Images (OCR)
-            ".png", ".jpg", ".jpeg", ".webp",
+            ".png",
+            ".jpg",
+            ".jpeg",
+            ".webp",
         ],
         description="File extensions to include",
     )

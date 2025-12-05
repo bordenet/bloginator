@@ -67,6 +67,10 @@ def extract_from_config(
     if error_tracker.total_skipped > 0 or error_tracker.total_errors > 0:
         report_file = error_tracker.save_to_file(output, prefix="extraction")
 
+    # Generate comprehensive corpus report to /tmp
+    corpus_report_path = error_tracker.generate_corpus_report()
+    console.print(f"[cyan]Corpus report saved to: {corpus_report_path}[/cyan]")
+
     # Print summary
     console.print(f"\n[bold green]Total: {total_extracted} document(s) extracted[/bold green]")
     if total_skipped > 0:
