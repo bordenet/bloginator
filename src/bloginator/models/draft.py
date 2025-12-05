@@ -81,6 +81,7 @@ class Draft(BaseModel):
         voice_score: Overall voice similarity score (0-1)
         total_citations: Total number of unique citations
         total_words: Total word count
+        confidence_score: Confidence index 0-100 based on source coverage and quality
         has_blocklist_violations: Whether any section has violations
         blocklist_validation_result: Detailed validation results if checked
     """
@@ -101,14 +102,23 @@ class Draft(BaseModel):
     voice_score: float = Field(default=0.0, ge=0.0, le=1.0)
     total_citations: int = Field(default=0, ge=0)
     total_words: int = Field(default=0, ge=0)
+    citation_coverage_score: int = Field(
+        default=0, ge=0, le=100, description="% of sections with at least one citation"
+    )
+    citation_quality_score: int = Field(
+        default=0, ge=0, le=100, description="Average similarity score of citations (0-100)"
+    )
+    content_completeness_score: int = Field(
+        default=0, ge=0, le=100, description="Content density score based on words per section"
+    )
     has_blocklist_violations: bool = Field(default=False)
     blocklist_validation_result: dict[str, Any] | None = None
 
     def calculate_stats(self) -> None:
         """Calculate draft statistics.
 
-        Updates voice_score, total_citations, total_words, and
-        has_blocklist_violations based on all sections.
+        Updates voice_score, total_citations, total_words, confidence scores,
+        and has_blocklist_violations based on all sections.
         """
         all_sections = self.get_all_sections()
 
@@ -116,6 +126,9 @@ class Draft(BaseModel):
             self.voice_score = 0.0
             self.total_citations = 0
             self.total_words = 0
+            self.citation_coverage_score = 0
+            self.citation_quality_score = 0
+            self.content_completeness_score = 0
             self.has_blocklist_violations = False
             return
 
@@ -125,9 +138,11 @@ class Draft(BaseModel):
 
         # Unique citations
         all_citation_ids = set()
+        all_citations = []
         for section in all_sections:
             for citation in section.citations:
                 all_citation_ids.add(citation.chunk_id)
+                all_citations.append(citation)
         self.total_citations = len(all_citation_ids)
 
         # Total words
@@ -135,6 +150,25 @@ class Draft(BaseModel):
 
         # Blocklist violations
         self.has_blocklist_violations = any(s.has_blocklist_violations for s in all_sections)
+
+        # === CONFIDENCE SCORES ===
+
+        # Citation Coverage: % of sections with at least one citation
+        sections_with_citations = sum(1 for s in all_sections if s.citations)
+        self.citation_coverage_score = int((sections_with_citations / len(all_sections)) * 100)
+
+        # Citation Quality: Average similarity score of all citations (scaled 0-100)
+        if all_citations:
+            avg_similarity = sum(c.similarity_score for c in all_citations) / len(all_citations)
+            self.citation_quality_score = int(avg_similarity * 100)
+        else:
+            self.citation_quality_score = 0
+
+        # Content Completeness: Based on words per section (target ~150 words = 100%)
+        target_words_per_section = 150
+        avg_words = self.total_words / len(all_sections) if all_sections else 0
+        completeness_ratio = min(avg_words / target_words_per_section, 1.0)
+        self.content_completeness_score = int(completeness_ratio * 100)
 
     def get_all_sections(self) -> list[DraftSection]:
         """Get flattened list of all sections.
@@ -158,8 +192,13 @@ class Draft(BaseModel):
         """
         lines = []
 
-        # Title and metadata
-        lines.append(f"# {self.title}")
+        # Title with confidence scores: [XXcitcov_YYcitqual_ZZcc] Title
+        confidence_prefix = (
+            f"[{self.citation_coverage_score:02d}citcov_"
+            f"{self.citation_quality_score:02d}citqual_"
+            f"{self.content_completeness_score:02d}cc]"
+        )
+        lines.append(f"# {confidence_prefix} {self.title}")
         lines.append("")
 
         if self.thesis:
@@ -174,6 +213,10 @@ class Draft(BaseModel):
         lines.append(f"Voice Score: {self.voice_score:.2f}")
         lines.append(f"Citations: {self.total_citations}")
         lines.append(f"Words: {self.total_words}")
+        lines.append(
+            f"Confidence: citcov={self.citation_coverage_score}, "
+            f"citqual={self.citation_quality_score}, cc={self.content_completeness_score}"
+        )
         if self.has_blocklist_violations:
             lines.append("⚠️ BLOCKLIST VIOLATIONS DETECTED")
         lines.append("-->")

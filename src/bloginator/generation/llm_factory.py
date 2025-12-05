@@ -47,10 +47,16 @@ def create_llm_from_config(verbose: bool = False) -> LLMClient:
     mock_mode = os.getenv("BLOGINATOR_LLM_MOCK", "").lower()
     if mock_mode in ("true", "interactive", "assistant"):
         # Use create_llm_client which handles these modes
+        # Assistant mode needs longer timeout for file-based communication
+        timeout = (
+            timeout_config.ASSISTANT_LLM_RESPONSE_TIMEOUT
+            if mock_mode == "assistant"
+            else timeout_config.LLM_REQUEST_TIMEOUT
+        )
         return create_llm_client(
             provider=LLMProvider.MOCK,
             model=config.LLM_MODEL,
-            timeout=timeout_config.LLM_REQUEST_TIMEOUT,
+            timeout=timeout,
             verbose=verbose,
         )
 
