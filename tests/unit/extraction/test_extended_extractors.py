@@ -1,4 +1,4 @@
-"""Tests for extended document extractors (PPTX, EML, XML, Images)."""
+"""Tests for extended document extractors (PPTX, EML, XML, Images, HTML, XLSX, ODT, RTF, MSG)."""
 
 from pathlib import Path
 
@@ -6,8 +6,13 @@ import pytest
 
 from bloginator.extraction._extended_extractors import (
     extract_text_from_eml,
+    extract_text_from_html,
     extract_text_from_image,
+    extract_text_from_msg,
+    extract_text_from_odt,
     extract_text_from_pptx,
+    extract_text_from_rtf,
+    extract_text_from_xlsx,
     extract_text_from_xml,
 )
 
@@ -149,3 +154,174 @@ class TestExtractTextFromImage:
         with pytest.raises(FileNotFoundError):
             extract_text_from_image(nonexistent)
 
+
+class TestExtractTextFromHtml:
+    """Test HTML extraction."""
+
+    def test_extract_html_nonexistent(self, tmp_path: Path) -> None:
+        """Test extracting from nonexistent HTML file raises error."""
+        nonexistent = tmp_path / "nonexistent.html"
+
+        with pytest.raises(FileNotFoundError):
+            extract_text_from_html(nonexistent)
+
+    def test_extract_html_basic(self, tmp_path: Path) -> None:
+        """Test extracting text from basic HTML."""
+        html_content = """<!DOCTYPE html>
+<html>
+<head><title>Test Page</title></head>
+<body>
+    <h1>Main Heading</h1>
+    <p>This is a paragraph with some text.</p>
+    <div>Another section of content.</div>
+</body>
+</html>
+"""
+        html_path = tmp_path / "test.html"
+        html_path.write_text(html_content)
+
+        text = extract_text_from_html(html_path)
+
+        assert "Main Heading" in text
+        assert "This is a paragraph" in text
+        assert "Another section" in text
+        assert "<html>" not in text  # Tags should be stripped
+
+    def test_extract_html_with_scripts(self, tmp_path: Path) -> None:
+        """Test that script and style tags are removed."""
+        html_content = """<html>
+<head><script>var x = 1;</script><style>.foo { color: red; }</style></head>
+<body><p>Visible content only</p></body>
+</html>
+"""
+        html_path = tmp_path / "test.html"
+        html_path.write_text(html_content)
+
+        text = extract_text_from_html(html_path)
+
+        assert "Visible content only" in text
+        assert "var x" not in text
+        assert "color: red" not in text
+
+
+class TestExtractTextFromXlsx:
+    """Test Excel XLSX extraction."""
+
+    def test_extract_xlsx_nonexistent(self, tmp_path: Path) -> None:
+        """Test extracting from nonexistent XLSX file raises error."""
+        nonexistent = tmp_path / "nonexistent.xlsx"
+
+        with pytest.raises(FileNotFoundError):
+            extract_text_from_xlsx(nonexistent)
+
+    def test_extract_xlsx_basic(self, tmp_path: Path) -> None:
+        """Test extracting text from basic XLSX file."""
+        from openpyxl import Workbook
+
+        wb = Workbook()
+        ws = wb.active
+        ws["A1"] = "Header 1"
+        ws["B1"] = "Header 2"
+        ws["A2"] = "Data value 1"
+        ws["B2"] = "Data value 2"
+
+        xlsx_path = tmp_path / "test.xlsx"
+        wb.save(xlsx_path)
+
+        text = extract_text_from_xlsx(xlsx_path)
+
+        assert "Header 1" in text
+        assert "Header 2" in text
+        assert "Data value 1" in text
+        assert "Data value 2" in text
+
+    def test_extract_xlsx_multiple_sheets(self, tmp_path: Path) -> None:
+        """Test extracting from XLSX with multiple sheets."""
+        from openpyxl import Workbook
+
+        wb = Workbook()
+        ws1 = wb.active
+        ws1.title = "First Sheet"
+        ws1["A1"] = "First sheet content"
+
+        ws2 = wb.create_sheet("Second Sheet")
+        ws2["A1"] = "Second sheet content"
+
+        xlsx_path = tmp_path / "multi.xlsx"
+        wb.save(xlsx_path)
+
+        text = extract_text_from_xlsx(xlsx_path)
+
+        assert "First Sheet" in text
+        assert "First sheet content" in text
+        assert "Second Sheet" in text
+        assert "Second sheet content" in text
+
+
+class TestExtractTextFromRtf:
+    """Test RTF extraction."""
+
+    def test_extract_rtf_nonexistent(self, tmp_path: Path) -> None:
+        """Test extracting from nonexistent RTF file raises error."""
+        nonexistent = tmp_path / "nonexistent.rtf"
+
+        with pytest.raises(FileNotFoundError):
+            extract_text_from_rtf(nonexistent)
+
+    def test_extract_rtf_basic(self, tmp_path: Path) -> None:
+        """Test extracting text from basic RTF file."""
+        # Simple RTF content
+        rtf_content = r"""{\rtf1\ansi
+Hello World
+\par
+This is RTF content.
+}"""
+        rtf_path = tmp_path / "test.rtf"
+        rtf_path.write_text(rtf_content)
+
+        text = extract_text_from_rtf(rtf_path)
+
+        # Should extract the text content
+        assert "Hello" in text or "World" in text or "RTF content" in text
+
+
+class TestExtractTextFromOdt:
+    """Test OpenDocument Text extraction."""
+
+    def test_extract_odt_nonexistent(self, tmp_path: Path) -> None:
+        """Test extracting from nonexistent ODT file raises error."""
+        nonexistent = tmp_path / "nonexistent.odt"
+
+        with pytest.raises(FileNotFoundError):
+            extract_text_from_odt(nonexistent)
+
+    def test_extract_odt_basic(self, tmp_path: Path) -> None:
+        """Test extracting text from basic ODT file."""
+        from odf import text as odf_text
+        from odf.opendocument import OpenDocumentText
+
+        doc = OpenDocumentText()
+        para = odf_text.P(text="This is ODT paragraph content.")
+        doc.text.addElement(para)
+
+        para2 = odf_text.P(text="Another paragraph in the document.")
+        doc.text.addElement(para2)
+
+        odt_path = tmp_path / "test.odt"
+        doc.save(str(odt_path))
+
+        text = extract_text_from_odt(odt_path)
+
+        assert "ODT paragraph content" in text
+        assert "Another paragraph" in text
+
+
+class TestExtractTextFromMsg:
+    """Test Outlook MSG extraction."""
+
+    def test_extract_msg_nonexistent(self, tmp_path: Path) -> None:
+        """Test extracting from nonexistent MSG file raises error."""
+        nonexistent = tmp_path / "nonexistent.msg"
+
+        with pytest.raises(FileNotFoundError):
+            extract_text_from_msg(nonexistent)

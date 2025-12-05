@@ -108,11 +108,19 @@ def get_supported_extensions() -> set[str]:
         ".markdown",
         ".txt",
         ".text",
+        # Rich text formats
+        ".rtf",
+        ".odt",
+        ".html",
+        ".htm",
         # PowerPoint
         ".pptx",
         ".ppt",
+        # Spreadsheets
+        ".xlsx",
         # Email
         ".eml",
+        ".msg",
         # XML
         ".xml",
         # Images (OCR)

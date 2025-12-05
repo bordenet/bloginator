@@ -21,11 +21,19 @@ SUPPORTED_FORMATS = {
     ".text",
     ".md",
     ".markdown",
+    # Rich text formats
+    ".rtf",
+    ".odt",
+    ".html",
+    ".htm",
     # PowerPoint
     ".pptx",
     ".ppt",
+    # Spreadsheets
+    ".xlsx",
     # Email
     ".eml",
+    ".msg",
     # XML
     ".xml",
     # Images (OCR)

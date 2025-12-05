@@ -16,9 +16,14 @@ from bloginator.extraction._doc_extractors import (
 )
 from bloginator.extraction._extended_extractors import (
     extract_text_from_eml,
+    extract_text_from_html,
     extract_text_from_image,
+    extract_text_from_msg,
+    extract_text_from_odt,
     extract_text_from_ppt,
     extract_text_from_pptx,
+    extract_text_from_rtf,
+    extract_text_from_xlsx,
     extract_text_from_xml,
 )
 
@@ -264,8 +269,18 @@ def extract_text_from_file(file_path: Path) -> str:
         return extract_text_from_ppt(file_path)
     elif suffix == ".eml":
         return extract_text_from_eml(file_path)
+    elif suffix == ".msg":
+        return extract_text_from_msg(file_path)
     elif suffix == ".xml":
         return extract_text_from_xml(file_path)
+    elif suffix in [".html", ".htm"]:
+        return extract_text_from_html(file_path)
+    elif suffix == ".xlsx":
+        return extract_text_from_xlsx(file_path)
+    elif suffix == ".odt":
+        return extract_text_from_odt(file_path)
+    elif suffix == ".rtf":
+        return extract_text_from_rtf(file_path)
     elif suffix in [".png", ".jpg", ".jpeg", ".webp"]:
         return extract_text_from_image(file_path)
     else:
