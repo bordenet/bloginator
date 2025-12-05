@@ -1,7 +1,35 @@
 #!/usr/bin/env python3
-"""Auto-respond to Bloginator LLM requests with contextually appropriate content."""
+"""Auto-respond to Bloginator LLM requests with contextually appropriate content.
+
+⚠️  DEPRECATED: This script uses hardcoded template responses and produces
+    low-quality, generic content. It exists only for demo/testing purposes.
+
+    For production blog generation, use BLOGINATOR_LLM_MOCK=assistant mode
+    with an AI assistant providing responses. See docs/QUICK_START_GUIDE.md.
+"""
 import json
+import sys
+import time
+import warnings
 from pathlib import Path
+
+
+# Emit deprecation warning at import time
+warnings.warn(
+    "respond-to-llm-requests.py is DEPRECATED. "
+    "Use BLOGINATOR_LLM_MOCK=assistant mode with an AI assistant instead. "
+    "See docs/QUICK_START_GUIDE.md for the recommended workflow.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
+# Also print to stderr for visibility when run as script
+print(
+    "\n⚠️  WARNING: This script is DEPRECATED and produces low-quality content.\n"
+    "   For quality blog generation, use BLOGINATOR_LLM_MOCK=assistant mode.\n"
+    "   See docs/QUICK_START_GUIDE.md for details.\n",
+    file=sys.stderr,
+)
 
 
 # Determine project root (one level up from scripts/)
@@ -394,4 +422,15 @@ def auto_respond_to_requests(requests_dir, responses_dir):
 if __name__ == "__main__":
     requests_dir = PROJECT_ROOT / ".bloginator" / "llm_requests"
     responses_dir = PROJECT_ROOT / ".bloginator" / "llm_responses"
-    auto_respond_to_requests(str(requests_dir), str(responses_dir))
+
+    print("🤖 Auto-responder started. Watching for LLM requests...")
+    print(f"   Requests: {requests_dir}")
+    print(f"   Responses: {responses_dir}")
+    print("   Press Ctrl+C to stop.\n")
+
+    try:
+        while True:
+            auto_respond_to_requests(str(requests_dir), str(responses_dir))
+            time.sleep(0.5)
+    except KeyboardInterrupt:
+        print("\n👋 Auto-responder stopped.")

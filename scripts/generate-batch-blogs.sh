@@ -1,5 +1,21 @@
 #!/bin/bash
+# ⚠️  DEPRECATED: This script uses the template-based auto-responder which
+#    produces low-quality, generic content. Do NOT use for production blogs.
+#
+#    For quality blog generation, use BLOGINATOR_LLM_MOCK=assistant mode
+#    with an AI assistant providing responses. See docs/QUICK_START_GUIDE.md.
+
 set -e
+
+# Emit deprecation warning
+echo ""
+echo "⚠️  WARNING: generate-batch-blogs.sh is DEPRECATED and produces low-quality content."
+echo "   This script uses hardcoded template responses, not actual AI generation."
+echo ""
+echo "   For quality blogs, use the manual workflow with BLOGINATOR_LLM_MOCK=assistant."
+echo "   See docs/QUICK_START_GUIDE.md for the recommended workflow."
+echo ""
+read -p "Press Enter to continue anyway (Ctrl+C to abort)..."
 
 # Determine project root
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

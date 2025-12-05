@@ -1,7 +1,26 @@
 #!/bin/bash
-# Improved blog generation script with better auto-respond coordination
+# ⚠️  DEPRECATED: This script uses the template-based auto-responder which
+#    produces low-quality, generic content. Do NOT use for production blogs.
+#
+#    For quality blog generation, use BLOGINATOR_LLM_MOCK=assistant mode
+#    with an AI assistant providing responses. See docs/QUICK_START_GUIDE.md.
 
 set -e
+
+# Emit deprecation warning
+echo ""
+echo "⚠️  WARNING: generate-blog.sh is DEPRECATED and produces low-quality content."
+echo "   This script uses hardcoded template responses, not actual AI generation."
+echo ""
+echo "   For quality blogs, use the manual workflow with BLOGINATOR_LLM_MOCK=assistant:"
+echo "     1. export BLOGINATOR_LLM_MOCK=assistant"
+echo "     2. bloginator outline --index .bloginator/index --title '...' -o outline.json"
+echo "     3. Respond to requests in .bloginator/llm_requests/ manually"
+echo "     4. bloginator draft --index .bloginator/index --outline outline.json -o draft.md"
+echo ""
+echo "   See docs/QUICK_START_GUIDE.md for the full workflow."
+echo ""
+read -p "Press Enter to continue anyway (Ctrl+C to abort)..."
 
 # Determine project root
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
