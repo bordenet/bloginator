@@ -99,7 +99,7 @@ def get_supported_extensions() -> set[str]:
     Returns:
         Set of supported extensions including the dot (e.g., {'.pdf', '.docx'})
     """
-    return {".pdf", ".docx", ".md", ".markdown", ".txt"}
+    return {".pdf", ".docx", ".doc", ".md", ".markdown", ".txt"}
 
 
 def is_temp_file(filename: str) -> bool:

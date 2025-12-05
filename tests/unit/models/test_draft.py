@@ -319,12 +319,18 @@ class TestDraft:
 
         markdown = draft.to_markdown()
 
-        # Title includes confidence scores prefix
+        # Title includes confidence scores prefix [XX-YY-ZZ]
         assert "Test Document" in markdown
-        assert "[00citcov_00citqual_00cc]" in markdown  # No citations, no content
+        assert "[00-00-00]" in markdown  # No citations, no content
         assert "*Main thesis*" in markdown
         assert "## Introduction" in markdown
         assert "This is the introduction." in markdown
+
+        # Metrics table at top
+        assert "| Metric | Score | Description |" in markdown
+        assert "| **Citation Coverage** |" in markdown
+        assert "| **Citation Quality** |" in markdown
+        assert "| **Content Completeness** |" in markdown
 
     def test_to_markdown_nested(self):
         """Test markdown with nested sections."""

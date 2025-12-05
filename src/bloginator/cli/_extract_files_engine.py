@@ -97,8 +97,35 @@ def extract_source_files(
                     progress.update(task, advance=1)
                     continue
 
+                # Check file size before extraction
+                file_size = file_path.stat().st_size
+                if file_size == 0:
+                    error_tracker.record_skip(
+                        SkipCategory.EMPTY_CONTENT,
+                        f"{file_path} (0 bytes - likely OneDrive placeholder not downloaded)",
+                    )
+                    progress.console.print(
+                        f"[SKIP] {file_path} (empty_content: 0 bytes)", highlight=False
+                    )
+                    skipped_count += 1
+                    progress.update(task, advance=1)
+                    continue
+
                 # Extract text
                 text = extract_text_from_file(file_path)
+
+                # Check for empty content after extraction
+                if not text or not text.strip():
+                    error_tracker.record_skip(
+                        SkipCategory.EMPTY_CONTENT,
+                        f"{file_path} ({file_size} bytes but no extractable text)",
+                    )
+                    progress.console.print(
+                        f"[SKIP] {file_path} (empty_content: no text extracted)", highlight=False
+                    )
+                    skipped_count += 1
+                    progress.update(task, advance=1)
+                    continue
 
                 # Get file metadata
                 file_meta = extract_file_metadata(file_path)

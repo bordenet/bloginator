@@ -5,7 +5,10 @@ from pathlib import Path
 import pytest
 
 from bloginator.extraction.extractors import (
+    _extract_confluence_export,
+    _html_to_text,
     extract_section_headings,
+    extract_text_from_doc,
     extract_text_from_file,
     extract_text_from_markdown,
     extract_text_from_txt,
@@ -148,3 +151,114 @@ class TestExtractSectionHeadings:
         assert len(headings) == 1
         assert "bold" in headings[0][0]
         assert "italic" in headings[0][0]
+
+
+class TestExtractTextFromDoc:
+    """Test legacy .doc file extraction."""
+
+    def test_extract_plain_text_doc(self, tmp_path: Path) -> None:
+        """Test extracting from .doc file that is actually plain text."""
+        doc_file = tmp_path / "test.doc"
+        doc_file.write_text("This is plain text content\nwith multiple lines.")
+
+        text = extract_text_from_doc(doc_file)
+
+        assert "plain text content" in text
+        assert "multiple lines" in text
+
+    def test_extract_confluence_export_doc(self, tmp_path: Path) -> None:
+        """Test extracting from Confluence MIME-encoded .doc export."""
+        doc_file = tmp_path / "confluence.doc"
+        # Simulate Confluence export format
+        content = """Date: Mon, 21 Aug 2023 16:21:38 +0000 (UTC)
+Subject: Exported From Confluence
+MIME-Version: 1.0
+Content-Type: multipart/related;
+    boundary="----=_Part_10_1050962448.1692634898487"
+
+------=_Part_10_1050962448.1692634898487
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Content-Location: file:///C:/exported.html
+
+<html><body><h1>Test Document</h1><p>This is the content.</p></body></html>
+------=_Part_10_1050962448.1692634898487--
+"""
+        doc_file.write_text(content)
+
+        text = extract_text_from_doc(doc_file)
+
+        assert "Test Document" in text
+        assert "This is the content" in text
+
+    def test_extract_doc_nonexistent(self, tmp_path: Path) -> None:
+        """Test extracting from nonexistent .doc file raises error."""
+        nonexistent = tmp_path / "nonexistent.doc"
+
+        with pytest.raises(FileNotFoundError):
+            extract_text_from_doc(nonexistent)
+
+
+class TestHtmlToText:
+    """Test HTML to text conversion."""
+
+    def test_html_to_text_basic(self) -> None:
+        """Test basic HTML to text conversion."""
+        html = "<html><body><h1>Title</h1><p>Paragraph text.</p></body></html>"
+
+        text = _html_to_text(html)
+
+        assert "Title" in text
+        assert "Paragraph text" in text
+        assert "<h1>" not in text
+        assert "<p>" not in text
+
+    def test_html_to_text_with_lists(self) -> None:
+        """Test HTML list conversion."""
+        html = "<ul><li>Item 1</li><li>Item 2</li></ul>"
+
+        text = _html_to_text(html)
+
+        assert "Item 1" in text
+        assert "Item 2" in text
+        assert "•" in text  # Bullet points
+
+    def test_html_to_text_with_entities(self) -> None:
+        """Test HTML entity decoding."""
+        html = "<p>This &amp; that &lt;test&gt;</p>"
+
+        text = _html_to_text(html)
+
+        assert "This & that <test>" in text
+
+    def test_html_to_text_removes_scripts(self) -> None:
+        """Test that script tags are removed."""
+        html = "<p>Content</p><script>alert('bad');</script><p>More</p>"
+
+        text = _html_to_text(html)
+
+        assert "Content" in text
+        assert "More" in text
+        assert "alert" not in text
+
+
+class TestConfluenceExport:
+    """Test Confluence MIME export parsing."""
+
+    def test_extract_confluence_export_quoted_printable(self) -> None:
+        """Test extracting quoted-printable encoded content."""
+        mime_content = """Subject: Exported From Confluence
+Content-Type: multipart/related;
+    boundary="----=_Part_10_123"
+
+------=_Part_10_123
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<html><body><h1>Test</h1><p>Content here.</p></body></html>
+------=_Part_10_123--
+"""
+        text = _extract_confluence_export(mime_content)
+
+        assert "Test" in text
+        assert "Content here" in text

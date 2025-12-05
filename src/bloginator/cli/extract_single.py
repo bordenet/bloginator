@@ -292,8 +292,21 @@ def _extract_and_save_document(
             f"File not available after 10s timeout (OneDrive download failed): {file_path}"
         )
 
+    # Check file size before extraction
+    file_size = file_path.stat().st_size
+    if file_size == 0:
+        raise ValueError(
+            f"File is empty (0 bytes - likely OneDrive placeholder not downloaded): {file_path}"
+        )
+
     # Extract text
     text = extract_text_from_file(file_path)
+
+    # Check for empty content after extraction
+    if not text or not text.strip():
+        raise ValueError(
+            f"File has no extractable text ({file_size} bytes but empty content): {file_path}"
+        )
 
     # Get file metadata
     file_meta = extract_file_metadata(file_path)

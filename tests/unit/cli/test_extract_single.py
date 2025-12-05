@@ -6,6 +6,7 @@ import pytest
 from rich.console import Console
 
 from bloginator.cli.extract_single import _collect_files, _process_files, extract_single_source
+from bloginator.cli.extract_utils import get_supported_extensions
 
 
 @pytest.fixture
@@ -308,3 +309,71 @@ class TestExtractSingleSource:
         # Verify workers parameter was passed
         call_kwargs = mock_process.call_args.kwargs
         assert call_kwargs["workers"] == 2
+
+
+class TestSupportedExtensions:
+    """Tests for supported file extensions."""
+
+    def test_doc_extension_supported(self):
+        """Test that .doc extension is in supported extensions."""
+        extensions = get_supported_extensions()
+        assert ".doc" in extensions
+
+    def test_docx_extension_supported(self):
+        """Test that .docx extension is in supported extensions."""
+        extensions = get_supported_extensions()
+        assert ".docx" in extensions
+
+    def test_all_expected_extensions_supported(self):
+        """Test all expected document formats are supported."""
+        extensions = get_supported_extensions()
+        expected = {".pdf", ".docx", ".doc", ".md", ".markdown", ".txt"}
+        assert extensions == expected
+
+
+class TestEmptyFileDetection:
+    """Tests for empty file and empty content detection."""
+
+    def test_extract_empty_file_raises(self, temp_output_dir):
+        """Test that extracting an empty file raises FileNotFoundError (OneDrive timeout)."""
+        import tempfile
+        from pathlib import Path
+
+        from bloginator.cli.extract_single import _extract_and_save_document
+
+        # Create an empty file (simulates OneDrive placeholder)
+        with tempfile.NamedTemporaryFile(suffix=".txt", delete=False) as f:
+            empty_file = f.name
+        # File exists but is 0 bytes - wait_for_file_availability will timeout
+
+        # Empty files trigger wait_for_file_availability timeout (OneDrive protection)
+        with pytest.raises(FileNotFoundError) as exc_info:
+            _extract_and_save_document(
+                file_path=Path(empty_file),
+                output=temp_output_dir,
+                quality="preferred",
+                tag_list=["test"],
+            )
+
+        assert "OneDrive" in str(exc_info.value) or "timeout" in str(exc_info.value).lower()
+
+        # Cleanup
+        Path(empty_file).unlink()
+
+    def test_extract_whitespace_only_file_raises(self, temp_output_dir, tmp_path):
+        """Test that extracting a whitespace-only file raises ValueError."""
+        from bloginator.cli.extract_single import _extract_and_save_document
+
+        # Create a file with only whitespace
+        whitespace_file = tmp_path / "whitespace.txt"
+        whitespace_file.write_text("   \n\n\t\t  \n  ")
+
+        with pytest.raises(ValueError) as exc_info:
+            _extract_and_save_document(
+                file_path=whitespace_file,
+                output=temp_output_dir,
+                quality="preferred",
+                tag_list=["test"],
+            )
+
+        assert "no extractable text" in str(exc_info.value).lower()
