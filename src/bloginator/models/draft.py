@@ -113,6 +113,9 @@ class Draft(BaseModel):
     )
     has_blocklist_violations: bool = Field(default=False)
     blocklist_validation_result: dict[str, Any] | None = None
+    generation_time_seconds: float = Field(
+        default=0.0, ge=0.0, description="Wall clock time to generate this draft"
+    )
 
     def calculate_stats(self) -> None:
         """Calculate draft statistics.
@@ -226,12 +229,16 @@ class Draft(BaseModel):
             lines.append(f"*{self.thesis}*")
             lines.append("")
 
-        # Metadata in hidden comment
+        # Metadata in hidden comment (only include meaningful metrics)
         lines.append("<!--")
         lines.append(f"Generated: {self.created_date.strftime('%Y-%m-%d %H:%M')}")
         lines.append(f"Classification: {self.classification}")
         lines.append(f"Audience: {self.audience}")
-        lines.append(f"Voice Score: {self.voice_score:.2f}")
+        if self.generation_time_seconds > 0:
+            lines.append(f"Generation Time: {self.generation_time_seconds:.1f}s")
+        # Only include Voice Score if it was actually calculated (non-zero)
+        if self.voice_score > 0:
+            lines.append(f"Voice Score: {self.voice_score:.2f}")
         lines.append("-->")
         lines.append("")
 
