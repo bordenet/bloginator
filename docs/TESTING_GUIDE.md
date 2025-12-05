@@ -26,7 +26,7 @@ Bloginator follows a comprehensive testing strategy:
 - **End-to-End Tests**: Full workflow validation
 - **Performance Tests**: Benchmark critical operations
 
-**Coverage Target**: 85% minimum (line and branch coverage)
+**Coverage Target**: 70% minimum (CI enforced), 80%+ aspirational
 
 ---
 
@@ -478,10 +478,10 @@ jobs:
 
 ### Coverage Enforcement
 
-CI fails if coverage drops below 85%:
+CI fails if coverage drops below 70%:
 
 ```bash
-pytest --cov=src/bloginator --cov-fail-under=85
+pytest --cov=src/bloginator --cov-fail-under=70
 ```
 
 ---

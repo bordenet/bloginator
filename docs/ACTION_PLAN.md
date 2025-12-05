@@ -34,7 +34,7 @@ Active work items and incomplete features.
 
 ## Test Coverage
 
-**Current**: 50.79%
+**Current**: ~76% (CI enforces 70% minimum)
 **Target**: 80%+
 
 ### High-Priority Coverage Gaps
