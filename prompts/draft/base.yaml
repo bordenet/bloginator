@@ -92,6 +92,11 @@ user_prompt_template: |
   Write clear, cohesive content that synthesizes the source material.
   Focus on the key insights and examples from the sources.
 
+  CRITICAL FORMAT RULES:
+  - Do NOT include the section title/heading in your response
+  - Start directly with the content (the heading is added automatically)
+  - Do NOT repeat the title at the beginning of your response
+
   IMPORTANT: Prioritize specificity over abstraction:
   - Extract and include any metrics, percentages, or quantifiable data from sources
   - Use concrete examples with specific details (not generic scenarios)

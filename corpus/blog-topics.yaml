@@ -604,3 +604,42 @@ topics:
       - Being concise without losing nuance
       - Using tools and templates to get it right first time
       - Making one-pagers a habit at CallBox
+
+  - title: "How to Give Constructive Feedback (SBI Model)"
+    keywords: ["feedback", "sbi-model", "coaching", "management"]
+    audience: "engineering-leaders"
+    summary: |
+      Teaches the Situation-Behavior-Impact model for delivering clear, actionable
+      feedback that drives behavior change without triggering defensiveness.
+    sections:
+      - What the SBI model is and why it works
+      - Breaking down Situation, Behavior, and Impact
+      - Examples of effective SBI feedback
+      - Common mistakes and how to avoid them
+      - Making feedback a regular habit
+
+  - title: "Leadership Terminology: A Practical Glossary"
+    keywords: ["leadership", "terminology", "definitions", "management"]
+    audience: "all-disciplines"
+    summary: |
+      Defines key leadership terms used at CallBox so everyone shares a common
+      vocabulary for roles, expectations, and practices.
+    sections:
+      - Core leadership roles and their distinctions
+      - Key leadership behaviors and competencies
+      - Common terms and their precise meanings
+      - Anti-patterns and what to call them
+      - Using consistent language across teams
+
+  - title: "Technical Leadership Best Practices"
+    keywords: ["technical-leadership", "tech-lead", "architecture", "mentoring"]
+    audience: "senior-engineers"
+    summary: |
+      Compiles proven practices for technical leaders: setting direction, raising
+      the bar, mentoring effectively, and driving decisions without micromanaging.
+    sections:
+      - Setting and communicating technical direction
+      - Code review as a leadership tool
+      - Mentoring and growing engineers
+      - Making technical decisions stick
+      - Balancing hands-on work with leadership duties

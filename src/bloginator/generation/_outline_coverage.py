@@ -40,15 +40,24 @@ def analyze_section_coverage(
             # Coverage based on:
             # - Number of results (more = better coverage)
             # - Similarity scores (higher = more relevant)
+            #
+            # NOTE: ChromaDB cosine similarity scores typically range 0.1-0.6
+            # where 0.3+ is a good match, 0.4+ is excellent.
+            # We normalize this to a 0-100% scale using these thresholds:
+            # - 0.0 similarity = 0% coverage
+            # - 0.2 similarity = 50% coverage (acceptable match)
+            # - 0.4+ similarity = 100% coverage (strong match)
             avg_similarity = sum(r.similarity_score for r in results) / len(results)
 
-            # Scale coverage:
-            # - 10+ results with high similarity = 100%
-            # - Fewer results or lower similarity = proportionally less
-            result_factor = min(len(results) / 10.0, 1.0)
-            similarity_factor = avg_similarity
+            # Normalize similarity: 0.2 -> 50%, 0.4+ -> 100%
+            # Formula: min(avg_similarity / 0.4, 1.0) gives us 0-100% scale
+            # where 0.4 similarity = 100%
+            normalized_similarity = min(avg_similarity / 0.4, 1.0)
 
-            section.coverage_pct = (result_factor * similarity_factor) * 100.0
+            # Result factor: having 5+ results is considered full coverage
+            result_factor = min(len(results) / 5.0, 1.0)
+
+            section.coverage_pct = (result_factor * normalized_similarity) * 100.0
 
             # Count unique source documents
             unique_docs = set()
