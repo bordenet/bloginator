@@ -79,6 +79,7 @@ def process_all_sources(
     force: bool,
     error_tracker: ErrorTracker,
     console: Console,
+    verbose: bool = False,
 ) -> tuple[int, int, int]:
     """Process all enabled sources.
 
@@ -91,6 +92,7 @@ def process_all_sources(
         force: Force re-extraction flag
         error_tracker: Error tracker instance
         console: Rich console
+        verbose: If True, show detailed progress information
 
     Returns:
         Tuple of (total_extracted, total_skipped, total_failed)
@@ -115,6 +117,7 @@ def process_all_sources(
             force=force,
             error_tracker=error_tracker,
             console=console,
+            verbose=verbose,
         )
 
         total_extracted += extracted
@@ -174,6 +177,7 @@ def process_source(
     force: bool,
     error_tracker: ErrorTracker,
     console: Console,
+    verbose: bool = False,
 ) -> tuple[int, int, int]:
     """Process a single source.
 
@@ -186,6 +190,7 @@ def process_source(
         force: Force re-extraction flag
         error_tracker: Error tracker instance
         console: Rich console
+        verbose: If True, show detailed progress information
 
     Returns:
         Tuple of (extracted_count, skipped_count, failed_count)
@@ -210,6 +215,7 @@ def process_source(
         force=force,
         error_tracker=error_tracker,
         console=console,
+        verbose=verbose,
     )
 
     # Print source summary

@@ -13,7 +13,11 @@ from bloginator.cli.extract_utils import load_existing_extractions
 
 
 def extract_from_config(
-    config_path: Path, output: Path, console: Console, force: bool = False
+    config_path: Path,
+    output: Path,
+    console: Console,
+    force: bool = False,
+    verbose: bool = False,
 ) -> None:
     """Extract from multiple sources using corpus.yaml config.
 
@@ -22,6 +26,7 @@ def extract_from_config(
         output: Output directory for extracted documents
         console: Rich console for output
         force: If True, re-extract all files
+        verbose: If True, show detailed progress information
     """
     from bloginator.cli.error_reporting import ErrorTracker
 
@@ -54,6 +59,7 @@ def extract_from_config(
         force=force,
         error_tracker=error_tracker,
         console=console,
+        verbose=verbose,
     )
 
     # Save report to file if there were skips or errors

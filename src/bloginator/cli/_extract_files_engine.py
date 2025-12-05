@@ -28,11 +28,22 @@ def extract_source_files(
     force: bool,
     error_tracker: ErrorTracker,
     console: Console,
+    verbose: bool = False,
 ) -> tuple[int, int, int]:
     """Extract files from a source with ticker-style progress.
 
     Uses a single-line ticker that shows current file being processed,
     then disappears when complete.
+
+    Args:
+        files: List of file paths to extract
+        source_cfg: Source configuration
+        output: Output directory
+        existing_docs: Dictionary of existing extractions
+        force: Force re-extraction flag
+        error_tracker: Error tracker instance
+        console: Rich console
+        verbose: If True, show detailed progress information
 
     Returns:
         Tuple of (extracted_count, skipped_count, failed_count)
@@ -49,7 +60,7 @@ def extract_source_files(
         TaskProgressColumn(),
         TextColumn("• {task.fields[current_file]}"),
         console=console,
-        transient=True,  # Ticker disappears when done
+        transient=not verbose,  # Keep progress visible if verbose mode
     )
 
     with progress:
@@ -60,8 +71,9 @@ def extract_source_files(
         )
 
         for file_path in files:
-            # Output current file path for Streamlit UI to parse
-            progress.console.print(f"Extracting: {file_path}", highlight=False)
+            # Output current file path for Streamlit UI to parse (always in verbose)
+            if verbose:
+                progress.console.print(f"Extracting: {file_path}", highlight=False)
 
             # Update ticker with current file (show full path)
             display_path = str(file_path)
@@ -73,10 +85,11 @@ def extract_source_files(
 
                 if skip:
                     error_tracker.record_skip(SkipCategory.ALREADY_EXTRACTED, str(file_path))
-                    # Output parseable skip event for Streamlit
-                    progress.console.print(
-                        f"[SKIP] {file_path} (already_extracted)", highlight=False
-                    )
+                    # Output parseable skip event for Streamlit (verbose only)
+                    if verbose:
+                        progress.console.print(
+                            f"[SKIP] {file_path} (already_extracted)", highlight=False
+                        )
                     skipped_count += 1
                     progress.update(task, advance=1)
                     continue
@@ -89,10 +102,12 @@ def extract_source_files(
                         SkipCategory.PATH_NOT_FOUND,
                         f"{file_path} (not available - OneDrive download timeout)",
                     )
-                    # Output parseable skip event for Streamlit
-                    progress.console.print(
-                        f"[SKIP] {file_path} (path_not_found: OneDrive timeout)", highlight=False
-                    )
+                    # Output parseable skip event (verbose only)
+                    if verbose:
+                        progress.console.print(
+                            f"[SKIP] {file_path} (path_not_found: OneDrive timeout)",
+                            highlight=False,
+                        )
                     skipped_count += 1
                     progress.update(task, advance=1)
                     continue
@@ -104,9 +119,10 @@ def extract_source_files(
                         SkipCategory.EMPTY_CONTENT,
                         f"{file_path} (0 bytes - likely OneDrive placeholder not downloaded)",
                     )
-                    progress.console.print(
-                        f"[SKIP] {file_path} (empty_content: 0 bytes)", highlight=False
-                    )
+                    if verbose:
+                        progress.console.print(
+                            f"[SKIP] {file_path} (empty_content: 0 bytes)", highlight=False
+                        )
                     skipped_count += 1
                     progress.update(task, advance=1)
                     continue
@@ -120,9 +136,11 @@ def extract_source_files(
                         SkipCategory.EMPTY_CONTENT,
                         f"{file_path} ({file_size} bytes but no extractable text)",
                     )
-                    progress.console.print(
-                        f"[SKIP] {file_path} (empty_content: no text extracted)", highlight=False
-                    )
+                    if verbose:
+                        progress.console.print(
+                            f"[SKIP] {file_path} (empty_content: no text extracted)",
+                            highlight=False,
+                        )
                     skipped_count += 1
                     progress.update(task, advance=1)
                     continue

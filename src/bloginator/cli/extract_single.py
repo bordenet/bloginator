@@ -35,6 +35,7 @@ def extract_single_source(
     console: Console,
     force: bool = False,
     workers: int | None = None,
+    verbose: bool = False,
 ) -> None:
     """Extract from single source (legacy mode).
 
@@ -46,6 +47,7 @@ def extract_single_source(
         console: Rich console for output
         force: If True, re-extract all files
         workers: Number of parallel workers (None = auto-detect)
+        verbose: If True, show detailed progress information
     """
     # Initialize error tracker
     error_tracker = ErrorTracker()

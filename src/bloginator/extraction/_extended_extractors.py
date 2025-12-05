@@ -489,7 +489,13 @@ def extract_text_from_msg(msg_path: Path) -> str:
         elif msg.htmlBody:
             from bloginator.extraction._doc_extractors import html_to_text
 
-            text_parts.append(html_to_text(msg.htmlBody))
+            html_body_raw = msg.htmlBody
+            html_body_str: str = (
+                html_body_raw.decode("utf-8", errors="replace")
+                if isinstance(html_body_raw, bytes)
+                else html_body_raw
+            )
+            text_parts.append(html_to_text(html_body_str))
 
         msg.close()
         return "\n".join(text_parts).strip()
