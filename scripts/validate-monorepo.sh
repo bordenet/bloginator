@@ -60,9 +60,9 @@ cd "$PROJECT_ROOT"
 
 export AUTO_YES=false
 export VERBOSE=${VERBOSE:-0}
-readonly VENV_DIR="${SCRIPT_DIR}/.venv"
-readonly SRC_DIR="${SCRIPT_DIR}/src"
-readonly TESTS_DIR="${SCRIPT_DIR}/tests"
+readonly VENV_DIR="${PROJECT_ROOT}/venv"
+readonly SRC_DIR="${PROJECT_ROOT}/src"
+readonly TESTS_DIR="${PROJECT_ROOT}/tests"
 readonly COVERAGE_THRESHOLD=70
 
 RUN_TESTS=true

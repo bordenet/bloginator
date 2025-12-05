@@ -68,8 +68,6 @@ These documents track in-progress work and may be incomplete:
 - **[PRODUCTION_READINESS_CHECKLIST.md](PRODUCTION_READINESS_CHECKLIST.md)** - Pre-release checklist
 - **[FULL_OPTIMIZATION_RUN_PLAN.md](FULL_OPTIMIZATION_RUN_PLAN.md)** - Extended optimization plan
 - **[IMPLEMENTATION_PLAN_TOPIC_DRIFT_FIX.md](IMPLEMENTATION_PLAN_TOPIC_DRIFT_FIX.md)** - Topic drift fix plan
-- **[TODO_PROMPT_TUNING.md](TODO_PROMPT_TUNING.md)** - Prompt tuning TODO
-- **[DISABLED_TESTS_ANALYSIS.md](DISABLED_TESTS_ANALYSIS.md)** - Disabled tests analysis
 - **[HOW_TO_ASK_FOR_SAMPLES.md](HOW_TO_ASK_FOR_SAMPLES.md)** - Sample request guide
 
 ---
