@@ -12,7 +12,28 @@ from pathlib import Path
 
 
 # Supported file extensions
-SUPPORTED_FORMATS = {".pdf", ".docx", ".txt", ".md"}
+SUPPORTED_FORMATS = {
+    # Document formats
+    ".pdf",
+    ".docx",
+    ".doc",
+    ".txt",
+    ".text",
+    ".md",
+    ".markdown",
+    # PowerPoint
+    ".pptx",
+    ".ppt",
+    # Email
+    ".eml",
+    # XML
+    ".xml",
+    # Images (OCR)
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".webp",
+}
 
 
 @dataclass
