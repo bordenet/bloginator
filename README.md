@@ -2,7 +2,7 @@
 
 [![Tests](https://github.com/bordenet/bloginator/actions/workflows/tests.yml/badge.svg)](https://github.com/bordenet/bloginator/actions/workflows/tests.yml)
 [![Lint and type check](https://github.com/bordenet/bloginator/actions/workflows/lint.yml/badge.svg)](https://github.com/bordenet/bloginator/actions/workflows/lint.yml)
-![Coverage](https://img.shields.io/badge/coverage-50.79%25-blue)
+![Coverage](https://img.shields.io/badge/coverage-76%25-green)
 ![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
@@ -151,7 +151,7 @@ pytest tests/ -v --cov=src/bloginator
 pre-commit run --all-files  # black, ruff, isort, mypy
 ```
 
-**Standards**: Black (100 chars), Ruff, MyPy strict, 80% coverage target
+**Standards**: Black (100 chars), Ruff, MyPy strict, 70% coverage minimum (CI enforced)
 
 ---
 
@@ -178,7 +178,7 @@ pre-commit run --all-files  # black, ruff, isort, mypy
 
 ## Code Coverage
 
-Current test coverage: **50.79%**. Target: 80%+
+Current test coverage: **~76%** (812 tests). CI enforces 70% minimum.
 
 [![Coverage Grid](https://codecov.io/gh/bordenet/bloginator/graphs/tree.svg)](https://codecov.io/gh/bordenet/bloginator)
 

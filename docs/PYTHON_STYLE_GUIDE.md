@@ -283,8 +283,8 @@ def sample_repo(tmp_path: Path) -> Path:
 ## File Organization
 
 ### File Length
-- Target: **≤400 lines** per file
-- Maximum: **600 lines** (refactor if approaching)
+- Target: **~250 lines** per file
+- Maximum: **400 lines** (refactor if approaching)
 
 ### Import Order (isort)
 1. Standard library
