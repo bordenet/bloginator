@@ -327,7 +327,22 @@ class TestSupportedExtensions:
     def test_all_expected_extensions_supported(self):
         """Test all expected document formats are supported."""
         extensions = get_supported_extensions()
-        expected = {".pdf", ".docx", ".doc", ".md", ".markdown", ".txt"}
+        expected = {
+            # Documents
+            ".pdf", ".docx", ".doc", ".md", ".markdown", ".txt", ".text",
+            # Rich text
+            ".rtf", ".odt", ".html", ".htm",
+            # PowerPoint
+            ".pptx", ".ppt",
+            # Spreadsheets
+            ".xlsx",
+            # Email
+            ".eml", ".msg",
+            # XML
+            ".xml",
+            # Images (OCR)
+            ".png", ".jpg", ".jpeg", ".webp",
+        }
         assert extensions == expected
 
 

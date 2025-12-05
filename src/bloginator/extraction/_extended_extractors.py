@@ -2,12 +2,18 @@
 
 Handles extraction from:
 - PowerPoint (.ppt, .pptx)
-- Email (.eml)
+- Email (.eml, .msg)
 - XML (.xml)
+- HTML (.html, .htm)
+- Spreadsheets (.xlsx)
+- Rich Text (.rtf)
+- OpenDocument (.odt)
 - Images (.png, .jpg, .jpeg, .webp) - via OCR when pytesseract is available
 """
 
 import email
+import shutil
+import subprocess
 from email import policy
 from pathlib import Path
 from xml.etree import ElementTree
@@ -230,3 +236,248 @@ def extract_text_from_image(image_path: Path) -> str:
     except Exception as e:
         raise ValueError(f"Failed to extract text from image: {e}") from e
 
+
+def extract_text_from_html(html_path: Path) -> str:
+    """Extract text content from HTML file.
+
+    Uses BeautifulSoup to parse HTML and extract readable text.
+
+    Args:
+        html_path: Path to HTML file
+
+    Returns:
+        Extracted text content
+
+    Raises:
+        FileNotFoundError: If HTML file does not exist
+        ValueError: If file cannot be parsed as HTML
+    """
+    if not html_path.exists():
+        raise FileNotFoundError(f"HTML file not found: {html_path}")
+
+    try:
+        from bs4 import BeautifulSoup
+
+        content = html_path.read_text(encoding="utf-8", errors="replace")
+        soup = BeautifulSoup(content, "html.parser")
+
+        # Remove script and style elements
+        for element in soup(["script", "style", "meta", "link"]):
+            element.decompose()
+
+        # Get text
+        text = soup.get_text(separator="\n", strip=True)
+        return text
+    except ImportError:
+        # Fall back to simple regex stripping
+        from bloginator.extraction._doc_extractors import html_to_text
+
+        content = html_path.read_text(encoding="utf-8", errors="replace")
+        return html_to_text(content)
+    except Exception as e:
+        raise ValueError(f"Failed to extract text from HTML: {e}") from e
+
+
+def extract_text_from_xlsx(xlsx_path: Path) -> str:
+    """Extract text content from Excel XLSX file.
+
+    Uses openpyxl to read cells and concatenate their text values.
+
+    Args:
+        xlsx_path: Path to XLSX file
+
+    Returns:
+        Extracted text content (each row on a line, cells tab-separated)
+
+    Raises:
+        FileNotFoundError: If XLSX file does not exist
+        ValueError: If file cannot be opened as XLSX
+    """
+    if not xlsx_path.exists():
+        raise FileNotFoundError(f"XLSX file not found: {xlsx_path}")
+
+    try:
+        from openpyxl import load_workbook
+    except ImportError as e:
+        raise ValueError("openpyxl not installed") from e
+
+    try:
+        wb = load_workbook(xlsx_path, read_only=True, data_only=True)
+        text_parts = []
+
+        for sheet_name in wb.sheetnames:
+            sheet = wb[sheet_name]
+            text_parts.append(f"=== Sheet: {sheet_name} ===")
+
+            for row in sheet.iter_rows(values_only=True):
+                row_values = [str(cell) if cell is not None else "" for cell in row]
+                if any(val.strip() for val in row_values):
+                    text_parts.append("\t".join(row_values))
+
+            text_parts.append("")  # Blank line between sheets
+
+        wb.close()
+        return "\n".join(text_parts).strip()
+    except Exception as e:
+        raise ValueError(f"Failed to extract text from XLSX: {e}") from e
+
+
+def extract_text_from_odt(odt_path: Path) -> str:
+    """Extract text content from OpenDocument Text (.odt) file.
+
+    Uses odfpy to extract paragraph text.
+
+    Args:
+        odt_path: Path to ODT file
+
+    Returns:
+        Extracted text content
+
+    Raises:
+        FileNotFoundError: If ODT file does not exist
+        ValueError: If file cannot be opened as ODT
+    """
+    if not odt_path.exists():
+        raise FileNotFoundError(f"ODT file not found: {odt_path}")
+
+    try:
+        from odf import text as odf_text
+        from odf.opendocument import load as odf_load
+    except ImportError as e:
+        raise ValueError("odfpy not installed") from e
+
+    try:
+        doc = odf_load(str(odt_path))
+        text_parts = []
+
+        for para in doc.getElementsByType(odf_text.P):
+            # Recursively get all text from paragraph
+            para_text = "".join(
+                node.data if hasattr(node, "data") else ""
+                for node in para.childNodes
+                if hasattr(node, "data")
+            )
+            # Also try direct text content
+            if hasattr(para, "firstChild") and para.firstChild:
+                direct = str(para)
+                if direct.strip():
+                    text_parts.append(direct.strip())
+            elif para_text.strip():
+                text_parts.append(para_text.strip())
+
+        return "\n\n".join(text_parts)
+    except Exception as e:
+        raise ValueError(f"Failed to extract text from ODT: {e}") from e
+
+
+def extract_text_from_rtf(rtf_path: Path) -> str:
+    """Extract text content from Rich Text Format (.rtf) file.
+
+    Tries unrtf CLI first (fast), then falls back to striprtf library.
+
+    Args:
+        rtf_path: Path to RTF file
+
+    Returns:
+        Extracted text content
+
+    Raises:
+        FileNotFoundError: If RTF file does not exist
+        ValueError: If extraction fails
+    """
+    if not rtf_path.exists():
+        raise FileNotFoundError(f"RTF file not found: {rtf_path}")
+
+    # Try unrtf CLI first (installed via brew install textract)
+    unrtf_path = shutil.which("unrtf")
+    if unrtf_path:
+        try:
+            result = subprocess.run(
+                ["unrtf", "--text", str(rtf_path.absolute())],
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                # unrtf outputs with some header lines, strip them
+                lines = result.stdout.split("\n")
+                # Skip header lines that start with ###
+                content_lines = [ln for ln in lines if not ln.startswith("###")]
+                return "\n".join(content_lines).strip()
+        except (subprocess.TimeoutExpired, subprocess.SubprocessError):
+            pass  # Fall through to other methods
+
+    # Try striprtf library
+    try:
+        from striprtf.striprtf import rtf_to_text
+
+        content = rtf_path.read_bytes()
+        text = rtf_to_text(content.decode("utf-8", errors="replace"))
+        return text.strip()
+    except ImportError:
+        pass
+
+    # Last resort: basic regex stripping
+    content = rtf_path.read_text(encoding="utf-8", errors="replace")
+    import re
+
+    # Remove RTF control words
+    text = re.sub(r"\\[a-z]+\d*\s?", " ", content)
+    # Remove braces
+    text = re.sub(r"[{}]", "", text)
+    # Clean up whitespace
+    text = re.sub(r"\s+", " ", text)
+    return text.strip()
+
+
+def extract_text_from_msg(msg_path: Path) -> str:
+    """Extract text content from Outlook MSG file.
+
+    Uses extract-msg library to parse MSG files.
+
+    Args:
+        msg_path: Path to MSG file
+
+    Returns:
+        Extracted text content
+
+    Raises:
+        FileNotFoundError: If MSG file does not exist
+        ValueError: If extraction fails
+    """
+    if not msg_path.exists():
+        raise FileNotFoundError(f"MSG file not found: {msg_path}")
+
+    try:
+        import extract_msg
+    except ImportError as e:
+        raise ValueError("extract-msg not installed") from e
+
+    try:
+        msg = extract_msg.Message(str(msg_path))
+        text_parts = []
+
+        # Extract headers
+        if msg.subject:
+            text_parts.append(f"Subject: {msg.subject}")
+        if msg.sender:
+            text_parts.append(f"From: {msg.sender}")
+        if msg.to:
+            text_parts.append(f"To: {msg.to}")
+        if msg.date:
+            text_parts.append(f"Date: {msg.date}")
+
+        text_parts.append("")  # Blank line before body
+
+        # Extract body (prefer plain text)
+        if msg.body:
+            text_parts.append(msg.body)
+        elif msg.htmlBody:
+            from bloginator.extraction._doc_extractors import html_to_text
+
+            text_parts.append(html_to_text(msg.htmlBody))
+
+        msg.close()
+        return "\n".join(text_parts).strip()
+    except Exception as e:
+        raise ValueError(f"Failed to extract text from MSG: {e}") from e
