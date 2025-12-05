@@ -1,4 +1,11 @@
-"""Search result validation and quality checks."""
+"""Search result validation and quality checks.
+
+CORPUS PHILOSOPHY:
+Keywords and thesis are HINTS, not strict filters. The corpus is the source of truth.
+- High similarity scores (>=0.4) bypass keyword validation entirely
+- Strong semantic matches are trusted even without exact keyword presence
+- We bias for including content rather than filtering it out
+"""
 
 import logging
 
