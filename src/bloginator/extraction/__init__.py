@@ -2,12 +2,23 @@
 
 This module handles extraction of text content from various document formats:
 - PDF files
-- Microsoft Word (.docx)
+- Microsoft Word (.docx, .doc)
+- PowerPoint (.pptx, .ppt)
 - Markdown (.md)
 - Plain text (.txt)
+- Email (.eml)
+- XML (.xml)
+- Images (.png, .jpg, .jpeg, .webp) - via OCR
 - ZIP archives (recursive extraction)
 """
 
+from bloginator.extraction._extended_extractors import (
+    extract_text_from_eml,
+    extract_text_from_image,
+    extract_text_from_ppt,
+    extract_text_from_pptx,
+    extract_text_from_xml,
+)
 from bloginator.extraction.chunking import (
     chunk_text_by_paragraphs,
     chunk_text_by_sentences,
@@ -35,6 +46,11 @@ __all__ = [
     "extract_text_from_docx",
     "extract_text_from_markdown",
     "extract_text_from_txt",
+    "extract_text_from_pptx",
+    "extract_text_from_ppt",
+    "extract_text_from_eml",
+    "extract_text_from_xml",
+    "extract_text_from_image",
     "extract_text_from_file",
     "extract_section_headings",
     "extract_file_metadata",
