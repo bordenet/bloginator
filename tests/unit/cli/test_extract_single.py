@@ -329,19 +329,33 @@ class TestSupportedExtensions:
         extensions = get_supported_extensions()
         expected = {
             # Documents
-            ".pdf", ".docx", ".doc", ".md", ".markdown", ".txt", ".text",
+            ".pdf",
+            ".docx",
+            ".doc",
+            ".md",
+            ".markdown",
+            ".txt",
+            ".text",
             # Rich text
-            ".rtf", ".odt", ".html", ".htm",
+            ".rtf",
+            ".odt",
+            ".html",
+            ".htm",
             # PowerPoint
-            ".pptx", ".ppt",
+            ".pptx",
+            ".ppt",
             # Spreadsheets
             ".xlsx",
             # Email
-            ".eml", ".msg",
+            ".eml",
+            ".msg",
             # XML
             ".xml",
             # Images (OCR)
-            ".png", ".jpg", ".jpeg", ".webp",
+            ".png",
+            ".jpg",
+            ".jpeg",
+            ".webp",
         }
         assert extensions == expected
 
