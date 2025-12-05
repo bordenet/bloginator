@@ -100,7 +100,7 @@ validate_markdown_links() {
                 ((broken_links++))
             fi
         done < <(grep -oP '\[.*?\]\(\K[^)]+' "${md_file}" 2>/dev/null || true)
-    done < <(find "${REPO_ROOT}" -name "*.md" -type f -not -path "*/node_modules/*" -not -path "*/.venv/*" -print0)
+    done < <(find "${REPO_ROOT}" -name "*.md" -type f -not -path "*/node_modules/*" -not -path "*/.venv/*" -not -path "*/venv/*" -not -path "*/venv311/*" -print0)
 
     if [[ ${broken_links} -eq 0 ]]; then
         success "All markdown links are valid"
@@ -128,7 +128,7 @@ validate_script_references() {
                 ((broken_refs++))
             fi
         done < <(grep -oP '\./scripts/[a-zA-Z0-9_/-]+\.sh' "${md_file}" 2>/dev/null || true)
-    done < <(find "${REPO_ROOT}" -name "*.md" -type f -not -path "*/node_modules/*" -not -path "*/.venv/*" -print0)
+    done < <(find "${REPO_ROOT}" -name "*.md" -type f -not -path "*/node_modules/*" -not -path "*/.venv/*" -not -path "*/venv/*" -not -path "*/venv311/*" -print0)
 
     if [[ ${broken_refs} -eq 0 ]]; then
         success "All script references are valid"

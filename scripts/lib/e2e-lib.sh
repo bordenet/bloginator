@@ -3,7 +3,7 @@
 # Shared Library for E2E Workflow Scripts
 ################################################################################
 # PURPOSE: Common configuration, utilities, and helper functions
-# USAGE: source scripts/e2e-lib.sh
+# USAGE: source scripts/lib/e2e-lib.sh
 
 # Exit on error, undefined variables, pipe failures
 set -euo pipefail
@@ -20,11 +20,28 @@ else
     PROJECT_ROOT="$(pwd)"
 fi
 
-# Paths
+# Source .env if it exists to pick up BLOGINATOR_* environment variables
+if [[ -f "${PROJECT_ROOT}/.env" ]]; then
+    # shellcheck disable=SC1091
+    source "${PROJECT_ROOT}/.env"
+fi
+
+# Set defaults for base directory
+BLOGINATOR_DATA_DIR="${BLOGINATOR_DATA_DIR:-.bloginator}"
+
+# Build paths relative to BLOGINATOR_DATA_DIR unless absolute paths given
+if [[ "${BLOGINATOR_CHROMA_DIR:-}" != /* ]]; then
+    BLOGINATOR_CHROMA_DIR="${BLOGINATOR_DATA_DIR}/${BLOGINATOR_CHROMA_DIR:-chroma}"
+fi
+if [[ "${BLOGINATOR_OUTPUT_DIR:-}" != /* ]]; then
+    BLOGINATOR_OUTPUT_DIR="${BLOGINATOR_DATA_DIR}/${BLOGINATOR_OUTPUT_DIR:-output}"
+fi
+
+# Paths (using config from .env with fallbacks)
 CORPUS_CONFIG="${CORPUS_CONFIG:-corpus/corpus.yaml}"
-OUTPUT_DIR="${OUTPUT_DIR:-${PROJECT_ROOT}/output}"
+OUTPUT_DIR="${OUTPUT_DIR:-${PROJECT_ROOT}/${BLOGINATOR_OUTPUT_DIR}}"
 EXTRACTED_DIR="${OUTPUT_DIR}/extracted"
-INDEX_DIR="${INDEX_DIR:-${PROJECT_ROOT}/.bloginator/chroma}"
+INDEX_DIR="${INDEX_DIR:-${PROJECT_ROOT}/${BLOGINATOR_CHROMA_DIR}}"
 GENERATED_DIR="${OUTPUT_DIR}/generated"
 STATE_FILE="${OUTPUT_DIR}/.run-e2e-state"
 

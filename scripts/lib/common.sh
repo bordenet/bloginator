@@ -357,6 +357,65 @@ get_repo_root() {
 }
 
 #######################################
+# Load Bloginator configuration from .env
+# Sources .env if present and sets up path variables based on
+# BLOGINATOR_DATA_DIR and related environment variables.
+#
+# Globals (set by this function):
+#   BLOGINATOR_DATA_DIR    - Base data directory (default: .bloginator)
+#   BLOGINATOR_CHROMA_DIR  - ChromaDB index directory
+#   BLOGINATOR_OUTPUT_DIR  - Output directory for generated content
+#   BLOGINATOR_CORPUS_DIR  - Corpus configuration directory
+#
+# Arguments:
+#   $1 - Optional path to .env file (default: .env in repo root)
+#
+# Returns:
+#   0 always (missing .env is not an error)
+#######################################
+load_env_config() {
+    local env_file="${1:-$(get_repo_root)/.env}"
+
+    # Source .env if it exists
+    if [[ -f "$env_file" ]]; then
+        # shellcheck disable=SC1090
+        source "$env_file"
+        log_debug "Loaded configuration from $env_file"
+    else
+        log_debug "No .env file found at $env_file, using defaults"
+    fi
+
+    # Set defaults for data directory
+    BLOGINATOR_DATA_DIR="${BLOGINATOR_DATA_DIR:-.bloginator}"
+
+    # Paths relative to BLOGINATOR_DATA_DIR unless absolute
+    if [[ "${BLOGINATOR_CHROMA_DIR:-}" != /* ]]; then
+        BLOGINATOR_CHROMA_DIR="${BLOGINATOR_DATA_DIR}/${BLOGINATOR_CHROMA_DIR:-chroma}"
+    fi
+
+    if [[ "${BLOGINATOR_OUTPUT_DIR:-}" != /* ]]; then
+        BLOGINATOR_OUTPUT_DIR="${BLOGINATOR_DATA_DIR}/${BLOGINATOR_OUTPUT_DIR:-output}"
+    fi
+
+    if [[ "${BLOGINATOR_CORPUS_DIR:-}" != /* ]]; then
+        BLOGINATOR_CORPUS_DIR="${BLOGINATOR_CORPUS_DIR:-corpus}"
+    fi
+
+    # Export for child processes
+    export BLOGINATOR_DATA_DIR
+    export BLOGINATOR_CHROMA_DIR
+    export BLOGINATOR_OUTPUT_DIR
+    export BLOGINATOR_CORPUS_DIR
+
+    log_debug "BLOGINATOR_DATA_DIR=$BLOGINATOR_DATA_DIR"
+    log_debug "BLOGINATOR_CHROMA_DIR=$BLOGINATOR_CHROMA_DIR"
+    log_debug "BLOGINATOR_OUTPUT_DIR=$BLOGINATOR_OUTPUT_DIR"
+    log_debug "BLOGINATOR_CORPUS_DIR=$BLOGINATOR_CORPUS_DIR"
+
+    return 0
+}
+
+#######################################
 # Check if virtual environment is active
 # Returns:
 #   0 if active, 1 otherwise

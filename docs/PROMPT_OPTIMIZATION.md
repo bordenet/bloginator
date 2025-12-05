@@ -198,7 +198,7 @@ Each round produces a strategy with:
 
 **Purpose**: Enable autonomous optimization experiments without manual LLM interaction.
 
-**Implementation** (`scripts/auto_respond_llm.py`):
+**Implementation** (`scripts/respond-to-llm-requests-with-llm.py`):
 - Monitors `.bloginator/llm_requests/` directory for new requests
 - Detects request type (outline, draft, evaluation) using pattern matching
 - Generates appropriate responses programmatically

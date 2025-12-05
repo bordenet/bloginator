@@ -41,7 +41,7 @@ and provide a quality assessment summary.
 
 1. **Verify Mock Mode**: Check `.env` has `BLOGINATOR_LLM_MOCK=assistant`
 2. **Launch Generators**: Start `run-e2e.sh --generate-only` for each blog in parallel
-3. **Auto-Respond**: Run `scripts/auto_respond.py` in a loop to handle LLM requests
+3. **Auto-Respond**: Run `scripts/respond-to-llm-requests.py` in a loop to handle LLM requests
 4. **Monitor Progress**: Track generation status for all blogs
 5. **Quality Assessment**: Review generated content and report:
    - Topic alignment issues
