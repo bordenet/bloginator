@@ -244,11 +244,14 @@ class OutlineGenerator:
             outline.calculate_stats()
             return outline
 
-        # ADDITIONAL FILTERING: Remove sections with very low coverage (<5%)
+        # ADDITIONAL FILTERING: Remove sections with very low coverage (<1%)
         # unless they're directly in the keywords
+        # NOTE: We use 1% threshold because ChromaDB similarity scores are often
+        # in the 0.1-0.3 range even for good matches, and our normalization
+        # may still produce low percentages for valid content.
         very_low_coverage_sections = []
         for section in outline.get_all_sections():
-            if 0 < section.coverage_pct < 5.0:
+            if 0 < section.coverage_pct < 1.0:
                 # Check if section title contains any keyword
                 section_lower = section.title.lower()
                 keyword_match = any(kw.lower() in section_lower for kw in keywords)
@@ -257,13 +260,13 @@ class OutlineGenerator:
 
         if very_low_coverage_sections:
             old_section_count = len(outline.get_all_sections())
-            outline.sections = filter_sections_by_coverage(outline.sections, min_coverage=5.0)
+            outline.sections = filter_sections_by_coverage(outline.sections, min_coverage=1.0)
             new_section_count = len(outline.get_all_sections())
             if outline.validation_notes:
                 outline.validation_notes += "\n\n"
             outline.validation_notes += (
                 f"⚠️ REMOVED {old_section_count - new_section_count} additional sections with very low coverage "
-                f"(<5%) unrelated to keywords:\n"
+                f"(<1%) unrelated to keywords:\n"
                 f"{chr(10).join(f'  - {t}' for t in very_low_coverage_sections[:3])}"
                 + (
                     f"\n  ... and {len(very_low_coverage_sections) - 3} more"
