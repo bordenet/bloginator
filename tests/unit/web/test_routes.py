@@ -1,7 +1,7 @@
 """Tests for web UI routes - skipped by design (optional FastAPI dependency).
 
-These tests are designed to run only when FastAPI is installed via:
-    pip install bloginator[web]
+These tests are designed to run only when FastAPI and python-multipart are installed via:
+    pip install bloginator[web-api]
 
 The conditional skip mechanism properly handles missing optional dependencies,
 so no action is needed to "enable" these tests.
@@ -10,17 +10,26 @@ so no action is needed to "enable" these tests.
 import pytest
 
 
-try:
-    from fastapi.testclient import TestClient
+def _check_web_api_dependencies() -> bool:
+    """Check if all web-api dependencies are available."""
+    try:
+        from fastapi.testclient import TestClient  # noqa: F401
 
-    from bloginator.web.app import create_app
+        # python-multipart is required for Form/File uploads
+        from python_multipart import __version__  # noqa: F401
 
-    FASTAPI_AVAILABLE = True
-except ImportError:
-    FASTAPI_AVAILABLE = False
+        from bloginator.web.app import create_app  # noqa: F401
+
+        return True
+    except ImportError:
+        return False
+
+
+WEB_API_AVAILABLE = _check_web_api_dependencies()
 
 pytestmark = pytest.mark.skipif(
-    not FASTAPI_AVAILABLE, reason="fastapi not installed (requires: pip install bloginator[web])"
+    not WEB_API_AVAILABLE,
+    reason="web-api dependencies not installed (requires: pip install bloginator[web-api])",
 )
 
 
@@ -30,6 +39,10 @@ class TestMainRoutes:
     @pytest.fixture
     def client(self):
         """Create test client."""
+        from fastapi.testclient import TestClient
+
+        from bloginator.web.app import create_app
+
         app = create_app()
         return TestClient(app)
 
