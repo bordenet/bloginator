@@ -111,6 +111,11 @@ class Config:
     # Debug
     DEBUG: bool = os.getenv("BLOGINATOR_DEBUG", "false").lower() == "true"
 
+    # Company Branding (for blog personalization)
+    # These are injected into prompts for company-specific content
+    COMPANY_NAME: str = os.getenv("BLOGINATOR_COMPANY_NAME", "our company")
+    COMPANY_POSSESSIVE: str = os.getenv("BLOGINATOR_COMPANY_POSSESSIVE", "our")
+
     @classmethod
     def ensure_directories(cls) -> None:
         """Create necessary directories if they don't exist (mkdir -p style).
