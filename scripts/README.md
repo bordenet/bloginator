@@ -15,21 +15,28 @@ Utility and workflow scripts for the Bloginator project.
 
 ## Blog Generation Utilities
 
-- **`generate_remaining_blogs.sh`** - Generate multiple blog posts in sequence
+- **`generate-batch-blogs.sh`** - Generate multiple blog posts in sequence
   - Generates blogs 2-4 (Sprint Planning, Sprint Grooming, Retrospectives)
-  - Uses `auto_respond.py` for automatic LLM response handling
-  - Output files saved to `output/generated/`
+  - Uses `respond-to-llm-requests.py` for automatic LLM response handling
+  - Output files saved to configured output directory (see `.env`)
 
-- **`generate_blog_improved.sh`** - Generate a single blog post with improved coordination
-  - Usage: `./generate_blog_improved.sh <output_file> <title> <thesis> <keywords> <outline_file>`
-  - Better handling of auto-responder coordination
-  - Example: `./generate_blog_improved.sh output/generated/blog.md "My Title" "My thesis..." "keyword1,keyword2" output/generated/outline.json`
+- **`generate-blog.sh`** - Generate a single blog post
+  - Usage: `./generate-blog.sh <output_file> <title> <thesis> <keywords> <outline_file>`
+  - Coordinates with auto-responder for LLM requests
+  - Example: `./generate-blog.sh .bloginator/output/generated/blog.md "My Title" "My thesis..." "keyword1,keyword2" .bloginator/output/generated/outline.json`
 
-- **`auto_respond.py`** - Automatically respond to Bloginator LLM requests
+- **`respond-to-llm-requests.py`** - Automatically respond to Bloginator LLM requests
   - Used by blog generation scripts to simulate LLM responses
   - Monitors `.bloginator/llm_requests/` directory
   - Writes responses to `.bloginator/llm_responses/`
-  - Can be run standalone: `python3 scripts/auto_respond.py`
+  - Can be run standalone: `python3 scripts/respond-to-llm-requests.py`
+
+## Maintenance Utilities
+
+- **`purge-corpus-and-outputs.sh`** - Reset Bloginator workspace to clean state
+  - Removes extracted documents, generated content, and vector index
+  - Reads paths from `.env` configuration
+  - Usage: `./scripts/purge-corpus-and-outputs.sh [-y|--yes] [-v|--verbose]`
 
 ## Validation & Testing
 
@@ -44,7 +51,7 @@ Utility and workflow scripts for the Bloginator project.
   - Common functions and helpers used across scripts
   - Sourced by validation and other scripts
 
-- **`e2e-lib.sh`** - Shared E2E workflow library
+- **`lib/e2e-lib.sh`** - Shared E2E workflow library
   - Configuration and utilities for end-to-end workflows
   - Sourced by `run-e2e.sh`
   - Provides state management, timer functions, and printing utilities
@@ -62,7 +69,8 @@ This ensures scripts function properly when called from nested locations or syml
 
 ## Output Directory
 
-Generated blog files (markdown and JSON outlines) are saved to:
-- `output/generated/` - Blog markdown and outline files
+Generated blog files (markdown and JSON outlines) are saved to directories configured in `.env`:
+
+- Default: `.bloginator/output/generated/` - Blog markdown and outline files
 
 This directory is in `.gitignore` to prevent accidental commits of generated content.

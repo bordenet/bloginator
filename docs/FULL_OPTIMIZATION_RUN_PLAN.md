@@ -15,7 +15,7 @@ This document provides a complete plan to run a comprehensive prompt optimizatio
    - `docs/OPTIMIZATION_ANALYSIS.md` - Detailed 20-round analysis
    - `docs/OPTIMIZATION_LEARNINGS.md` - Strategic implications
    - `docs/PROMPT_OPTIMIZATION.md` - Updated with results
-5. ✅ **Auto-responder working perfectly** - `scripts/auto_respond_llm.py`
+5. ✅ **Auto-responder working perfectly** - `scripts/respond-to-llm-requests-with-llm.py`
 
 ### Key Findings from 2-Test-Case Run
 
@@ -119,7 +119,7 @@ Open Terminal 2 and run:
 ```bash
 cd ./
 source .venv/bin/activate
-python scripts/auto_respond_llm.py 2>&1 | tee auto_responder_full.log
+python scripts/respond-to-llm-requests-with-llm.py 2>&1 | tee auto_responder_full.log
 ```
 
 **What this does**:
@@ -376,11 +376,11 @@ gh run list --limit 1 --json conclusion,name,databaseId,url
 2. **Restart auto-responder**:
    ```bash
    # Kill if still running
-   pkill -f auto_respond_llm
+   pkill -f respond-to-llm-requests-with-llm
 
    # Restart
    source .venv/bin/activate
-   python scripts/auto_respond_llm.py 2>&1 | tee -a auto_responder_full.log
+   python scripts/respond-to-llm-requests-with-llm.py 2>&1 | tee -a auto_responder_full.log
    ```
 
 ### If Scores Are All the Same

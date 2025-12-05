@@ -52,7 +52,7 @@ To act as the LLM backend:
 
 ### Demo Script
 
-`scripts/auto_respond.py` provides **template-based** responses for demos.
+`scripts/respond-to-llm-requests.py` provides **template-based** responses for demos.
 It does NOT use any LLM - just hardcoded content for specific topics.
 
 ### No External LLM Required
@@ -110,7 +110,7 @@ pytest --cov=src/bloginator --cov-fail-under=70
 
 ### Before Every Commit
 
-1. Run quality gate script: `./scripts/fast-quality-gate.sh`
+1. Run quality gate script: `./scripts/run-fast-quality-gate.sh`
 2. Verify all tests pass: `pytest tests/unit --no-cov`
 3. Fix any linting/type errors before committing
 
