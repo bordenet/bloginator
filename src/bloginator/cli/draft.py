@@ -81,9 +81,9 @@ from bloginator.generation import DraftGenerator
     help="Validate against blocklist (blocks generation if violations found)",
 )
 @click.option(
-    "--score-voice",
-    is_flag=True,
-    help="Calculate voice similarity score",
+    "--score-voice/--no-score-voice",
+    default=True,
+    help="Calculate voice similarity score (default: enabled)",
 )
 @click.option(
     "--config-dir",
