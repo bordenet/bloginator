@@ -64,13 +64,15 @@ while [ -L "$SCRIPT_PATH" ]; do
 done
 SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 
-# shellcheck source=scripts/lib/compact.sh
-source "$SCRIPT_DIR/scripts/lib/compact.sh"
+# shellcheck source=lib/compact.sh
+source "$SCRIPT_DIR/lib/compact.sh"
 
-# shellcheck source=scripts/lib/e2e-lib.sh
-source "$SCRIPT_DIR/scripts/lib/e2e-lib.sh"
+# shellcheck source=lib/e2e-lib.sh
+source "$SCRIPT_DIR/lib/e2e-lib.sh"
 
-cd "$SCRIPT_DIR"
+# Change to project root (parent of scripts/)
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$PROJECT_ROOT"
 
 # Load .env file if it exists
 if [ -f ".env" ]; then

@@ -4,13 +4,13 @@ Utility and workflow scripts for the Bloginator project.
 
 ## Main Workflows
 
-- **`../run-e2e.sh`** - End-to-end workflow demo (extract → index → outline → draft)
-  - Run from repository root: `./run-e2e.sh`
+- **`run-e2e.sh`** - End-to-end workflow demo (extract → index → outline → draft)
+  - Run from repository root: `./scripts/run-e2e.sh`
   - Orchestrates the complete blog generation pipeline
   - Supports resume/restart flags for resuming interrupted workflows
 
-- **`../run-streamlit.sh`** - Launch the Streamlit web UI
-  - Run from repository root: `./run-streamlit.sh`
+- **`run-streamlit.sh`** - Launch the Streamlit web UI
+  - Run from repository root: `./scripts/run-streamlit.sh`
   - Starts the Bloginator web interface on port 8501
 
 ## Blog Generation Utilities
@@ -40,8 +40,8 @@ Utility and workflow scripts for the Bloginator project.
 
 ## Validation & Testing
 
-- **`../validate-monorepo.sh`** - Comprehensive code validation
-  - Run from repository root: `./validate-monorepo.sh [OPTIONS]`
+- **`validate-monorepo.sh`** - Comprehensive code validation
+  - Run from repository root: `./scripts/validate-monorepo.sh [OPTIONS]`
   - Options: `--quick`, `--all`, `--fix`, `--verbose`
   - Runs formatting, linting, type checking, and tests
 

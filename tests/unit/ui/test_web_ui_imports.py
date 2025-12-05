@@ -158,15 +158,15 @@ class TestWebUIScripts:
         """Test that run-streamlit.sh exists and is executable."""
         from pathlib import Path
 
-        script_path = Path(__file__).parent.parent.parent.parent / "run-streamlit.sh"
-        assert script_path.exists(), "run-streamlit.sh not found"
+        script_path = Path(__file__).parent.parent.parent.parent / "scripts" / "run-streamlit.sh"
+        assert script_path.exists(), "scripts/run-streamlit.sh not found"
         assert script_path.stat().st_mode & 0o111, "run-streamlit.sh is not executable"
 
     def test_run_streamlit_script_checks_dependencies(self):
         """Test that run-streamlit.sh checks for streamlit installation."""
         from pathlib import Path
 
-        script_path = Path(__file__).parent.parent.parent.parent / "run-streamlit.sh"
+        script_path = Path(__file__).parent.parent.parent.parent / "scripts" / "run-streamlit.sh"
         content = script_path.read_text()
 
         # Verify script checks for streamlit
