@@ -21,7 +21,7 @@ class ExtractionSettings(BaseModel):
     follow_symlinks: bool = Field(default=True, description="Follow symbolic links")
     recursive: bool = Field(default=True, description="Scan subdirectories")
     include_extensions: list[str] = Field(
-        default_factory=lambda: [".md", ".markdown", ".txt", ".pdf", ".docx"],
+        default_factory=lambda: [".md", ".markdown", ".txt", ".pdf", ".docx", ".doc"],
         description="File extensions to include",
     )
     ignore_patterns: list[str] = Field(

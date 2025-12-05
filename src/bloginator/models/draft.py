@@ -192,11 +192,32 @@ class Draft(BaseModel):
         """
         lines = []
 
-        # Title with confidence scores: [XXcitcov_YYcitqual_ZZcc] Title
+        # Confidence metrics table at the TOP
+        lines.append("| Metric | Score | Description |")
+        lines.append("|--------|-------|-------------|")
+        lines.append(
+            f"| **Citation Coverage** | {self.citation_coverage_score}% "
+            f"| % of sections with ≥1 citation |"
+        )
+        lines.append(
+            f"| **Citation Quality** | {self.citation_quality_score}% "
+            f"| Average similarity score of citations |"
+        )
+        lines.append(
+            f"| **Content Completeness** | {self.content_completeness_score}% "
+            f"| Content density (target: 150 words/section) |"
+        )
+        lines.append(f"| **Total Words** | {self.total_words} | |")
+        lines.append(f"| **Total Citations** | {self.total_citations} | |")
+        if self.has_blocklist_violations:
+            lines.append("| ⚠️ **Blocklist Violations** | YES | Review required |")
+        lines.append("")
+
+        # Title with confidence scores: [XX-YY-ZZ] Title
         confidence_prefix = (
-            f"[{self.citation_coverage_score:02d}citcov_"
-            f"{self.citation_quality_score:02d}citqual_"
-            f"{self.content_completeness_score:02d}cc]"
+            f"[{self.citation_coverage_score:02d}-"
+            f"{self.citation_quality_score:02d}-"
+            f"{self.content_completeness_score:02d}]"
         )
         lines.append(f"# {confidence_prefix} {self.title}")
         lines.append("")
@@ -205,20 +226,12 @@ class Draft(BaseModel):
             lines.append(f"*{self.thesis}*")
             lines.append("")
 
-        # Stats in comment (won't render in final output)
+        # Metadata in hidden comment
         lines.append("<!--")
         lines.append(f"Generated: {self.created_date.strftime('%Y-%m-%d %H:%M')}")
         lines.append(f"Classification: {self.classification}")
         lines.append(f"Audience: {self.audience}")
         lines.append(f"Voice Score: {self.voice_score:.2f}")
-        lines.append(f"Citations: {self.total_citations}")
-        lines.append(f"Words: {self.total_words}")
-        lines.append(
-            f"Confidence: citcov={self.citation_coverage_score}, "
-            f"citqual={self.citation_quality_score}, cc={self.content_completeness_score}"
-        )
-        if self.has_blocklist_violations:
-            lines.append("⚠️ BLOCKLIST VIOLATIONS DETECTED")
         lines.append("-->")
         lines.append("")
 
