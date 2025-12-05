@@ -106,8 +106,14 @@ def _collect_files(source: Path) -> list[Path]:
     supported_extensions = get_supported_extensions()
 
     # Walk directory tree, following symlinks
-    for root, _dirs, filenames in os.walk(source, followlinks=True):
+    for root, dirs, filenames in os.walk(source, followlinks=True):
         root_path = Path(root)
+
+        # Skip directories containing .bloginator-ignore marker file
+        if (root_path / ".bloginator-ignore").exists():
+            dirs.clear()  # Prevent descending into subdirectories
+            continue
+
         for filename in filenames:
             # Skip temp files
             if is_temp_file(filename):
