@@ -630,6 +630,9 @@ topics:
       - Common terms and their precise meanings
       - Anti-patterns and what to call them
       - Using consistent language across teams
+    generated:
+      outline: blogs/leadership-terminology-outline.json
+      draft: blogs/leadership-terminology-draft.md
 
   - title: "Technical Leadership Best Practices"
     keywords: ["technical-leadership", "tech-lead", "architecture", "mentoring"]
