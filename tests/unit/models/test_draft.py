@@ -319,7 +319,9 @@ class TestDraft:
 
         markdown = draft.to_markdown()
 
-        assert "# Test Document" in markdown
+        # Title includes confidence scores prefix
+        assert "Test Document" in markdown
+        assert "[00citcov_00citqual_00cc]" in markdown  # No citations, no content
         assert "*Main thesis*" in markdown
         assert "## Introduction" in markdown
         assert "This is the introduction." in markdown

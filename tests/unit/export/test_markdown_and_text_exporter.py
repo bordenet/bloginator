@@ -64,7 +64,8 @@ def test_markdown_exporter_writes_draft_and_outline(tmp_path: Path) -> None:
     draft_text = draft_path.read_text(encoding="utf-8")
     outline_text = outline_path.read_text(encoding="utf-8")
 
-    assert "# Draft Title" in draft_text
+    assert "Draft Title" in draft_text  # Title includes confidence prefix now
+    assert "citcov" in draft_text  # Confidence scores included
     assert "Section One" in draft_text
     assert "## Outline Section" in outline_text
     assert "Coverage" in outline_text
