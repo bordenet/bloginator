@@ -1,6 +1,7 @@
 """Draft generation with RAG and citation tracking."""
 
 import logging
+import time
 from collections.abc import Callable
 
 from bloginator.generation.llm_client import LLMClient
@@ -71,6 +72,8 @@ class DraftGenerator:
             >>> print(f"Generated {draft.total_words} words")
             >>> print(f"Citations: {draft.total_citations}")
         """
+        start_time = time.time()
+
         # Count total sections for progress tracking
         total_sections = len(outline.get_all_sections())
         current_section = 0
@@ -120,7 +123,8 @@ class DraftGenerator:
             current_section += len(outline_section.get_all_sections())
             sections.append(draft_section)
 
-        # Create draft
+        # Create draft with timing
+        generation_time = time.time() - start_time
         draft = Draft(
             title=outline.title,
             thesis=outline.thesis,
@@ -128,6 +132,7 @@ class DraftGenerator:
             audience=outline.audience,
             keywords=outline.keywords,
             sections=sections,
+            generation_time_seconds=generation_time,
         )
 
         # Calculate statistics
