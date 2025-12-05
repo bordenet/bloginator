@@ -1,6 +1,7 @@
 """LLM client that uses the AI assistant (Claude) via file-based communication."""
 
 import json
+import logging
 import time
 from pathlib import Path
 
@@ -11,6 +12,7 @@ from bloginator.generation.llm_base import LLMClient, LLMResponse
 
 
 console = Console()
+logger = logging.getLogger(__name__)
 
 
 class AssistantLLMClient(LLMClient):
@@ -111,14 +113,51 @@ class AssistantLLMClient(LLMClient):
         )
         console.print(f"[dim]Request file: {request_file}[/dim]")
         console.print(f"[dim]Expecting response: {response_file}[/dim]")
+        console.print(f"[dim]Timeout: {self.timeout}s[/dim]")
 
         start_time = time.time()
+        last_status_time = start_time
+        warning_shown = False
+
         while not response_file.exists():
             elapsed = time.time() - start_time
-            if elapsed > self.timeout:
-                raise TimeoutError(
-                    f"Timeout waiting for response {request_id} after {self.timeout}s"
+            remaining = self.timeout - elapsed
+
+            # Show status every 30 seconds
+            if time.time() - last_status_time >= 30:
+                last_status_time = time.time()
+                console.print(
+                    f"[dim]Still waiting... {int(remaining)}s remaining "
+                    f"(request {request_id})[/dim]"
                 )
+
+            # Show warning when 60 seconds remain
+            if remaining <= 60 and not warning_shown:
+                warning_shown = True
+                console.print(
+                    f"\n[bold red]⚠️  WARNING: Only {int(remaining)}s remaining! "
+                    f"Response needed soon.[/bold red]"
+                )
+                console.print(f"[bold red]   Response file: {response_file}[/bold red]")
+                logger.warning(
+                    f"Timeout approaching for request {request_id}: " f"{int(remaining)}s remaining"
+                )
+
+            if elapsed > self.timeout:
+                error_msg = (
+                    f"Timeout waiting for response {request_id} after {self.timeout}s.\n"
+                    f"Expected response file: {response_file}\n"
+                    f"Request file: {request_file}\n\n"
+                    f"To resolve:\n"
+                    f"1. Read the request file and generate a response\n"
+                    f"2. Write response to: {response_file}\n"
+                    f"3. Re-run the command\n\n"
+                    f"Or increase timeout with BLOGINATOR_ASSISTANT_LLM_RESPONSE_TIMEOUT env var"
+                )
+                console.print(f"\n[bold red]❌ TIMEOUT: {error_msg}[/bold red]")
+                logger.error(f"Assistant LLM timeout: {error_msg}")
+                raise TimeoutError(error_msg)
+
             time.sleep(1)
 
         # Read response
