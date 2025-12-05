@@ -111,7 +111,15 @@ def extract_real_doc_file(doc_path: Path) -> str:
     Raises:
         ValueError: If conversion fails
     """
-    # Try LibreOffice (soffice) first - most reliable
+    # Try antiword first - fast and reliable for .doc files
+    antiword_path = shutil.which("antiword")
+    if antiword_path:
+        try:
+            return extract_doc_with_antiword(doc_path)
+        except Exception:
+            pass  # Fall through to try other methods
+
+    # Try LibreOffice (soffice) - handles more formats
     soffice_path = shutil.which("soffice")
     if soffice_path:
         try:
@@ -132,8 +140,33 @@ def extract_real_doc_file(doc_path: Path) -> str:
 
     raise ValueError(
         f"Cannot extract binary .doc file: {doc_path}. "
-        "Install LibreOffice (brew install --cask libreoffice) or textract."
+        "Install antiword (brew install textract) or LibreOffice (brew install --cask libreoffice)."
     )
+
+
+def extract_doc_with_antiword(doc_path: Path) -> str:
+    """Convert .doc to text using antiword.
+
+    Args:
+        doc_path: Path to .doc file
+
+    Returns:
+        Extracted text content
+
+    Raises:
+        ValueError: If conversion fails
+    """
+    result = subprocess.run(
+        ["antiword", str(doc_path.absolute())],
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+
+    if result.returncode != 0:
+        raise ValueError(f"antiword conversion failed: {result.stderr}")
+
+    return result.stdout
 
 
 def extract_doc_with_libreoffice(doc_path: Path) -> str:
