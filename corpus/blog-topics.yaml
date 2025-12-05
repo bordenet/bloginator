@@ -61,7 +61,7 @@ topics:
       - Defining competencies and behavioral indicators
       - Designing behavioral interview questions
       - Weighing potential vs. current skill fit
-      - Avoiding bias while assessing \"culture add\"
+      - Avoiding bias while assessing "culture add"
 
   - title: "The Interview Pre-Brief: Aligning the Loop Before You Start"
     keywords: ["interviewing", "pre-brief", "recruiting"]
@@ -88,6 +88,34 @@ topics:
       - Handling disagreement and strong personalities
       - Documenting final decisions and rationale
       - Building a feedback loop into your hiring process
+
+  - title: "Why Recruiting Benefits from Structure"
+    keywords: ["recruiting", "structured-hiring", "interviewing"]
+    audience: "engineering-leaders"
+    summary: |
+      Explains how structured recruiting improves consistency, speed, and hiring
+      quality while giving interviewers a clear growth path and reinforcing
+      company culture.
+    sections:
+      - What "structured recruiting" actually means
+      - How structure improves hiring accuracy and fairness
+      - Impact on velocity and signal quality
+      - Career development paths for interviewers
+      - Culture consistency and better long-term decisions
+
+  - title: "What It Really Means to Raise the Bar"
+    keywords: ["recruiting", "culture", "raise-the-bar"]
+    audience: "engineering-leaders"
+    summary: |
+      Defines "raising the bar" in concrete terms, explains how to apply it in
+      hiring and performance, and calls out where the phrase becomes empty
+      jargon—including why it still matters at CallBox.
+    sections:
+      - A working definition of "raise the bar"
+      - How to operationalize bar-raising in hiring decisions
+      - Where the phrase is overused and unhelpful
+      - How CallBox will use bar-raising intentionally
+      - Avoiding elitism while maintaining a high standard
 
   # ============================================================================
   # Agile Rituals Series
@@ -207,7 +235,21 @@ topics:
       - When to add, change, or drop ceremonies
       - Balancing structure with flow
       - Handling distributed and cross-team work
-      - Teaching the \"why\" to new team members
+      - Teaching the "why" to new team members
+
+  - title: "The Plan-of-Record Process"
+    keywords: ["agile", "backlog-management", "plan-of-record"]
+    audience: "product-and-engineering"
+    summary: |
+      Describes how a clear Plan of Record creates a structured, regularly
+      updated backlog that supports consistent decision making and
+      course-correction without burning teams out.
+    sections:
+      - What a Plan of Record is (and isn't)
+      - How a PoR supports strategic and sprint planning
+      - Routines for updating the backlog without churn
+      - Communicating changes to stakeholders and teams
+      - Using PoR history to steer course corrections
 
   # ============================================================================
   # Operational Excellence Series
@@ -250,6 +292,34 @@ topics:
       - Managing cognitive load during long incidents
       - Learning from incidents to harden systems
 
+  - title: "Why Engineers Go On-Call"
+    keywords: ["oe", "on-call", "ownership", "feedback-loops"]
+    audience: "ic-engineers"
+    summary: |
+      Explains why engineers own their on-call duty: tight feedback loops,
+      genuine ownership with accountability, and why dedicated "ops teams" can't
+      match service-specific expertise.
+    sections:
+      - Tight feedback loops that accelerate learning
+      - Ownership means accountability for your systems
+      - Why ops teams can't carry your water effectively
+      - What engineers gain from on-call exposure
+      - Measuring on-call health and team maturity
+
+  - title: "How We Make Going On-Call Safe"
+    keywords: ["oe", "on-call", "safety", "first-time-on-call"]
+    audience: "new-teams"
+    summary: |
+      Provides concrete steps and expectations for teams going on-call for the
+      first time, from runbook coverage to escalation paths to psychological
+      safety.
+    sections:
+      - Setting clear expectations upfront
+      - Runbook coverage minimums before going live
+      - Escalation paths and safety nets
+      - First on-call checklist and preparation
+      - Debriefing first rotations for continuous improvement
+
   - title: "The Hidden Cost of Missing Runbooks"
     keywords: ["oe", "runbooks", "operational-maturity"]
     audience: "ic-engineers"
@@ -262,6 +332,20 @@ topics:
       - Turning hero knowledge into team knowledge
       - A simple template for service runbooks
       - Incentivizing and maintaining runbook quality
+
+  - title: "Why We Build Runbooks"
+    keywords: ["oe", "runbooks", "incident-management", "knowledge-sharing"]
+    audience: "all-disciplines"
+    summary: |
+      Explains runbooks as the foundation of operational maturity—setting
+      colleagues up for success during incidents and customers up for reliable
+      service.
+    sections:
+      - Runbooks enable fast, calm incident response
+      - Reducing cognitive load during high-pressure moments
+      - Cross-training the team through documentation
+      - Runbooks as living knowledge for continuous improvement
+      - Measuring runbook effectiveness and coverage
 
   - title: "Why Going On-Call Matters for Your Customers"
     keywords: ["oe", "on-call", "customer-experience"]
@@ -286,7 +370,7 @@ topics:
     sections:
       - COE vs. traditional postmortems
       - Core components of a strong COE document
-      - Facilitating blameless analysis and the \"5 whys\"
+      - Facilitating blameless analysis and the "5 whys"
       - Turning COE actions into tracked work
       - Building a culture of learning from failure
 
@@ -303,6 +387,20 @@ topics:
       - Key practices: observability, automation, and quality
       - Measuring operational health with meaningful metrics
       - Building a culture of continuous improvement
+
+  - title: "The OE Maturity Model"
+    keywords: ["oe", "maturity-model", "operational-excellence"]
+    audience: "engineering-leaders"
+    summary: |
+      Maps the journey from operational chaos to mature excellence, with clear
+      milestones, psychology of organizational skill adoption, and metrics for
+      progress.
+    sections:
+      - Stage 0: Hero mode and fire drills
+      - Stage 1: Basic observability and runbooks
+      - Stage 2: Automated response and blameless culture
+      - Stage 3: Self-healing systems and proactive reliability
+      - Psychology of organizational skill adoption
 
   - title: "What Continuous Improvement Really Means (OE)"
     keywords: ["oe", "continuous-improvement", "kaizen"]
@@ -464,3 +562,45 @@ topics:
       - Making tradeoffs with customer impact in mind
       - Metrics that matter to obsessed teams
       - Overcoming internal pressures that dilute focus
+
+  - title: "The Role of the Tech Lead"
+    keywords: ["culture", "tech-lead", "technical-leadership"]
+    audience: "senior-engineers"
+    summary: |
+      Clarifies the tech lead role as the technical heartbeat of the team:
+      owning technical direction, mentoring peers, and partnering with the
+      manager without becoming a mini-manager.
+    sections:
+      - How tech leads differ from managers
+      - Owning technical direction and quality
+      - Enabling the team through pairing and reviews
+      - Partnering with PM and EM on priorities
+      - Avoiding common tech lead anti-patterns
+
+  - title: "The Role of Principal Engineers in the Business"
+    keywords: ["culture", "principal-engineer", "strategy"]
+    audience: "principal-engineers"
+    summary: |
+      Defines principal engineers as revenue-responsible technical leaders and
+      peers of engineering directors who hold a high bar and drive strategic
+      direction across teams.
+    sections:
+      - Principal engineers as business leaders
+      - Owning revenue, cost, and technical strategy
+      - Partnering with directors, product, and design
+      - Raising and maintaining the technical bar
+      - Developing the next generation of technical leaders
+
+  - title: "Why the One Pager Works"
+    keywords: ["culture", "decision-making", "one-pager"]
+    audience: "all-disciplines"
+    summary: |
+      Explains how concise one-pagers frame problems, bring clarity to decisions,
+      and save time by aligning stakeholders early—especially when paired with
+      good templates and tools.
+    sections:
+      - Framing problems with context and constraints
+      - Driving decisions with crisp options and tradeoffs
+      - Being concise without losing nuance
+      - Using tools and templates to get it right first time
+      - Making one-pagers a habit at CallBox

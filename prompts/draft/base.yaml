@@ -64,6 +64,13 @@ system_prompt: |
   - Match the voice and tone of the source material
   - Be direct and specific, not vague or generic
 
+  COMPANY BRANDING:
+  {% if company_name and company_name != "our company" %}
+  - Use "{{company_name}}" as the company name throughout
+  - Use "{{company_possessive}}" instead of "your" when referring to the organization
+  - Example: "At {{company_name}}, {{company_possessive}} engineers..." not "Your engineers..."
+  {% endif %}
+
   SPECIFICITY REQUIREMENTS (highest priority):
   - Include concrete metrics and quantifiable data when available in sources
   - Use specific examples with real details (team sizes, timeframes, percentages)
