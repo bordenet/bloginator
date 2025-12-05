@@ -242,7 +242,7 @@ def extract_text_from_image(image_path: Path) -> str:
 
     try:
         image = Image.open(image_path)
-        text = pytesseract.image_to_string(image)
+        text: str = pytesseract.image_to_string(image)
         return text.strip()
     except pytesseract.TesseractNotFoundError:
         # Tesseract not installed
@@ -280,7 +280,7 @@ def extract_text_from_html(html_path: Path) -> str:
             element.decompose()
 
         # Get text
-        text = soup.get_text(separator="\n", strip=True)
+        text: str = soup.get_text(separator="\n", strip=True)
         return text
     except ImportError:
         # Fall back to simple regex stripping
@@ -425,18 +425,18 @@ def extract_text_from_rtf(rtf_path: Path) -> str:
     try:
         from striprtf.striprtf import rtf_to_text
 
-        content = rtf_path.read_bytes()
-        text = rtf_to_text(content.decode("utf-8", errors="replace"))
+        raw_content = rtf_path.read_bytes()
+        text: str = rtf_to_text(raw_content.decode("utf-8", errors="replace"))
         return text.strip()
     except ImportError:
         pass
 
     # Last resort: basic regex stripping
-    content = rtf_path.read_text(encoding="utf-8", errors="replace")
+    text_content = rtf_path.read_text(encoding="utf-8", errors="replace")
     import re
 
     # Remove RTF control words
-    text = re.sub(r"\\[a-z]+\d*\s?", " ", content)
+    text = re.sub(r"\\[a-z]+\d*\s?", " ", text_content)
     # Remove braces
     text = re.sub(r"[{}]", "", text)
     # Clean up whitespace

@@ -27,6 +27,10 @@ class TestExtractTextFromPptx:
         with pytest.raises(FileNotFoundError):
             extract_text_from_pptx(nonexistent)
 
+    @pytest.mark.skipif(
+        not pytest.importorskip("pptx", reason="python-pptx not installed"),
+        reason="python-pptx not installed",
+    )
     def test_extract_pptx_basic(self, tmp_path: Path) -> None:
         """Test extracting text from a basic PPTX file."""
         from pptx import Presentation
@@ -42,9 +46,9 @@ class TestExtractTextFromPptx:
         top = Inches(1)
         width = Inches(5)
         height = Inches(1)
-        txBox = slide.shapes.add_textbox(left, top, width, height)
-        tf = txBox.text_frame
-        tf.text = "Hello from PowerPoint"
+        text_box = slide.shapes.add_textbox(left, top, width, height)
+        text_frame = text_box.text_frame
+        text_frame.text = "Hello from PowerPoint"
 
         pptx_path = tmp_path / "test.pptx"
         prs.save(str(pptx_path))

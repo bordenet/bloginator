@@ -155,3 +155,24 @@ class TestCountWords:
     def test_count_words_whitespace_only(self) -> None:
         """Test counting words in whitespace-only string."""
         assert count_words("   \n  \t  ") == 0
+
+
+class TestExtractDocxProperties:
+    """Test DOCX properties extraction."""
+
+    def test_extract_docx_properties_nonexistent(self, tmp_path: Path) -> None:
+        """Test extracting properties from nonexistent DOCX returns empty dict."""
+        from bloginator.extraction.metadata import extract_docx_properties
+
+        nonexistent = tmp_path / "nonexistent.docx"
+        result = extract_docx_properties(nonexistent)
+        assert result == {}
+
+    def test_extract_docx_properties_invalid_file(self, tmp_path: Path) -> None:
+        """Test extracting properties from invalid DOCX returns empty dict."""
+        from bloginator.extraction.metadata import extract_docx_properties
+
+        invalid_file = tmp_path / "invalid.docx"
+        invalid_file.write_text("not a docx file")
+        result = extract_docx_properties(invalid_file)
+        assert result == {}
