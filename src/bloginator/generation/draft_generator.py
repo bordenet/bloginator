@@ -4,6 +4,7 @@ import logging
 import time
 from collections.abc import Callable
 
+from bloginator.config import Config
 from bloginator.generation.llm_client import LLMClient
 from bloginator.models.draft import Citation, Draft, DraftSection
 from bloginator.models.outline import Outline, OutlineSection
@@ -226,11 +227,13 @@ class DraftGenerator:
         # Fetch voice samples from corpus to help LLM emulate author's style
         voice_samples = self._get_voice_samples(keywords)
 
-        # Render system prompt with context and voice samples
+        # Render system prompt with context, voice samples, and company branding
         system_prompt = prompt_template.render_system_prompt(
             classification_guidance=classification_guidance,
             audience_context=audience_context,
             voice_samples=voice_samples,
+            company_name=Config.COMPANY_NAME,
+            company_possessive=Config.COMPANY_POSSESSIVE,
         )
 
         # Render user prompt with variables
