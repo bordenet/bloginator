@@ -47,19 +47,27 @@ def analyze_section_coverage(
             # - 0.3-0.5 = good match (adequate coverage)
             # - 0.1-0.3 = weak match (limited coverage)
             # - <0.1 = no real match
-            best_similarity = max(r.similarity_score for r in results)
-            avg_similarity = sum(r.similarity_score for r in results) / len(results)
+            #
+            # Clamp negative similarities to 0 - they indicate no semantic match
+            # and shouldn't drag down the average
+            clamped_scores = [max(0.0, r.similarity_score) for r in results]
+            best_similarity = max(clamped_scores)
 
-            # Use best match as primary signal (80%) with average as secondary (20%)
-            # This ensures a strong single match counts heavily
-            effective_similarity = 0.8 * best_similarity + 0.2 * avg_similarity
+            # Only average positive scores to avoid negative drag
+            positive_scores = [s for s in clamped_scores if s > 0]
+            avg_similarity = sum(positive_scores) / len(positive_scores) if positive_scores else 0.0
 
-            # More generous normalization: 0.3 similarity = 100% coverage
-            # This reflects that 0.3+ is genuinely a good semantic match
-            normalized_similarity = min(effective_similarity / 0.3, 1.0)
+            # Use best match as primary signal (90%) with average as secondary (10%)
+            # This ensures a strong single match counts heavily - one good source is enough
+            effective_similarity = 0.9 * best_similarity + 0.1 * avg_similarity
 
-            # Result factor: having 3+ results is full coverage (was 5)
-            result_factor = min(len(results) / 3.0, 1.0)
+            # Generous normalization: 0.25 similarity = 100% coverage
+            # Real-world embeddings for matching content typically score 0.2-0.4
+            normalized_similarity = min(effective_similarity / 0.25, 1.0)
+
+            # Result factor: having 2+ results with positive scores is full coverage
+            positive_count = len(positive_scores)
+            result_factor = min(positive_count / 2.0, 1.0)
 
             section.coverage_pct = (result_factor * normalized_similarity) * 100.0
 
