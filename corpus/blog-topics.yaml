@@ -49,6 +49,46 @@ topics:
       - Running objective post-loop debriefs
       - Loop-level documentation and decision hygiene
 
+  - title: "Hiring for Behaviors, Not Just Skills"
+    keywords: ["recruiting", "behavioral-interviewing", "competencies"]
+    audience: "engineering-leaders"
+    summary: |
+      Argues that observable behaviors and signals of ownership, learning
+      mindset, and collaboration predict success more reliably than keyword
+      skills lists.
+    sections:
+      - Why behaviors predict future performance
+      - Defining competencies and behavioral indicators
+      - Designing behavioral interview questions
+      - Weighing potential vs. current skill fit
+      - Avoiding bias while assessing \"culture add\"
+
+  - title: "The Interview Pre-Brief: Aligning the Loop Before You Start"
+    keywords: ["interviewing", "pre-brief", "recruiting"]
+    audience: "engineering-leaders"
+    summary: |
+      Describes how to run a structured pre-brief so every interviewer knows the
+      role, the bar, and their specific focus area before talking to candidates.
+    sections:
+      - Goals of a pre-brief meeting
+      - Clarifying role, bar, and must-have signals
+      - Assigning focus areas and avoiding overlap
+      - Pre-brief artifacts (packets, scorecards, questions)
+      - Common pitfalls and how to avoid them
+
+  - title: "The Interview Debrief: Making Clear, Evidence-Based Hiring Decisions"
+    keywords: ["interviewing", "debrief", "recruiting"]
+    audience: "engineering-leaders"
+    summary: |
+      Explains how to facilitate a disciplined debrief where evidence comes
+      before opinions and the bar stays consistent across candidates.
+    sections:
+      - Objectives of the debrief meeting
+      - Walking the room: evidence before votes
+      - Handling disagreement and strong personalities
+      - Documenting final decisions and rationale
+      - Building a feedback loop into your hiring process
+
   # ============================================================================
   # Agile Rituals Series
   # ============================================================================
@@ -78,6 +118,97 @@ topics:
       - Identifying blockers early
       - Linking sprint goals to performance metrics
 
+  - title: "Why Agile Exists and Who It Serves"
+    keywords: ["agile", "principles", "product-development"]
+    audience: "all-disciplines"
+    summary: |
+      Re-centers agile on its core purpose: delivering customer value quickly
+      and safely by embracing change, not maximizing ceremonies or tooling.
+    sections:
+      - The problems agile was invented to solve
+      - Why agile is for customers, not just teams
+      - Outcomes over outputs in agile environments
+      - When agile practices become theater
+      - Making agile work in your context
+
+  - title: "Agile Ceremonies: Backlog Grooming That Actually Prepares Work"
+    keywords: ["agile", "backlog refinement", "product-management"]
+    audience: "product-and-engineering"
+    summary: |
+      Shows how disciplined backlog refinement keeps sprint planning lightweight
+      and ensures work is well-shaped before commitment.
+    sections:
+      - Purpose of backlog grooming/refinement
+      - Readiness criteria for stories and tasks
+      - Partnering PM, EM, and tech leads
+      - Handling tech debt and operational work
+      - Anti-patterns: giant grooming meetings and thrash
+
+  - title: "Starting with One-Week Sprints (And Why They End on Wednesdays)"
+    keywords: ["agile", "sprints", "cadence"]
+    audience: "new-scrum-teams"
+    summary: |
+      Explains why short, one-week sprints and a mid-week cadence help new
+      teams learn quickly, stabilize delivery, and keep production safe.
+    sections:
+      - Why short sprints accelerate learning
+      - Benefits of a Wednesday–Wednesday cadence
+      - Handling holidays and exceptions
+      - Gradually evolving sprint length
+      - Metrics to watch in early sprints
+
+  - title: "How to Run a High-Value Sprint Review"
+    keywords: ["agile", "ceremony", "sprint review"]
+    audience: "product-and-engineering"
+    summary: |
+      Describes how to run sprint reviews that showcase customer impact,
+      gather feedback, and shape the roadmap instead of reciting status.
+    sections:
+      - Objectives of a sprint review
+      - Telling the story of customer value
+      - Inviting stakeholders and structuring feedback
+      - Avoiding demo theater and technical deep dives
+      - Capturing insights into the backlog
+
+  - title: "How to Run Sprint Exit and Retrospectives That Drive Change"
+    keywords: ["agile", "retrospective", "continuous-improvement"]
+    audience: "all-disciplines"
+    summary: |
+      Covers how to close a sprint with data, reflection, and concrete
+      experiments that feed continuous improvement.
+    sections:
+      - Sprint exit checklist: done vs. delivered
+      - Structuring effective retrospectives
+      - Turning complaints into experiments
+      - Tracking follow-up actions and owners
+      - Avoiding retro fatigue and blame culture
+
+  - title: "Why We Track Velocity, Estimates, and Points"
+    keywords: ["agile", "metrics", "velocity"]
+    audience: "engineering-leaders"
+    summary: |
+      Explains the purpose of story points, estimates, and velocity history as
+      planning tools, not performance ratings for individuals.
+    sections:
+      - What velocity actually measures
+      - Using historical data to plan realistically
+      - Tradeoffs of points vs. time-based estimates
+      - Anti-patterns: gamifying and weaponizing velocity
+      - Communicating uncertainty with stakeholders
+
+  - title: "Why Agile Rituals Matter"
+    keywords: ["agile", "rituals", "team-practices"]
+    audience: "all-disciplines"
+    summary: |
+      Connects agile ceremonies to the underlying principles they support so
+      teams can adapt rituals thoughtfully instead of copying them blindly.
+    sections:
+      - Mapping rituals to agile values
+      - When to add, change, or drop ceremonies
+      - Balancing structure with flow
+      - Handling distributed and cross-team work
+      - Teaching the \"why\" to new team members
+
   # ============================================================================
   # Operational Excellence Series
   # ============================================================================
@@ -106,3 +237,230 @@ topics:
       - Maintaining calm authority under pressure
       - When to hand off command
 
+  - title: "The Role of the Incident Responder"
+    keywords: ["oe", "incident-management", "on-call"]
+    audience: "ic-engineers"
+    summary: |
+      Clarifies what effective incident responders do during high-pressure
+      events: investigate systematically, communicate clearly, and follow the IC.
+    sections:
+      - Expectations of an on-call responder
+      - Triage, diagnosis, and hypothesizing safely
+      - Communicating findings to the IC and comms lead
+      - Managing cognitive load during long incidents
+      - Learning from incidents to harden systems
+
+  - title: "The Hidden Cost of Missing Runbooks"
+    keywords: ["oe", "runbooks", "operational-maturity"]
+    audience: "ic-engineers"
+    summary: |
+      Explores how the absence of runbooks traps experts in interrupts and why
+      writing them is a path to both better sleep and better systems.
+    sections:
+      - What a good runbook actually contains
+      - How missing runbooks create operational drag
+      - Turning hero knowledge into team knowledge
+      - A simple template for service runbooks
+      - Incentivizing and maintaining runbook quality
+
+  - title: "Why Going On-Call Matters for Your Customers"
+    keywords: ["oe", "on-call", "customer-experience"]
+    audience: "ic-engineers"
+    summary: |
+      Connects on-call duty directly to customer trust and product quality, and
+      reframes it as a core part of engineering, not a punishment.
+    sections:
+      - How on-call protects customer experience
+      - What engineers learn from being on-call
+      - Designing humane rotations and escalation paths
+      - Partnering with product on error budgets and SLOs
+      - Using on-call data to drive roadmap work
+
+  - title: "What Is a Correction of Error (COE) and Why It Matters"
+    keywords: ["oe", "coe", "post-incident-analysis"]
+    audience: "devops-sre"
+    summary: |
+      Defines the COE process as a structured, blameless way to understand
+      incidents, identify root causes, and implement concrete preventative
+      actions.
+    sections:
+      - COE vs. traditional postmortems
+      - Core components of a strong COE document
+      - Facilitating blameless analysis and the \"5 whys\"
+      - Turning COE actions into tracked work
+      - Building a culture of learning from failure
+
+  - title: "Defining Operational Excellence for Software Teams"
+    keywords: ["oe", "continuous-improvement", "reliability"]
+    audience: "engineering-leaders"
+    summary: |
+      Provides a practical definition of operational excellence for software
+      teams: reliably delivering value through safe, efficient, continuously
+      improving systems and processes.
+    sections:
+      - Core principles of operational excellence
+      - How OE relates to DevOps and agile
+      - Key practices: observability, automation, and quality
+      - Measuring operational health with meaningful metrics
+      - Building a culture of continuous improvement
+
+  - title: "What Continuous Improvement Really Means (OE)"
+    keywords: ["oe", "continuous-improvement", "kaizen"]
+    audience: "all-disciplines"
+    summary: |
+      Unpacks continuous improvement as a habit of making small, documented,
+      data-informed changes that compound into better reliability and flow.
+    sections:
+      - Definition of continuous improvement
+      - Using data and feedback to pick experiments
+      - Lightweight templates for improvement plans
+      - Closing the loop: measuring impact
+      - Examples from incidents, sprints, and releases
+
+  - title: "Why Change Management Protects Your Customers"
+    keywords: ["oe", "change-management", "deployments"]
+    audience: "product-and-engineering"
+    summary: |
+      Explains why structured change management is essential for safe releases
+      and outlines a simple, practical template for production changes.
+    sections:
+      - Risks of unmanaged changes in production
+      - Core elements of modern change management
+      - A starter template for production deployments
+      - Integrating approvals into CI/CD without friction
+      - Using change records to learn and improve
+
+  - title: "A Starter Template for Production Deployment Changes"
+    keywords: ["oe", "change-management", "templates"]
+    audience: "devops-sre"
+    summary: |
+      Provides a concrete, copyable structure for documenting production
+      deployments so teams can reason about risk and roll back quickly.
+    sections:
+      - Required fields: owner, scope, risk, and rollback plan
+      - Capturing observability and test plans
+      - Linking to tickets, COEs, and runbooks
+      - Example filled-in change request
+      - Adapting the template to your org's tooling
+
+  # ============================================================================
+  # Culture & Leadership Series
+  # ============================================================================
+  - title: "Building an AI-First Culture: What It Is and Why We Need It"
+    keywords: ["culture", "ai-first", "innovation"]
+    audience: "all-disciplines"
+    summary: |
+      Defines AI-first culture as making AI tools and reasoning central to
+      workflows, not optional add-ons. Explains why this accelerates learning
+      and competitive advantage.
+    sections:
+      - Core principles of AI-first engineering
+      - Making AI accessible across all levels
+      - Why community accelerates AI adoption
+      - Measuring AI-first maturity
+      - Overcoming resistance and skill gaps
+
+  - title: "Why Community Matters in AI-First Teams"
+    keywords: ["culture", "community", "ai-first", "collaboration"]
+    audience: "all-disciplines"
+    summary: |
+      Explores how peer communities, knowledge sharing, and collective
+      experimentation make AI adoption sustainable and effective.
+    sections:
+      - The role of communities in technical adoption
+      - Formats that work: office hours, hack weeks, guilds
+      - Building psychological safety for AI experimentation
+      - Capturing and scaling community learnings
+      - Metrics for healthy AI communities
+
+  - title: "Growth Mindset: The Definition and Why It Powers Engineering"
+    keywords: ["culture", "growth-mindset", "learning"]
+    audience: "ic-engineers"
+    summary: |
+      Defines growth mindset as the belief that abilities develop through
+      dedicated effort. Shows how it drives resilience, feedback-seeking, and
+      career acceleration.
+    sections:
+      - Fixed vs. growth mindset in engineering contexts
+      - Observable behaviors of growth mindset
+      - Overcoming common triggers (failure, stretch roles)
+      - How leaders model and reinforce growth mindset
+      - Measuring personal growth mindset progress
+
+  - title: "Ownership: What It Is and What It Isn't"
+    keywords: ["culture", "ownership", "accountability"]
+    audience: "all-disciplines"
+    summary: |
+      Defines true ownership as seeing work through to customer impact with
+      proactive problem-solving. Distinguishes it from heroics and finger-pointing.
+    sections:
+      - Core elements of healthy ownership
+      - Ownership vs. heroics vs. passing-the-buck
+      - Making ownership visible and measurable
+      - Boundaries: when to escalate vs. solve
+      - Building ownership as a team competency
+
+  - title: "Leadership Best Practices for Individual Contributors"
+    keywords: ["culture", "ic-leadership", "influence"]
+    audience: "senior-engineers"
+    summary: |
+      Shows how senior ICs lead through technical vision, mentoring, and
+      cross-team influence without formal authority.
+    sections:
+      - Sources of IC leadership power
+      - Leading up: influencing managers effectively
+      - Leading sideways: cross-team collaboration
+      - Leading down: mentoring and code ownership
+      - Avoiding common IC leadership pitfalls
+
+  - title: "Real-World Examples of Engineering Ownership"
+    keywords: ["culture", "ownership", "examples"]
+    audience: "ic-engineers"
+    summary: |
+      Concrete stories showing ownership in action: from runbook creation to
+      customer issue resolution to technical debt paydown.
+    sections:
+      - Ownership in incident response
+      - Ownership of documentation and runbooks
+      - Ownership of technical debt and refactoring
+      - Ownership across team boundaries
+      - Ownership in ambiguous, high-stakes situations
+
+  - title: "Bias for Action: What It Is and What It Isn't"
+    keywords: ["culture", "bias-for-action", "decision-making"]
+    audience: "all-disciplines"
+    summary: |
+      Defines bias for action as making informed decisions quickly with
+      reversibility. Distinguishes from reckless rushing or analysis paralysis.
+    sections:
+      - Core principles of healthy bias for action
+      - When to act vs. when to gather more signal
+      - Making decisions reversible
+      - Bias for action in different contexts (prod vs. greenfield)
+      - Measuring action bias team health
+
+  - title: "Why We Shun Heroics and How It Serves Customers"
+    keywords: ["culture", "no-heroics", "sustainability"]
+    audience: "all-disciplines"
+    summary: |
+      Explains why individual heroics create fragility and burnout while
+      systematic solutions create reliable customer experiences.
+    sections:
+      - The hidden costs of hero culture
+      - How heroics hurt customers long-term
+      - Building systems over saviors
+      - Recognizing and redirecting heroic impulses
+      - Celebrating sustainable wins
+
+  - title: "Customer Obsession: Definition and Daily Practice"
+    keywords: ["culture", "customer-obsession", "working-backwards"]
+    audience: "all-disciplines"
+    summary: |
+      Defines customer obsession as starting with customer needs and measuring
+      success by customer impact, not internal outputs.
+    sections:
+      - What customer obsession looks like daily
+      - Working backwards from customer problems
+      - Making tradeoffs with customer impact in mind
+      - Metrics that matter to obsessed teams
+      - Overcoming internal pressures that dilute focus

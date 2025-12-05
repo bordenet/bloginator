@@ -223,9 +223,14 @@ class DraftGenerator:
         )
         audience_context = audience_contexts.get(audience, "general professional audience")
 
-        # Render system prompt with context
+        # Fetch voice samples from corpus to help LLM emulate author's style
+        voice_samples = self._get_voice_samples(keywords)
+
+        # Render system prompt with context and voice samples
         system_prompt = prompt_template.render_system_prompt(
-            classification_guidance=classification_guidance, audience_context=audience_context
+            classification_guidance=classification_guidance,
+            audience_context=audience_context,
+            voice_samples=voice_samples,
         )
 
         # Render user prompt with variables
@@ -305,6 +310,63 @@ class DraftGenerator:
             context_parts.append("")  # Blank line
 
         return "\n".join(context_parts)
+
+    def _get_voice_samples(self, keywords: list[str], num_samples: int = 5) -> str:
+        """Fetch diverse voice samples from corpus to help LLM emulate author's style.
+
+        Args:
+            keywords: Keywords to use for sampling context
+            num_samples: Number of diverse samples to fetch
+
+        Returns:
+            Formatted voice samples string for inclusion in prompt
+        """
+        try:
+            # Get a diverse sample by using different query strategies
+            samples = []
+
+            # Sample 1: Use first keyword
+            if keywords:
+                results = self.searcher.search(keywords[0], n_results=2)
+                samples.extend(results)
+
+            # Sample 2: Use a general writing query to get different content
+            general_results = self.searcher.search("writing style examples", n_results=2)
+            samples.extend(general_results)
+
+            # Sample 3: If we have more keywords, use another
+            if len(keywords) > 1:
+                results = self.searcher.search(keywords[1], n_results=1)
+                samples.extend(results)
+
+            # Deduplicate by chunk_id and limit
+            seen_ids = set()
+            unique_samples = []
+            for sample in samples:
+                if sample.chunk_id not in seen_ids:
+                    seen_ids.add(sample.chunk_id)
+                    unique_samples.append(sample)
+                    if len(unique_samples) >= num_samples:
+                        break
+
+            if not unique_samples:
+                return ""
+
+            # Format samples for the prompt
+            sample_parts = []
+            for i, sample in enumerate(unique_samples, 1):
+                # Truncate long samples to ~200 words
+                content = sample.content
+                words = content.split()
+                if len(words) > 200:
+                    content = " ".join(words[:200]) + "..."
+                sample_parts.append(f"[Sample {i}]\n{content}\n")
+
+            return "\n".join(sample_parts)
+
+        except Exception as e:
+            logger.warning(f"Failed to fetch voice samples: {e}")
+            return ""
 
     def refine_section(
         self,
