@@ -62,6 +62,17 @@ It does NOT use any LLM - just hardcoded content for specific topics.
 - For real generation, Claude can act as the LLM via assistant mode
 - NEVER switch to Ollama or other LLMs without explicit user request
 
+## CRITICAL: Documentation Standards
+
+### No Hyperbolic Language
+
+NEVER use sensational or marketing language in documentation:
+
+- **Banned phrases**: "production-grade", "world-class", "game-changing", "revolutionary",
+  "cutting-edge", "unparalleled", "best-in-class", "enterprise-ready"
+- **Instead**: Use factual, specific descriptions of what the code does
+- **Example**: "Handles 1000 documents/minute" not "blazing fast performance"
+
 ## Mandatory Coding Standards
 
 ### Python Style Guide
@@ -74,7 +85,7 @@ All Python code MUST comply with `docs/PYTHON_STYLE_GUIDE.md`. Key requirements:
 - **Function length**: Target ≤50 lines, maximum 100 lines
 - **Parameters**: ≤5 per function, use dataclass/dict for more
 - **Import order**: stdlib → third-party → local (enforced by isort)
-- **Max file length**: 400 lines maximum. Strive for ~250 lines
+- **Max file length**: 300 lines maximum. Strive for ~250 lines
 
 ## Mandatory Quality Gates
 
@@ -95,7 +106,7 @@ mypy src/bloginator/models src/bloginator/extraction src/bloginator/search \
 # Docstring checking
 pydocstyle src/bloginator
 
-# Tests with coverage (minimum 70%)
+# Tests with coverage
 pytest --cov=src/bloginator --cov-fail-under=70
 ```
 
@@ -213,4 +224,4 @@ pytest --cov=src/bloginator --cov-report=term-missing
 - **Target for new code**: 80%+
 - **Critical paths**: 90%+ recommended
 
-Current coverage: ~76% (as of 2025-12-05)
+Current coverage: ~73% (as of 2025-12-05)

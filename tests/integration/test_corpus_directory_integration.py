@@ -285,13 +285,15 @@ class TestMixedFileTypes:
         test_dir.mkdir()
 
         (test_dir / "doc.pdf").write_bytes(b"%PDF")
-        (test_dir / "image.jpg").write_bytes(b"JPG")
-        (test_dir / "script.py").write_bytes(b"print()")
+        (test_dir / "image.jpg").write_bytes(b"JPG")  # Now supported (OCR)
+        (test_dir / "script.py").write_bytes(b"print()")  # Not supported
         (test_dir / "readme.md").write_text("# README")
-        (test_dir / "archive.zip").write_bytes(b"PK")
+        (test_dir / "archive.zip").write_bytes(b"PK")  # Not supported
 
         scan = scanner.scan_directory(test_dir)
 
-        assert scan.total_files == 2
+        # pdf, jpg, md are supported; py and zip are not
+        assert scan.total_files == 3
         assert scan.by_format.get("pdf", 0) == 1
         assert scan.by_format.get("md", 0) == 1
+        assert scan.by_format.get("jpg", 0) == 1

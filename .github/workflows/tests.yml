@@ -42,17 +42,14 @@ jobs:
           echo "Current coverage: ${COVERAGE}%"
 
           # Set minimum coverage threshold
-          # Current: 82.5%, Target: 70% (professional standard)
           MIN_COVERAGE=70.0
 
           # Compare coverage (using bc for floating point comparison)
           if (( $(echo "$COVERAGE < $MIN_COVERAGE" | bc -l) )); then
             echo "❌ Coverage ${COVERAGE}% is below minimum threshold ${MIN_COVERAGE}%"
-            echo "Target: 70% (professional standard)"
             exit 1
           else
             echo "✅ Coverage ${COVERAGE}% meets minimum threshold ${MIN_COVERAGE}%"
-            echo "Target: 70% (professional standard)"
           fi
 
       - name: Upload coverage to Codecov

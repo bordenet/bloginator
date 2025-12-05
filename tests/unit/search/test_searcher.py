@@ -231,6 +231,26 @@ class TestCorpusSearcher:
         assert stats["total_chunks"] == 3  # We indexed 3 chunks
         assert stats["collection_name"] == "bloginator_corpus"
 
+    def test_batch_search(self, test_index: Path) -> None:
+        """Test batch search with multiple queries."""
+        searcher = CorpusSearcher(index_dir=test_index)
+
+        queries = ["agile", "leadership", "engineering"]
+        results = searcher.batch_search(queries, n_results=2)
+
+        assert len(results) == 3  # One result list per query
+        for query_results in results:
+            assert isinstance(query_results, list)
+            assert len(query_results) <= 2
+
+    def test_batch_search_empty_queries(self, test_index: Path) -> None:
+        """Test batch search with empty query list."""
+        searcher = CorpusSearcher(index_dir=test_index)
+
+        results = searcher.batch_search([], n_results=5)
+
+        assert results == []
+
 
 class TestSearchResult:
     """Test SearchResult class."""

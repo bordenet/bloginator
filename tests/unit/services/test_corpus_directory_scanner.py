@@ -74,7 +74,7 @@ class TestFormatDetection:
         assert scanner._is_supported_format(f"document{ext}")
         assert scanner._is_supported_format(f"DOCUMENT{ext.upper()}")
 
-    @pytest.mark.parametrize("ext", [".exe", ".jpg", ".zip", ".html", ".py"])
+    @pytest.mark.parametrize("ext", [".exe", ".zip", ".py", ".css", ".js"])
     def test_is_unsupported_format(self, ext: str, scanner: DirectoryScanner):
         """Unsupported file extensions should be rejected."""
         assert not scanner._is_supported_format(f"file{ext}")
@@ -176,15 +176,18 @@ class TestDirectoryScanning:
         test_dir.mkdir()
 
         (test_dir / "doc.pdf").write_bytes(b"%PDF")
-        (test_dir / "image.jpg").write_bytes(b"JPG")
-        (test_dir / "script.py").write_bytes(b"print()")
+        (test_dir / "image.jpg").write_bytes(b"JPG")  # Now supported (OCR)
+        (test_dir / "script.py").write_bytes(b"print()")  # Not supported
         (test_dir / "readme.md").write_text("# README")
+        (test_dir / "archive.zip").write_bytes(b"PK")  # Not supported
 
         result = scanner.scan_directory(test_dir)
 
-        assert result.total_files == 2
+        # pdf, jpg, md are supported; py and zip are not
+        assert result.total_files == 3
         assert result.by_format.get("pdf", 0) == 1
         assert result.by_format.get("md", 0) == 1
+        assert result.by_format.get("jpg", 0) == 1
 
 
 class TestPatternFiltering:
