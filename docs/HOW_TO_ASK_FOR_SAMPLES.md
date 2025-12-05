@@ -9,7 +9,7 @@ Generate end-to-end blog samples in mock LLM mode (you as the LLM) for these top
 
 [Paste your topic list here with title, keywords, and thesis for each]
 
-Run them in parallel using run-e2e.sh --generate-only, respond to LLM requests automatically,
+Run them in parallel using scripts/run-e2e.sh --generate-only, respond to LLM requests automatically,
 and provide a quality assessment summary including:
 - Topic alignment (does content match the requested subject?)
 - Word counts
@@ -33,14 +33,14 @@ Generate end-to-end blog samples in mock LLM mode (you as the LLM) for these top
    Thesis: Effective 15-minute daily stand-ups stay focused and energizing
            by avoiding status reports and tangent debates.
 
-Run them in parallel using run-e2e.sh --generate-only, respond to LLM requests automatically,
+Run them in parallel using scripts/run-e2e.sh --generate-only, respond to LLM requests automatically,
 and provide a quality assessment summary.
 ```
 
 ## What Claude Will Do
 
 1. **Verify Mock Mode**: Check `.env` has `BLOGINATOR_LLM_MOCK=assistant`
-2. **Launch Generators**: Start `run-e2e.sh --generate-only` for each blog in parallel
+2. **Launch Generators**: Start `scripts/run-e2e.sh --generate-only` for each blog in parallel
 3. **Auto-Respond**: Run `scripts/respond-to-llm-requests.py` in a loop to handle LLM requests
 4. **Monitor Progress**: Track generation status for all blogs
 5. **Quality Assessment**: Review generated content and report:

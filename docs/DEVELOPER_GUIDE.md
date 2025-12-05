@@ -261,13 +261,13 @@ src/bloginator/
 3. **Run quality checks**:
    ```bash
    # Quick validation (fast tests only)
-   ./validate-monorepo.sh --quick
+   ./scripts/validate-monorepo.sh --quick
 
    # Full validation
-   ./validate-monorepo.sh
+   ./scripts/validate-monorepo.sh
 
    # Auto-fix formatting
-   ./validate-monorepo.sh --fix
+   ./scripts/validate-monorepo.sh --fix
    ```
 
 4. **Commit changes**:
@@ -876,7 +876,7 @@ pytest tests/benchmarks/ --benchmark-only
 1. **Fork and clone** repository
 2. **Create feature branch** from `main`
 3. **Implement changes** with tests
-4. **Run validation**: `./validate-monorepo.sh`
+4. **Run validation**: `./scripts/validate-monorepo.sh`
 5. **Commit** with conventional commit message
 6. **Push** to your fork
 7. **Create PR** with description

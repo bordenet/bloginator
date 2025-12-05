@@ -25,7 +25,7 @@ working in parallel on separate machines. Both coders push to `origin main` incr
 
 ### 3. Code Quality Standards (NON-NEGOTIABLE)
 All code MUST:
-- Pass `./validate-monorepo.sh --all -y`
+- Pass `./scripts/validate-monorepo.sh --all -y`
 - Pass all pre-commit hooks
 - Have 80%+ test coverage for new code
 - Include comprehensive docstrings (Google style)
@@ -36,7 +36,7 @@ All code MUST:
 ```bash
 git pull --rebase origin main
 source .venv/bin/activate
-./validate-monorepo.sh --all -y
+./scripts/validate-monorepo.sh --all -y
 # Update this document with progress
 git add -A
 git commit -m "feat(tests): <descriptive message>"
@@ -223,9 +223,9 @@ Both coders have successfully completed their phases:
   - 28 existing E2E tests
 
 **Validation Status:**
-- `./validate-monorepo.sh --all -y` passes completely
+- `./scripts/validate-monorepo.sh --all -y` passes completely
 - All pre-commit hooks pass
-- Coverage: 74.66% (exceeds 70% minimum)
+- Coverage: ~76% (exceeds 70% minimum)
 
 ---
 
