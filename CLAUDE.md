@@ -38,34 +38,43 @@ A pre-commit hook scrutinizes:
 
 ## CRITICAL: LLM Mode Configuration
 
-### Mock Mode: Claude as the LLM
+### Available LLM Modes
 
-When running Bloginator for blog generation OR end-to-end testing:
-- The `.env` file MUST have `BLOGINATOR_LLM_MOCK=assistant`
-- The `.env` file MUST have `BLOGINATOR_LLM_PROVIDER=mock`
-- **Claude (the AI assistant in this conversation) acts as the LLM** by responding to requests
-- Claude uses its FULL MODEL capabilities to serve these requests
-- Claude reads request files from `.bloginator/llm_requests/` and writes responses to `.bloginator/llm_responses/`
-- Use `scripts/auto_respond.py` to automatically generate LLM responses (Claude reads requests and writes high-quality responses)
+The `BLOGINATOR_LLM_MOCK` environment variable controls LLM behavior:
 
-### Important: No Anthropic API Key Required
+| Value | Client | Use Case |
+|-------|--------|----------|
+| `true` | `MockLLMClient` | Unit tests - returns canned responses |
+| `interactive` | `InteractiveLLMClient` | Human-in-the-loop via terminal prompts |
+| `assistant` | `AssistantLLMClient` | File-based communication for AI agents |
+| *(unset)* | Real LLM client | Production use with Ollama/OpenAI/Anthropic |
 
-- The user does NOT have an Anthropic API key
-- The user does NOT want to use external LLM services (Ollama, OpenAI, etc.)
-- Claude Code itself (the AI agent) IS the LLM for all testing and generation
-- This "mock" mode is actually Claude providing real, high-quality responses
+**Note**: `BLOGINATOR_LLM_MOCK` takes precedence over `BLOGINATOR_LLM_PROVIDER`.
+
+### Assistant Mode (Claude as the LLM)
+
+When `BLOGINATOR_LLM_MOCK=assistant`:
+1. Bloginator writes requests to `.bloginator/llm_requests/request_NNNN.json`
+2. Bloginator waits for `.bloginator/llm_responses/response_NNNN.json`
+3. Claude (or another AI agent) reads requests and writes responses
+
+To act as the LLM backend:
+1. Set `BLOGINATOR_LLM_MOCK=assistant` in `.env`
+2. Run a bloginator command (e.g., `bloginator outline "Topic"`)
+3. Monitor `.bloginator/llm_requests/` for new request files
+4. Read the request, generate a response, write to `.bloginator/llm_responses/`
+
+### Demo Script
+
+`scripts/auto_respond.py` provides **template-based** responses for demos.
+It does NOT use any LLM - just hardcoded content for specific topics.
+
+### No External LLM Required
+
+- The user does NOT have external LLM API keys configured
+- For testing, use `BLOGINATOR_LLM_MOCK=true` (canned responses)
+- For real generation, Claude can act as the LLM via assistant mode
 - NEVER switch to Ollama or other LLMs without explicit user request
-
-### Testing and Validation
-
-When the user asks to "run critical end-to-end tests":
-
-1. Ensure `BLOGINATOR_LLM_MOCK=assistant` and `BLOGINATOR_LLM_PROVIDER=mock` in `.env`
-2. Run the test commands (e.g., `bloginator outline`, `bloginator draft`)
-3. Claude monitors `.bloginator/llm_requests/` and provides responses via `.bloginator/llm_responses/`
-4. This tests the full pipeline with Claude as the LLM backend
-
-The user wants Claude to **BE** the LLM, not to **USE** an external LLM.
 
 ## Mandatory Coding Standards
 
@@ -79,6 +88,7 @@ All Python code MUST comply with `docs/PYTHON_STYLE_GUIDE.md`. Key requirements:
 - **Function length**: Target ≤50 lines, maximum 100 lines
 - **Parameters**: ≤5 per function, use dataclass/dict for more
 - **Import order**: stdlib → third-party → local (enforced by isort)
+- **Max file length**: 400 lines maximum. Strive for ~250 lines
 
 ### Go Style Guide
 
@@ -88,6 +98,7 @@ All Go code MUST comply with `docs/GO_STYLE_GUIDE.md`. Key requirements:
 - **Function length**: Target ≤50 lines, maximum 100 lines
 - **Parameters**: ≤5 per function, context first, error last
 - **Never panic**: Return errors from library code
+- **Max file length**: 400 lines maximum. Strive for ~250 lines
 
 ## Mandatory Quality Gates
 
