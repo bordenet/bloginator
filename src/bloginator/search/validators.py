@@ -13,18 +13,23 @@ def validate_search_results(
     expected_keywords: list[str],
     similarity_threshold: float = 0.01,
     min_keyword_matches: int = 1,
+    high_similarity_threshold: float = 0.4,
 ) -> tuple[list[SearchResult], list[str]]:
     """Validate search results for topic relevance.
 
     Filters results based on:
     1. Similarity score threshold
-    2. Keyword presence in content
+    2. Keyword presence in content (relaxed for high-similarity results)
+
+    High-similarity results (>= high_similarity_threshold) are accepted even
+    without keyword matches, since strong semantic similarity indicates relevance.
 
     Args:
         results: Search results to validate
         expected_keywords: Keywords that should appear in results
         similarity_threshold: Minimum similarity score to accept
         min_keyword_matches: Minimum keywords that must appear in content
+        high_similarity_threshold: Above this, skip keyword validation
 
     Returns:
         Tuple of (filtered_results, warnings)
@@ -40,9 +45,26 @@ def validate_search_results(
             )
             continue
 
-        # Check 2: Keyword presence
+        # High-similarity results bypass keyword validation
+        # Strong semantic match is sufficient evidence of relevance
+        if result.similarity_score >= high_similarity_threshold:
+            filtered_results.append(result)
+            continue
+
+        # Check 2: Keyword presence (only for moderate-similarity results)
+        # Handle hyphenated keywords by also checking for individual words
         content_lower = result.content.lower()
-        matches = sum(1 for kw in expected_keywords if kw.lower() in content_lower)
+        matches = 0
+        for kw in expected_keywords:
+            kw_lower = kw.lower()
+            if kw_lower in content_lower:
+                matches += 1
+            elif "-" in kw_lower:
+                # For hyphenated keywords like "product-management",
+                # check if all parts appear in the content
+                parts = kw_lower.split("-")
+                if all(part in content_lower for part in parts):
+                    matches += 1
 
         if matches < min_keyword_matches:
             warnings.append(
