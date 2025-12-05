@@ -37,25 +37,29 @@ def analyze_section_coverage(
             section.source_count = 0
             section.notes = "No corpus coverage found for this topic"
         else:
-            # Coverage based on:
-            # - Number of results (more = better coverage)
-            # - Similarity scores (higher = more relevant)
+            # Coverage calculation based on:
+            # - Best similarity score (top match matters most)
+            # - Average similarity across results
+            # - Number of results
             #
-            # NOTE: ChromaDB cosine similarity scores typically range 0.1-0.6
-            # where 0.3+ is a good match, 0.4+ is excellent.
-            # We normalize this to a 0-100% scale using these thresholds:
-            # - 0.0 similarity = 0% coverage
-            # - 0.2 similarity = 50% coverage (acceptable match)
-            # - 0.4+ similarity = 100% coverage (strong match)
+            # ChromaDB cosine similarity scores (after 1-distance conversion):
+            # - 0.5+ = strong match (excellent corpus coverage)
+            # - 0.3-0.5 = good match (adequate coverage)
+            # - 0.1-0.3 = weak match (limited coverage)
+            # - <0.1 = no real match
+            best_similarity = max(r.similarity_score for r in results)
             avg_similarity = sum(r.similarity_score for r in results) / len(results)
 
-            # Normalize similarity: 0.2 -> 50%, 0.4+ -> 100%
-            # Formula: min(avg_similarity / 0.4, 1.0) gives us 0-100% scale
-            # where 0.4 similarity = 100%
-            normalized_similarity = min(avg_similarity / 0.4, 1.0)
+            # Use best match as primary signal (80%) with average as secondary (20%)
+            # This ensures a strong single match counts heavily
+            effective_similarity = 0.8 * best_similarity + 0.2 * avg_similarity
 
-            # Result factor: having 5+ results is considered full coverage
-            result_factor = min(len(results) / 5.0, 1.0)
+            # More generous normalization: 0.3 similarity = 100% coverage
+            # This reflects that 0.3+ is genuinely a good semantic match
+            normalized_similarity = min(effective_similarity / 0.3, 1.0)
+
+            # Result factor: having 3+ results is full coverage (was 5)
+            result_factor = min(len(results) / 3.0, 1.0)
 
             section.coverage_pct = (result_factor * normalized_similarity) * 100.0
 
