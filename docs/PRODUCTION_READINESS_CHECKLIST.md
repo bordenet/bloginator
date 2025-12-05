@@ -426,7 +426,6 @@ gh run list --limit 1
 
 **Blockers**:
 - LLM provider must be configured (Ollama, Interactive, or Anthropic)
-- Test coverage needs to reach 80%+ (currently 50.79%)
 - Specificity in generated content needs improvement
 
 ---
@@ -440,7 +439,6 @@ gh run list --limit 1
 - [ ] Review generated content for specificity
 
 ### Short-term
-- [ ] Increase test coverage to 80%+ (currently 50.79%)
 - [ ] Test full document generation workflow end-to-end
 - [ ] Identify corpus gaps and add material
 - [ ] Run full 10-test-case optimization (see `docs/FULL_OPTIMIZATION_RUN_PLAN.md`)
