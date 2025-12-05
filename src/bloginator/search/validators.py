@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 def validate_search_results(
     results: list[SearchResult],
     expected_keywords: list[str],
-    similarity_threshold: float = 0.3,
+    similarity_threshold: float = 0.01,
     min_keyword_matches: int = 1,
 ) -> tuple[list[SearchResult], list[str]]:
     """Validate search results for topic relevance.

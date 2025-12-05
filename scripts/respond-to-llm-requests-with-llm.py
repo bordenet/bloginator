@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 """Auto-responder for AssistantLLMClient requests during optimization experiments.
 
+⚠️  DEPRECATED: This script generates template-based responses, not actual
+    LLM-quality content. It was created for optimization experiments only.
+
+    For production blog generation, use BLOGINATOR_LLM_MOCK=assistant mode
+    with an AI assistant (Claude) providing responses. See docs/QUICK_START_GUIDE.md.
+
 This script monitors .bloginator/llm_requests/ and automatically generates
 responses for outline and draft generation requests. For evaluation requests,
 it uses a simplified scoring model.
@@ -9,9 +15,29 @@ This enables running optimization experiments without manual intervention.
 """
 
 import json
+import sys
 import time
+import warnings
 from pathlib import Path
 from typing import Any
+
+
+# Emit deprecation warning at import time
+warnings.warn(
+    "respond-to-llm-requests-with-llm.py is DEPRECATED. "
+    "Use BLOGINATOR_LLM_MOCK=assistant mode with an AI assistant instead. "
+    "See docs/QUICK_START_GUIDE.md for the recommended workflow.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
+# Print warning to stderr for visibility
+print(
+    "\n⚠️  WARNING: This script is DEPRECATED and produces template-based content.\n"
+    "   For quality blog generation, use BLOGINATOR_LLM_MOCK=assistant mode.\n"
+    "   See docs/QUICK_START_GUIDE.md for details.\n",
+    file=sys.stderr,
+)
 
 
 def generate_outline_response(request: dict[str, Any]) -> str:
