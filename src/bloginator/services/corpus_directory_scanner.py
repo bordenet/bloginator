@@ -303,6 +303,10 @@ class DirectoryScanner:
         except (OSError, PermissionError):
             return files
 
+        # Check for .bloginator-ignore marker file - skip entire directory if present
+        if (directory / ".bloginator-ignore").exists():
+            return files
+
         for entry in entries:
             # Skip hidden files/directories
             if entry.name.startswith("."):

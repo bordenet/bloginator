@@ -264,11 +264,17 @@ def collect_source_files(
         supported_extensions = set(corpus_config.extraction.include_extensions)
         ignore_patterns = corpus_config.extraction.ignore_patterns
 
-        for root, _dirs, filenames in os.walk(
+        for root, dirs, filenames in os.walk(
             resolved_path,
             followlinks=corpus_config.extraction.follow_symlinks,
         ):
             root_path = Path(root)
+
+            # Skip directories containing .bloginator-ignore marker file
+            if (root_path / ".bloginator-ignore").exists():
+                dirs.clear()  # Prevent descending into subdirectories
+                continue
+
             for filename in filenames:
                 # Skip temp files
                 if is_temp_file(filename):
