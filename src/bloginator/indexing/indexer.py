@@ -122,6 +122,7 @@ class CorpusIndexer:
                 "char_start": chunk.char_start,
                 "char_end": chunk.char_end,
                 # Document-level metadata
+                "source": document.filename,  # Critical: used by outline/draft prompts
                 "filename": document.filename,
                 "format": document.format,
                 "quality_rating": str(
