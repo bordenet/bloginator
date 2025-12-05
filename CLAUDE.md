@@ -5,10 +5,6 @@ without exception for all work on this repository.
 
 ## CRITICAL: Repository Cleanliness
 
-### Active Implementation Plans
-
-- **Topic Drift Fix**: A plan to address topic drift in blog generation is being tracked in [docs/IMPLEMENTATION_PLAN_TOPIC_DRIFT_FIX.md](docs/IMPLEMENTATION_PLAN_TOPIC_DRIFT_FIX.md). This document should be updated regularly as work progresses.
-
 ### Temporary Files Policy
 
 - ALL temporary/experimental scripts go in `tmp/` directory (git-ignored)
@@ -25,16 +21,6 @@ without exception for all work on this repository.
 - Write comprehensive prompts to `prompts/` for context handoffs
 - Reference prompt files instead of pasting huge inline content
 - Each prompt should be 200-400 lines max, focused on execution steps
-
-### Pre-commit Hook Enforcement
-
-A pre-commit hook scrutinizes:
-
-- New shell scripts in root (blocked unless explicitly maintained)
-- New markdown files in root (blocked unless documentation)
-- Ensures tmp/, blogs/, prompts/experimentation/ are git-ignored
-
-**Violating this will fail CI and waste everyone's time.**
 
 ## CRITICAL: LLM Mode Configuration
 
@@ -88,16 +74,6 @@ All Python code MUST comply with `docs/PYTHON_STYLE_GUIDE.md`. Key requirements:
 - **Function length**: Target ≤50 lines, maximum 100 lines
 - **Parameters**: ≤5 per function, use dataclass/dict for more
 - **Import order**: stdlib → third-party → local (enforced by isort)
-- **Max file length**: 400 lines maximum. Strive for ~250 lines
-
-### Go Style Guide
-
-All Go code MUST comply with `docs/GO_STYLE_GUIDE.md`. Key requirements:
-
-- **Error wrapping**: Use `fmt.Errorf("context: %w", err)` for all error returns
-- **Function length**: Target ≤50 lines, maximum 100 lines
-- **Parameters**: ≤5 per function, context first, error last
-- **Never panic**: Return errors from library code
 - **Max file length**: 400 lines maximum. Strive for ~250 lines
 
 ## Mandatory Quality Gates
@@ -237,4 +213,4 @@ pytest --cov=src/bloginator --cov-report=term-missing
 - **Target for new code**: 80%+
 - **Critical paths**: 90%+ recommended
 
-Current coverage: ~78% (as of 2024-11-25)
+Current coverage: ~76% (as of 2025-12-05)
