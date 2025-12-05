@@ -147,12 +147,14 @@ Third line too.
 
     def test_analyze_section_coverage_low(self, generator, mock_searcher):
         """Test coverage analysis with poor results."""
-        # Mock low-quality results
+        # Mock low-quality results with distance=0.85 (similarity=0.15)
+        # Coverage calc: effective_sim=0.15, normalized=0.15/0.25=0.6,
+        # result_factor=0.5 (1 result), coverage=0.6*0.5*100=30%
         search_results = [
             SearchResult(
                 chunk_id="chunk1",
                 content="Content",
-                distance=0.7,
+                distance=0.85,
                 metadata={"document_id": "doc1"},
             )
         ]
@@ -326,11 +328,14 @@ Understanding test coverage
                     )
                 ] * 10
             else:
+                # Use distance=0.85 (similarity=0.15) to get below 50% coverage
+                # Coverage calc: effective_sim=0.15, normalized=0.15/0.25=0.6,
+                # result_factor=0.5 (1 result), coverage=0.6*0.5*100=30%
                 return [
                     SearchResult(
                         chunk_id="c2",
                         content="Coverage information",
-                        distance=0.7,
+                        distance=0.85,
                         metadata={"document_id": "doc2"},
                     )
                 ]
