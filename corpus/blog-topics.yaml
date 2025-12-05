@@ -1,0 +1,108 @@
+# Known-Good Blog Topics for Generation
+# ======================================
+# These are curated, high-quality blog topic specifications.
+# Use with: ./scripts/generate-blogs-from-topics.sh corpus/blog-topics.yaml
+
+topics:
+  # ============================================================================
+  # Recruiting & Interviewing Series
+  # ============================================================================
+  - title: "What Great Hiring Managers Actually Do"
+    keywords: ["recruiting", "interviewing", "hiring manager"]
+    audience: "engineering-leaders"
+    summary: |
+      Defines the hiring manager's central role as the process owner. Covers how
+      they calibrate expectations, select interviewers, and make final decisions
+      objectively.
+    sections:
+      - Purpose and impact of the hiring manager
+      - Translating business needs into hiring criteria
+      - Partnering with recruiters and interviewers
+      - Common pitfalls (micromanagement, unclear bar)
+      - How to build a consistent hiring rhythm
+
+  - title: "How Strong Interviewers Shape Hiring Decisions"
+    keywords: ["recruiting", "interviewing", "loops"]
+    audience: "senior-engineers"
+    summary: |
+      Explains what good interviewers actually do: prepare thoroughly, ask
+      consistent questions, and document crisp, behavioral evidence tied to
+      competencies.
+    sections:
+      - Purpose of the interviewer in the loop
+      - Pre-interview preparation checklist
+      - Writing strong feedback tied to competencies
+      - Dos and don'ts in interviewer behavior
+      - Measuring interviewer effectiveness over time
+
+  - title: "How to Run Smarter Interview Loops"
+    keywords: ["interviewing", "recruiting", "pre-loop brief", "post-loop debrief"]
+    audience: "engineering-leaders"
+    summary: |
+      Describes how structured interview loops improve signal quality and
+      candidate experience. Covers how to conduct pre-brief and post-brief
+      meetings effectively.
+    sections:
+      - Anatomy of a clean interview loop
+      - Structuring pre-brief sessions to align questions
+      - Keeping candidates comfortable and informed
+      - Running objective post-loop debriefs
+      - Loop-level documentation and decision hygiene
+
+  # ============================================================================
+  # Agile Rituals Series
+  # ============================================================================
+  - title: "Daily Stand-Up Meetings That Don't Suck"
+    keywords: ["agile", "ritual", "best-practices", "stand-up"]
+    audience: "ic-engineers"
+    summary: |
+      Provides best practices for running 15-minute daily stand-ups that remain
+      focused, consistent, and energizing.
+    sections:
+      - Purpose of the stand-up
+      - Common anti-patterns (status reports, tangent debates)
+      - How to facilitate efficiently in 15 minutes
+      - Techniques for distributed/hybrid teams
+      - Example agenda and checklist
+
+  - title: "Running an Effective Sprint Planning Session"
+    keywords: ["agile", "ritual", "sprint planning", "best-practices"]
+    audience: "all-disciplines"
+    summary: |
+      Explains how to structure sprint planning meetings that yield clear
+      commitments, realistic estimates, and shared context.
+    sections:
+      - Objectives of sprint planning
+      - The pre-work: backlog readiness and story sizing
+      - Recommended flow and time allocation
+      - Identifying blockers early
+      - Linking sprint goals to performance metrics
+
+  # ============================================================================
+  # Operational Excellence Series
+  # ============================================================================
+  - title: "Running a Fast, Calm Incident Response"
+    keywords: ["oe", "incident-management"]
+    audience: "devops-sre"
+    summary: |
+      Explores how teams use Slack and bots to manage incidents efficiently
+      while maintaining composure and focus.
+    sections:
+      - Anatomy of a production incident
+      - Roles and escalation paths
+      - Using Slack and automation effectively
+      - Real-time communication principles
+      - Recovery vs. resolution mindset
+
+  - title: "The Role of the Incident Commander"
+    keywords: ["oe", "incident-management", "incident commander"]
+    audience: "senior-engineers"
+    summary: |
+      Deep dive into the "Incident Commander" role — the single thread of
+      authority who drives incident mitigation and decision-making.
+    sections:
+      - Responsibilities and behaviors of an IC
+      - Delegation patterns and support roles (comms, scribe)
+      - Maintaining calm authority under pressure
+      - When to hand off command
+
