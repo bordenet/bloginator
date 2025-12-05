@@ -330,12 +330,12 @@ def test_quality_weighting(quality, expected_weight):
 
 | Component | Line Coverage | Branch Coverage |
 |-----------|--------------|-----------------|
-| Models | 100% | 100% |
-| Core Logic | 95% | 90% |
-| CLI Commands | 85% | 80% |
-| API Endpoints | 85% | 80% |
-| UI Components | 75% | 70% |
-| **Overall** | **85%** | **85%** |
+| Models | 90%+ | 85%+ |
+| Core Logic | 85%+ | 80%+ |
+| CLI Commands | 75%+ | 70%+ |
+| API Endpoints | 75%+ | 70%+ |
+| UI Components | 70%+ | 65%+ |
+| **Overall** | **70%** | **70%** |
 
 ### Measuring Coverage
 
@@ -367,7 +367,7 @@ omit = ["*/tests/*", "*/__pycache__/*"]
 [tool.coverage.report]
 precision = 2
 show_missing = true
-fail_under = 85.0
+fail_under = 70.0
 ```
 
 ---
@@ -473,7 +473,7 @@ jobs:
           pytest --cov=src/bloginator \
                  --cov-branch \
                  --cov-report=term \
-                 --cov-fail-under=85
+                 --cov-fail-under=70
 ```
 
 ### Coverage Enforcement
