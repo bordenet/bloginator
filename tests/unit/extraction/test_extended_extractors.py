@@ -136,12 +136,13 @@ class TestExtractTextFromXml:
         assert "Nested paragraph text" in text
 
     def test_extract_xml_invalid(self, tmp_path: Path) -> None:
-        """Test extracting from invalid XML raises error."""
+        """Test extracting from invalid XML returns empty string (graceful degradation)."""
         xml_path = tmp_path / "invalid.xml"
         xml_path.write_text("This is not valid XML <unclosed>")
 
-        with pytest.raises(ValueError, match="Failed to parse XML"):
-            extract_text_from_xml(xml_path)
+        # Should return empty string, not raise - graceful degradation
+        result = extract_text_from_xml(xml_path)
+        assert result == ""
 
 
 class TestExtractTextFromImage:

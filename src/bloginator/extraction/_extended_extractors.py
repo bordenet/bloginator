@@ -164,16 +164,16 @@ def extract_text_from_xml(xml_path: Path) -> str:
     """Extract text content from XML file.
 
     Recursively extracts all text content from XML elements.
+    Returns empty string for malformed XML (graceful degradation).
 
     Args:
         xml_path: Path to XML file
 
     Returns:
-        Extracted text content
+        Extracted text content (empty if parsing fails)
 
     Raises:
         FileNotFoundError: If XML file does not exist
-        ValueError: If file cannot be parsed as XML
     """
     if not xml_path.exists():
         raise FileNotFoundError(f"XML file not found: {xml_path}")
@@ -194,10 +194,16 @@ def extract_text_from_xml(xml_path: Path) -> str:
             return " ".join(texts)
 
         return get_text(root)
-    except ElementTree.ParseError as e:
-        raise ValueError(f"Failed to parse XML: {e}") from e
-    except Exception as e:
-        raise ValueError(f"Failed to extract text from XML: {e}") from e
+    except ElementTree.ParseError:
+        # Malformed XML - return empty, will be skipped as empty_content
+        return ""
+    except Exception:
+        # Other errors (encoding, etc.) - graceful degradation
+        return ""
+
+
+# Minimum file size for image OCR (20KB) - smaller images are likely icons/decorations
+MIN_IMAGE_SIZE_FOR_OCR = 20 * 1024
 
 
 def extract_text_from_image(image_path: Path) -> str:
@@ -206,11 +212,14 @@ def extract_text_from_image(image_path: Path) -> str:
     Uses pytesseract for OCR when available.
     Supports: .png, .jpg, .jpeg, .webp
 
+    Skips images smaller than 20KB as they're likely icons or decorative
+    elements without meaningful text content.
+
     Args:
         image_path: Path to image file
 
     Returns:
-        Extracted text content (empty string if OCR unavailable)
+        Extracted text content (empty string if too small or OCR unavailable)
 
     Raises:
         FileNotFoundError: If image file does not exist
@@ -218,6 +227,11 @@ def extract_text_from_image(image_path: Path) -> str:
     """
     if not image_path.exists():
         raise FileNotFoundError(f"Image file not found: {image_path}")
+
+    # Skip tiny images - likely icons, bullets, or decorative elements
+    file_size = image_path.stat().st_size
+    if file_size < MIN_IMAGE_SIZE_FOR_OCR:
+        return ""  # Return empty - will be skipped as empty_content
 
     try:
         import pytesseract
