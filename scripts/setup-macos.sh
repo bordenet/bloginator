@@ -282,6 +282,68 @@ setup_dev_tools() {
         verbose "pre-commit already installed"
     fi
 
+    # ═══════════════════════════════════════════════════════════════════════════
+    # Document Extraction Dependencies
+    # ═══════════════════════════════════════════════════════════════════════════
+    task_start "Checking document extraction tools"
+
+    # antiword - Primary tool for extracting legacy .doc files (fast)
+    if ! command -v antiword &>/dev/null; then
+        task_start "Installing textract (includes antiword, unrtf)"
+        if confirm "Install textract for .doc/.rtf extraction?"; then
+            brew install textract 2>&1 | verbose
+            mark_cached "textract"
+            task_ok "textract installed (antiword + unrtf)"
+        else
+            task_warn "textract not installed - legacy .doc extraction will be slower"
+        fi
+    else
+        verbose "antiword already installed"
+    fi
+
+    # LibreOffice - Fallback for .doc files and more formats
+    if ! command -v soffice &>/dev/null; then
+        task_start "Installing LibreOffice (fallback for .doc extraction)"
+        if confirm "Install LibreOffice?"; then
+            brew install --cask libreoffice 2>&1 | verbose
+            mark_cached "libreoffice"
+            task_ok "LibreOffice installed"
+        else
+            task_warn "LibreOffice not installed - some document extraction may fail"
+        fi
+    else
+        verbose "LibreOffice already installed"
+    fi
+
+    # Tesseract OCR - Required for extracting text from images
+    if ! command -v tesseract &>/dev/null; then
+        task_start "Installing Tesseract OCR (for image extraction)"
+        if confirm "Install Tesseract?"; then
+            brew install tesseract 2>&1 | verbose
+            mark_cached "tesseract"
+            task_ok "Tesseract installed"
+        else
+            task_warn "Tesseract not installed - image text extraction will fail"
+        fi
+    else
+        verbose "Tesseract already installed"
+    fi
+
+    # poppler - Better PDF text extraction (pdftotext)
+    if ! command -v pdftotext &>/dev/null; then
+        task_start "Installing poppler (for PDF extraction)"
+        if confirm "Install poppler for better PDF extraction?"; then
+            brew install poppler 2>&1 | verbose
+            mark_cached "poppler"
+            task_ok "poppler installed"
+        else
+            verbose "poppler not installed - using Python PDF libraries only"
+        fi
+    else
+        verbose "poppler (pdftotext) already installed"
+    fi
+
+    task_ok "Document extraction tools ready"
     task_ok "Development tools ready"
 }
 
