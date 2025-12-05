@@ -1,4 +1,14 @@
-"""Coverage analysis for outline sections."""
+"""Coverage analysis for outline sections.
+
+CORPUS PHILOSOPHY:
+Keywords and thesis are HINTS, not strict filters. The corpus is the source of truth.
+- DEFAULT TO THE CORPUS: Use all relevant corpus content, even if not in keywords
+- DON'T BE LOSSY: Don't filter out valuable content just because it wasn't requested
+- BIAS FOR SOURCE MATERIAL: Strong corpus matches trump keyword matching
+- EXPAND FROM CORPUS: Capture the full richness of sources, not just keyword matches
+
+Coverage calculation uses generous thresholds to avoid discarding good content.
+"""
 
 from bloginator.models.outline import OutlineSection
 from bloginator.search import CorpusSearcher
@@ -124,6 +134,11 @@ def filter_by_keyword_match(
     keywords: list[str],
 ) -> list[OutlineSection]:
     """Filter sections to keep only those matching keywords.
+
+    WARNING: Use sparingly! Per corpus philosophy, we should BIAS FOR SOURCE MATERIAL.
+    Only use this when the LLM has clearly hallucinated off-topic content.
+    If corpus has good coverage on a topic, prefer keeping sections even without
+    exact keyword matches - thematic relevance via similarity score is more important.
 
     Args:
         sections: Sections to filter

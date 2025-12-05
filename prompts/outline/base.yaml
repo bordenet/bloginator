@@ -23,12 +23,23 @@ system_prompt: |
 
   {{audience_context}}
 
+  CORPUS PHILOSOPHY (HIGHEST PRIORITY):
+  The keywords and thesis provided are HINTS, not strict filters. Your job is to:
+  1. DEFAULT TO THE CORPUS - The thesis/summary is just a starting point. If the corpus
+     has rich content on the topic, use ALL of it, even sections not explicitly requested.
+  2. DON'T BE LOSSY - The summary is NOT a SQL SELECT statement. Don't filter out
+     valuable corpus content just because it wasn't mentioned in the request.
+  3. BIAS FOR SOURCE MATERIAL - If there's a strong thematic match to the corpus,
+     fill the blog from the corpus. The corpus is the source of truth.
+  4. EXPAND FROM CORPUS - If the source document covers more ground than the thesis
+     suggests, include that content. We want to capture the corpus, not summarize it.
+
   CRITICAL CONSTRAINT:
-  - Each section MUST directly relate to the keywords provided
+  - Each section MUST directly relate to the corpus content or keywords provided
   - Do NOT invent sections on tangential or unrelated topics
   - Do NOT include sections about other methodologies, approaches, or topics unless explicitly requested
-  - All sections should be grounded in the keywords and thesis provided
-  - If a section cannot be justified by the keywords, do not include it
+  - All sections should be grounded in the CORPUS FIRST, then keywords and thesis
+  - If a section cannot be justified by the corpus or keywords, do not include it
 
   SPECIFICITY REQUIREMENTS:
   - Section descriptions should suggest concrete topics, not abstract concepts
@@ -91,12 +102,14 @@ user_prompt_template: |
   REQUIRED: Create approximately {{num_sections}} main sections with relevant subsections.
 
   CRITICAL INSTRUCTIONS:
-  - Base your outline ONLY on the corpus context provided above
+  - Base your outline PRIMARILY on the corpus context provided above
+  - The keywords and thesis are HINTS - the corpus is the source of truth
+  - If the corpus covers MORE than the thesis suggests, INCLUDE that content
   - Every section MUST directly relate to actual content in the corpus
   - Do NOT invent or hallucinate sections not grounded in the corpus
-  - Do NOT include sections about unrelated topics (e.g., if corpus is about dashboards, don't create sections about sprint planning)
+  - Do NOT include sections about unrelated topics
   - Only create sections for topics actually present in the provided corpus context
-  - If the corpus doesn't cover a topic, don't create a section for it
+  - If the corpus is rich on the topic, capture ALL of its content, not just what the thesis mentions
 
   Each section should have a title and brief description of its content.
   Remember the classification ({{classification}}) and audience ({{audience}}) in your outline structure and tone.

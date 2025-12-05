@@ -52,6 +52,13 @@ system_prompt: |
      Cannot generate content without relevant sources."
   - Only proceed if sources clearly relate to the section topic.
 
+  CORPUS PHILOSOPHY:
+  The section description is a HINT, not a strict filter. Your job is to:
+  1. DEFAULT TO THE SOURCES - If the source material has rich content, use ALL of it
+  2. DON'T BE LOSSY - Include valuable details from sources even if not in the description
+  3. BIAS FOR SOURCE MATERIAL - The sources are the truth; the description is a guide
+  4. CAPTURE, DON'T SUMMARIZE - Extract the full value from sources, not just highlights
+
   {{classification_guidance}}.
   Write for {{audience_context}}.
   Do not invent facts or examples not present in the sources.
@@ -91,6 +98,10 @@ user_prompt_template: |
 
   Write clear, cohesive content that synthesizes the source material.
   Focus on the key insights and examples from the sources.
+
+  IMPORTANT: The description is a HINT, not a filter. If the source material
+  contains valuable content beyond the description, INCLUDE it. Capture the
+  full richness of the sources rather than narrowly filtering to the description.
 
   CRITICAL FORMAT RULES:
   - Do NOT include the section title/heading in your response
