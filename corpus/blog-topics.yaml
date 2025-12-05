@@ -643,3 +643,78 @@ topics:
       - Mentoring and growing engineers
       - Making technical decisions stick
       - Balancing hands-on work with leadership duties
+
+  - title: "Incident Priority and Severity Definitions"
+    keywords: ["incident-management", "priority", "severity", "P1", "P2", "P3", "Sev1", "Sev2", "Sev3"]
+    audience: "devops-sre"
+    summary: |
+      Defines canonical P1/P2/P3 (or Sev1/Sev2/Sev3) incident classifications.
+      Clarifies what each level means, response expectations, and why there is
+      no such thing as a P0 or Sev0—that's hyperbolic and counterproductive.
+    sections:
+      - Why consistent severity definitions matter
+      - P1/Sev1: Critical customer-impacting incidents
+      - P2/Sev2: Significant degradation requiring prompt attention
+      - P3/Sev3: Low-impact issues with standard response times
+      - Why P0/Sev0 doesn't exist and shouldn't be used
+      - Matching response SLAs to severity levels
+
+  - title: "Understanding the Differences Between the WHAT and the HOW in Product Definition"
+    keywords: ["product-management", "requirements", "what-vs-how", "engineering", "collaboration"]
+    audience: "product-and-engineering"
+    summary: |
+      Clarifies the distinction between WHAT (the problem to solve, the outcome)
+      and HOW (the implementation approach). Explains why product owns the WHAT
+      and engineering owns the HOW, and how collaboration happens at the boundary.
+    sections:
+      - Defining the WHAT: outcomes, requirements, and customer value
+      - Defining the HOW: implementation, architecture, and trade-offs
+      - Why blurring the boundary creates friction
+      - Healthy collaboration patterns between product and engineering
+      - Examples of good WHAT/HOW separation in practice
+
+  # ============================================================================
+  # Career Ladder Series
+  # Source: smb://lucybear-nas._smb._tcp.local/scratch/TL/MattB/a.Recruiting/Career_Ladder/
+  # ============================================================================
+  - title: "SDE Career Ladder"
+    keywords: ["career-ladder", "SDE", "software-engineer", "levels", "growth", "promotion"]
+    audience: "ic-engineers"
+    summary: |
+      Defines the Software Development Engineer career ladder from entry-level
+      through Principal. Describes expectations, scope, and competencies at each
+      level to guide career growth and promotion decisions.
+    sections:
+      - Overview of the SDE career track
+      - SDE I: Learning the craft and delivering with guidance
+      - SDE II: Independent contribution and growing scope
+      - Senior SDE: Technical leadership and mentoring
+      - Staff and Principal SDE: Organizational impact and strategy
+
+  - title: "SRE Career Ladder"
+    keywords: ["career-ladder", "SRE", "site-reliability", "levels", "growth", "promotion"]
+    audience: "devops-sre"
+    summary: |
+      Defines the Site Reliability Engineer career ladder from entry-level
+      through Principal. Describes expectations for reliability, automation,
+      and operational excellence at each level.
+    sections:
+      - Overview of the SRE career track
+      - SRE I: Foundations of reliability and on-call basics
+      - SRE II: Automation, monitoring, and incident response
+      - Senior SRE: System design and cross-team reliability
+      - Staff and Principal SRE: Reliability strategy and org-wide impact
+
+  - title: "MGR Career Ladder"
+    keywords: ["career-ladder", "manager", "engineering-manager", "levels", "growth", "promotion"]
+    audience: "engineering-leaders"
+    summary: |
+      Defines the Engineering Manager career ladder from first-time manager
+      through Director and beyond. Describes expectations for people leadership,
+      delivery, and organizational impact at each level.
+    sections:
+      - Overview of the management career track
+      - Manager: Leading a single team effectively
+      - Senior Manager: Leading multiple teams or complex domains
+      - Director: Organizational strategy and cross-functional leadership
+      - Senior Director and VP: Executive leadership and business impact
