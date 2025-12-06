@@ -617,6 +617,9 @@ topics:
       - Examples of effective SBI feedback
       - Common mistakes and how to avoid them
       - Making feedback a regular habit
+    generated:
+      outline: "blogs/sbi-feedback-outline_deux.json"
+      draft: "blogs/sbi-feedback-draft_deux.md"
 
   - title: "Leadership Terminology: A Practical Glossary"
     keywords: ["leadership", "terminology", "definitions", "management"]
@@ -646,6 +649,9 @@ topics:
       - Mentoring and growing engineers
       - Making technical decisions stick
       - Balancing hands-on work with leadership duties
+    generated:
+      outline: "blogs/technical-leadership-outline.json"
+      draft: "blogs/technical-leadership-draft.md"
 
   - title: "Incident Priority and Severity Definitions"
     keywords: ["incident-management", "priority", "severity", "P1", "P2", "P3", "Sev1", "Sev2", "Sev3"]
@@ -661,6 +667,9 @@ topics:
       - P3/Sev3: Low-impact issues with standard response times
       - Why P0/Sev0 doesn't exist and shouldn't be used
       - Matching response SLAs to severity levels
+    generated:
+      outline: "blogs/incident-priority-outline.json"
+      draft: "blogs/incident-priority-draft.md"
 
   - title: "Understanding the Differences Between the WHAT and the HOW in Product Definition"
     keywords: ["product-management", "requirements", "what-vs-how", "engineering", "collaboration"]
@@ -675,6 +684,9 @@ topics:
       - Why blurring the boundary creates friction
       - Healthy collaboration patterns between product and engineering
       - Examples of good WHAT/HOW separation in practice
+    generated:
+      outline: "blogs/what-vs-how-outline.json"
+      draft: "blogs/what-vs-how-draft.md"
 
   # ============================================================================
   # Career Ladder Series
@@ -693,6 +705,8 @@ topics:
       - SDE II: Independent contribution and growing scope
       - Senior SDE: Technical leadership and mentoring
       - Staff and Principal SDE: Organizational impact and strategy
+    outline_path: "blogs/sde-career-ladder-outline.json"
+    draft_path: "blogs/sde-career-ladder-draft.md"
 
   - title: "SRE Career Ladder"
     keywords: ["career-ladder", "SRE", "site-reliability", "levels", "growth", "promotion"]
@@ -707,6 +721,8 @@ topics:
       - SRE II: Automation, monitoring, and incident response
       - Senior SRE: System design and cross-team reliability
       - Staff and Principal SRE: Reliability strategy and org-wide impact
+    outline_path: "blogs/sre-career-ladder-outline.json"
+    draft_path: "blogs/sre-career-ladder-draft.md"
 
   - title: "MGR Career Ladder"
     keywords: ["career-ladder", "manager", "engineering-manager", "levels", "growth", "promotion"]
@@ -721,3 +737,5 @@ topics:
       - Senior Manager: Leading multiple teams or complex domains
       - Director: Organizational strategy and cross-functional leadership
       - Senior Director and VP: Executive leadership and business impact
+    outline_path: "blogs/mgr-career-ladder-outline.json"
+    draft_path: "blogs/mgr-career-ladder-draft.md"
