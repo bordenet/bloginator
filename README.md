@@ -2,7 +2,7 @@
 
 [![Tests](https://github.com/bordenet/bloginator/actions/workflows/tests.yml/badge.svg)](https://github.com/bordenet/bloginator/actions/workflows/tests.yml)
 [![Lint and type check](https://github.com/bordenet/bloginator/actions/workflows/lint.yml/badge.svg)](https://github.com/bordenet/bloginator/actions/workflows/lint.yml)
-![Coverage](https://img.shields.io/badge/coverage-76%25-green)
+![Coverage](https://img.shields.io/badge/coverage-76%25-yellow)
 ![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
