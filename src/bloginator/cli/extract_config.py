@@ -10,6 +10,7 @@ from bloginator.cli._extract_config_helpers import (
     process_all_sources,
 )
 from bloginator.cli.extract_utils import load_existing_extractions
+from bloginator.utils.cloud_files import cleanup_hydration_temp_dir
 
 
 def extract_from_config(
@@ -88,3 +89,8 @@ def extract_from_config(
     # Print error summary if there were failures
     if total_failed > 0:
         error_tracker.print_summary(console)
+
+    # Clean up temporary hydration files
+    cleaned = cleanup_hydration_temp_dir()
+    if cleaned > 0:
+        console.print(f"[dim]Cleaned up {cleaned} temporary hydration file(s)[/dim]")
