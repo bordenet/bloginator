@@ -91,7 +91,7 @@ def show_manage_entries(manager: BlocklistManager):
                 st.markdown(f"**Pattern:** `{entry.pattern}`")
                 st.markdown(f"**Type:** {entry.pattern_type.value}")
                 st.markdown(f"**Category:** {entry.category.value}")
-                st.markdown(f"**Added:** {entry.added_date.strftime('%Y-%m-%d %H:%M')}")
+                st.markdown(f"**Added:** {entry.created_at.strftime('%Y-%m-%d %H:%M')}")
                 if entry.notes:
                     st.markdown(f"**Notes:** {entry.notes}")
                 else:
@@ -179,7 +179,7 @@ def show_add_entry(manager: BlocklistManager):
                     pattern=pattern.strip(),
                     pattern_type=pattern_type,
                     category=category,
-                    added_date=datetime.now(),
+                    created_at=datetime.now(),
                     notes=notes.strip(),
                 )
 
