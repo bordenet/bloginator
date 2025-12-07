@@ -267,3 +267,93 @@ def get_cloud_file_info(file_path: Path) -> dict:
             "error": str(e),
             "status": CloudFileStatus.UNKNOWN,
         }
+
+
+def hydrate_via_copy(
+    file_path: Path,
+    temp_dir: Path | None = None,
+    timeout_seconds: float = 120.0,
+) -> Path | None:
+    """Hydrate a cloud-only file by copying it to a temp directory.
+
+    Copying a file forces the OS to read its contents, which triggers OneDrive
+    to download the file. This is a reliable workaround for OneDrive Personal
+    where the `/pin` CLI is not available.
+
+    Args:
+        file_path: Path to the cloud-only file
+        temp_dir: Directory for temp copies (default: /tmp/bloginator_hydration)
+        timeout_seconds: Maximum time to wait for copy to complete
+
+    Returns:
+        Path to the temp copy if successful, None if copy failed
+    """
+    import hashlib
+    import shutil
+    import threading
+
+    if temp_dir is None:
+        temp_dir = Path("/tmp/bloginator_hydration")
+
+    # Create temp directory
+    temp_dir.mkdir(parents=True, exist_ok=True)
+
+    # Create unique filename using hash of original path
+    path_hash = hashlib.md5(str(file_path.absolute()).encode()).hexdigest()[:12]
+    temp_file = temp_dir / f"{path_hash}_{file_path.name}"
+
+    # Remove existing temp file if present
+    if temp_file.exists():
+        temp_file.unlink()
+
+    # Use a thread with timeout for the copy operation
+    # This prevents blocking if OneDrive fails to download
+    copy_result: dict[str, Path | Exception | None] = {"path": None, "error": None}
+
+    def do_copy() -> None:
+        try:
+            shutil.copy2(str(file_path), str(temp_file))
+            # Verify the copy has actual content
+            stat_info = temp_file.stat()
+            if stat_info.st_blocks > 0 and stat_info.st_size > 0:
+                copy_result["path"] = temp_file
+            else:
+                copy_result["error"] = ValueError("Copy has no content blocks")
+        except Exception as e:
+            copy_result["error"] = e
+
+    copy_thread = threading.Thread(target=do_copy)
+    copy_thread.start()
+    copy_thread.join(timeout=timeout_seconds)
+
+    if copy_thread.is_alive():
+        # Copy is still running - OneDrive may be downloading
+        # We can't kill shutil.copy, but we can give up and return None
+        return None
+
+    if copy_result["path"]:
+        return copy_result["path"]
+
+    return None
+
+
+def cleanup_hydration_temp_dir(temp_dir: Path | None = None) -> int:
+    """Clean up the temporary hydration directory.
+
+    Args:
+        temp_dir: Directory to clean (default: /tmp/bloginator_hydration)
+
+    Returns:
+        Number of files removed
+    """
+    import shutil
+
+    if temp_dir is None:
+        temp_dir = Path("/tmp/bloginator_hydration")
+
+    if not temp_dir.exists():
+        return 0
+
+    count = sum(1 for _ in temp_dir.iterdir())
+    shutil.rmtree(temp_dir, ignore_errors=True)
+    return count

@@ -99,17 +99,19 @@ def extract_source_files(
 
                 # Check file availability (critical for OneDrive/iCloud files)
                 # Cloud files may appear in directory but are placeholders (st_blocks=0)
-                # We do NOT attempt hydration here - it's slow and unreliable for OneDrive Personal.
-                # Users should run `bloginator cloud-check` to identify and manually download files.
-                is_available, availability_reason = wait_for_file_availability(
-                    file_path, timeout_seconds=1.0, attempt_hydration_flag=False
+                # We use copy-based hydration: copying forces OneDrive to download the file.
+                is_available, availability_reason, alt_path = wait_for_file_availability(
+                    file_path,
+                    timeout_seconds=120.0,
+                    attempt_hydration_flag=False,
+                    use_copy_hydration=True,
                 )
                 if not is_available:
                     # File not available - determine skip category
                     if availability_reason == "cloud_only":
                         error_tracker.record_skip(
                             SkipCategory.CLOUD_ONLY,
-                            f"{file_path} (cloud placeholder - run 'bloginator cloud-check')",
+                            f"{file_path} (cloud placeholder - copy failed)",
                         )
                         if verbose:
                             progress.console.print(
@@ -130,15 +132,19 @@ def extract_source_files(
                     progress.update(task, advance=1)
                     continue
 
-                # Log successful hydration if verbose (shouldn't happen now)
-                if verbose and availability_reason == "hydrated":
+                # Determine which path to extract from (original or temp copy)
+                extract_from = alt_path if alt_path else file_path
+
+                # Log successful hydration if verbose
+                if verbose and availability_reason in ("hydrated", "copy_hydrated"):
+                    method = "copied to temp" if alt_path else "downloaded"
                     progress.console.print(
-                        f"[HYDRATED] {file_path} (cloud file downloaded)",
+                        f"[HYDRATED] {file_path} ({method})",
                         highlight=False,
                     )
 
                 # Check file size before extraction
-                file_size = file_path.stat().st_size
+                file_size = extract_from.stat().st_size
                 if file_size == 0:
                     error_tracker.record_skip(
                         SkipCategory.EMPTY_CONTENT,
@@ -152,8 +158,8 @@ def extract_source_files(
                     progress.update(task, advance=1)
                     continue
 
-                # Extract text
-                text = extract_text_from_file(file_path)
+                # Extract text from the available path (original or temp copy)
+                text = extract_text_from_file(extract_from)
 
                 # Check for empty content after extraction
                 if not text or not text.strip():
@@ -170,13 +176,13 @@ def extract_source_files(
                     progress.update(task, advance=1)
                     continue
 
-                # Get file metadata
+                # Get file metadata from original path (for correct dates/paths)
                 file_meta = extract_file_metadata(file_path)
 
                 # Try to extract frontmatter if Markdown
                 frontmatter = {}
                 if file_path.suffix.lower() in [".md", ".markdown"]:
-                    content = file_path.read_text(encoding="utf-8")
+                    content = extract_from.read_text(encoding="utf-8")
                     frontmatter = extract_yaml_frontmatter(content)
 
                 # Merge tags from source config and frontmatter
