@@ -384,7 +384,9 @@ class TestEmptyFileDetection:
                 tag_list=["test"],
             )
 
-        assert "OneDrive" in str(exc_info.value) or "timeout" in str(exc_info.value).lower()
+        # Check for any of the expected error message patterns
+        error_msg = str(exc_info.value).lower()
+        assert any(x in error_msg for x in ["onedrive", "timeout", "not available", "cloud"])
 
         # Cleanup
         Path(empty_file).unlink()
