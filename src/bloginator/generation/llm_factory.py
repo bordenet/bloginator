@@ -20,7 +20,9 @@ from bloginator.generation.llm_client import (
 from bloginator.timeout_config import timeout_config
 
 
-def create_llm_from_config(verbose: bool = False) -> LLMClient:
+def create_llm_from_config(
+    verbose: bool = False, batch_mode: bool = False, batch_timeout: int = 1800
+) -> LLMClient:
     """Create LLM client from environment configuration.
 
     Reads configuration from environment variables (via config module)
@@ -47,15 +49,17 @@ def create_llm_from_config(verbose: bool = False) -> LLMClient:
     mock_mode = os.getenv("BLOGINATOR_LLM_MOCK", "").lower()
     if mock_mode in ("true", "interactive", "assistant"):
         # Use create_llm_client which handles these modes
-        # Assistant mode needs longer timeout for file-based communication
-        timeout = (
-            timeout_config.ASSISTANT_LLM_RESPONSE_TIMEOUT
-            if mock_mode == "assistant"
-            else timeout_config.LLM_REQUEST_TIMEOUT
-        )
+        # In batch mode, use the batch_timeout; otherwise use config timeout
+        if batch_mode:
+            timeout = batch_timeout
+        elif mock_mode == "assistant":
+            timeout = timeout_config.ASSISTANT_LLM_RESPONSE_TIMEOUT
+        else:
+            timeout = timeout_config.LLM_REQUEST_TIMEOUT
         return create_llm_client(
             provider=LLMProvider.MOCK,
             model=config.LLM_MODEL,
+            batch_mode=batch_mode,
             timeout=timeout,
             verbose=verbose,
         )
