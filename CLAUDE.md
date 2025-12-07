@@ -19,6 +19,24 @@ This is essential because:
 - The user can quickly get targeted answers for macOS/API-specific issues
 - It prevents wasted time on dead-end approaches
 
+## ⚠️ TERMINAL OUTPUT CAPTURE ISSUES ⚠️
+
+After spawning many terminal sessions (60+), VS Code terminal output capture can fail.
+Commands execute successfully but programmatic reads return empty.
+
+**Workaround: Use file-based output instead of terminal capture:**
+```bash
+# Instead of reading terminal output directly:
+python3 script.py > /tmp/output.txt 2>&1
+# Then read /tmp/output.txt via the view tool
+```
+
+**Best practices:**
+- Limit concurrent terminals to 3-5 sessions
+- Use file redirection for any output you need to parse
+- If terminal capture fails, dispose and recreate the terminal
+- Consider `terminal.integrated.enablePersistentSessions: false` in VS Code settings
+
 ## ⛔ CRITICAL: NEVER BYPASS THE CORPUS ⛔
 
 **THIS IS THE MOST IMPORTANT RULE IN THIS DOCUMENT.**
@@ -117,11 +135,17 @@ When `BLOGINATOR_LLM_MOCK=assistant`:
 2. Bloginator waits for `.bloginator/llm_responses/response_NNNN.json`
 3. Claude (or another AI agent) reads requests and writes responses
 
+**CRITICAL: Use the synthesis prompt at `prompts/corpus-synthesis-llm.md`** when generating responses. This prompt defines:
+- How to synthesize corpus results into cohesive prose
+- Quality markers and anti-patterns
+- Output length guidelines
+- Success metrics
+
 To act as the LLM backend:
 1. Set `BLOGINATOR_LLM_MOCK=assistant` in `.env`
 2. Run a bloginator command (e.g., `bloginator outline --index .bloginator/chroma --title "Topic" --keywords "key1,key2" -o outline.json`)
 3. Monitor `.bloginator/llm_requests/` for new request files
-4. Read the request, generate a response, write to `.bloginator/llm_responses/`
+4. Read the request, apply `prompts/corpus-synthesis-llm.md` guidelines, write to `.bloginator/llm_responses/`
 
 ### Demo Script
 
