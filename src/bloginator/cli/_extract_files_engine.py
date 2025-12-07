@@ -18,6 +18,12 @@ from bloginator.extraction import (
 )
 from bloginator.models import Document
 from bloginator.utils.checksum import calculate_content_checksum
+from bloginator.utils.shadow_copy import (
+    build_shadow_path_for_local,
+    create_shadow_copy,
+    is_shadow_copy_enabled,
+    should_update_shadow_copy,
+)
 
 
 def extract_source_files(
@@ -216,6 +222,12 @@ def extract_source_files(
                 # Save metadata
                 meta_file = output / f"{doc.id}.json"
                 meta_file.write_text(doc.model_dump_json(indent=2), encoding="utf-8")
+
+                # Create shadow copy for offline access if enabled
+                if is_shadow_copy_enabled():
+                    shadow_path = build_shadow_path_for_local(file_path)
+                    if should_update_shadow_copy(file_path, shadow_path):
+                        create_shadow_copy(file_path, shadow_path)
 
                 extracted_count += 1
                 # Update file stats to mark as extracted
