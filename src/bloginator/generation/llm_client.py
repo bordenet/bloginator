@@ -29,6 +29,7 @@ from bloginator.generation.llm_ollama import OllamaClient
 def create_llm_client(
     provider: LLMProvider = LLMProvider.OLLAMA,
     model: str = "llama3",
+    batch_mode: bool = False,
     **kwargs: Any,
 ) -> LLMClient:
     """Factory function to create LLM client.
@@ -72,7 +73,7 @@ def create_llm_client(
     elif mock_mode == "interactive":
         return InteractiveLLMClient(model=model, **kwargs)
     elif mock_mode == "assistant":
-        return AssistantLLMClient(model=model, **kwargs)
+        return AssistantLLMClient(model=model, batch_mode=batch_mode, **kwargs)
 
     if provider == LLMProvider.OLLAMA:
         return OllamaClient(model=model, **kwargs)

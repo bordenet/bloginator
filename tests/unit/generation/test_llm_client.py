@@ -1,11 +1,14 @@
 """Tests for LLM client."""
 
+import json
 import os
+from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
 import requests
 
+from bloginator.generation._llm_assistant_client import AssistantLLMClient
 from bloginator.generation.llm_client import (
     LLMClient,
     LLMProvider,
@@ -453,3 +456,126 @@ class TestLLMClientInterface:
         """Test that MockLLMClient implements LLMClient."""
         client = MockLLMClient()
         assert isinstance(client, LLMClient)
+
+
+class TestAssistantLLMClientBatchMode:
+    """Tests for AssistantLLMClient batch mode functionality."""
+
+    def test_batch_mode_initialization(self, tmp_path: Path) -> None:
+        """Test batch mode client initialization."""
+        client = AssistantLLMClient(batch_mode=True, timeout=10)
+        client.request_dir = tmp_path / "requests"
+        client.response_dir = tmp_path / "responses"
+        client.request_dir.mkdir(parents=True)
+        client.response_dir.mkdir(parents=True)
+
+        assert client.batch_mode is True
+        assert client.pending_requests == []
+
+    def test_batch_mode_generates_placeholder(self, tmp_path: Path) -> None:
+        """Test that batch mode returns placeholder instead of waiting."""
+        client = AssistantLLMClient(batch_mode=True, timeout=10)
+        client.request_dir = tmp_path / "requests"
+        client.response_dir = tmp_path / "responses"
+        client.request_dir.mkdir(parents=True)
+        client.response_dir.mkdir(parents=True)
+
+        response = client.generate(prompt="Test prompt", max_tokens=100)
+
+        # Should return placeholder
+        assert "__BATCH_PLACEHOLDER_1__" in response.content
+        assert response.finish_reason == "batch_pending"
+
+        # Should track pending request
+        assert 1 in client.pending_requests
+
+        # Should write request file
+        request_file = client.request_dir / "request_0001.json"
+        assert request_file.exists()
+
+    def test_batch_mode_multiple_requests(self, tmp_path: Path) -> None:
+        """Test batch mode with multiple requests."""
+        client = AssistantLLMClient(batch_mode=True, timeout=10)
+        client.request_dir = tmp_path / "requests"
+        client.response_dir = tmp_path / "responses"
+        client.request_dir.mkdir(parents=True)
+        client.response_dir.mkdir(parents=True)
+
+        # Generate 3 requests
+        for i in range(3):
+            response = client.generate(prompt=f"Prompt {i}")
+            assert f"__BATCH_PLACEHOLDER_{i + 1}__" in response.content
+
+        # All 3 should be pending
+        assert len(client.pending_requests) == 3
+        assert client.pending_requests == [1, 2, 3]
+
+        # All request files should exist
+        for i in range(1, 4):
+            assert (client.request_dir / f"request_{i:04d}.json").exists()
+
+    def test_collect_batch_responses(self, tmp_path: Path) -> None:
+        """Test collecting batch responses."""
+        client = AssistantLLMClient(batch_mode=True, timeout=10)
+        client.request_dir = tmp_path / "requests"
+        client.response_dir = tmp_path / "responses"
+        client.request_dir.mkdir(parents=True)
+        client.response_dir.mkdir(parents=True)
+
+        # Generate 2 requests
+        client.generate(prompt="Prompt 1")
+        client.generate(prompt="Prompt 2")
+
+        # Write response files
+        for i in [1, 2]:
+            response_file = client.response_dir / f"response_{i:04d}.json"
+            response_data = {
+                "content": f"Response content {i}",
+                "prompt_tokens": 10,
+                "completion_tokens": 20,
+                "finish_reason": "stop",
+            }
+            response_file.write_text(json.dumps(response_data))
+
+        # Collect responses
+        responses = client.collect_batch_responses()
+
+        assert len(responses) == 2
+        assert responses[1].content == "Response content 1"
+        assert responses[2].content == "Response content 2"
+        assert client.pending_requests == []  # Should be cleared
+
+    def test_collect_empty_batch(self, tmp_path: Path) -> None:
+        """Test collecting when no requests pending."""
+        client = AssistantLLMClient(batch_mode=True, timeout=10)
+        client.request_dir = tmp_path / "requests"
+        client.response_dir = tmp_path / "responses"
+        client.request_dir.mkdir(parents=True)
+        client.response_dir.mkdir(parents=True)
+
+        responses = client.collect_batch_responses()
+        assert responses == {}
+
+    def test_serial_mode_still_works(self, tmp_path: Path) -> None:
+        """Test that serial mode (batch_mode=False) still waits for response."""
+        client = AssistantLLMClient(batch_mode=False, timeout=2)
+        client.request_dir = tmp_path / "requests"
+        client.response_dir = tmp_path / "responses"
+        client.request_dir.mkdir(parents=True)
+        client.response_dir.mkdir(parents=True)
+
+        # Pre-write response file
+        response_file = client.response_dir / "response_0001.json"
+        response_data = {
+            "content": "Serial response",
+            "prompt_tokens": 10,
+            "completion_tokens": 20,
+            "finish_reason": "stop",
+        }
+        response_file.write_text(json.dumps(response_data))
+
+        response = client.generate(prompt="Test")
+
+        # Should get actual content, not placeholder
+        assert response.content == "Serial response"
+        assert "__BATCH_PLACEHOLDER_" not in response.content
