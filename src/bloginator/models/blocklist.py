@@ -34,7 +34,7 @@ class BlocklistEntry(BaseModel):
         pattern: The term or regex pattern to block
         pattern_type: How to match the pattern (exact, regex, case_insensitive)
         category: Category for organization purposes
-        added_date: When this entry was added
+        created_at: When this entry was added
         notes: Explanation of why this is blocked
     """
 
@@ -42,7 +42,7 @@ class BlocklistEntry(BaseModel):
     pattern: str = Field(..., description="Term or regex pattern to block")
     pattern_type: BlocklistPatternType = BlocklistPatternType.EXACT
     category: BlocklistCategory = BlocklistCategory.OTHER
-    added_date: datetime = Field(default_factory=datetime.now)
+    created_at: datetime = Field(default_factory=datetime.now)
     notes: str = Field(default="", description="Why this is blocked")
 
     def matches(self, text: str) -> list[str]:

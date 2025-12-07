@@ -176,12 +176,17 @@ class RetryOrchestrator:
     def _get_prompt_template(self, variant: str) -> str | None:
         """Get custom prompt template for variant.
 
+        .. deprecated:: 1.0.0
+            Prompt template variants feature is not yet implemented.
+            This method currently always returns None, which causes default
+            prompts to be used. This is reserved for future enhancement.
+
         Args:
             variant: Prompt variant name
 
         Returns:
             Custom template string if available, None for default behavior
         """
-        # TODO: Implement actual prompt template variants
-        # For now, return None to use default prompts
+        # NOTE: Template variants are a planned feature but not yet implemented.
+        # Users can customize generation behavior via configuration instead.
         return None

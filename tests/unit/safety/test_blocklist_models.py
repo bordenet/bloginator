@@ -23,7 +23,7 @@ class TestBlocklistEntry:
         assert entry.pattern_type == BlocklistPatternType.EXACT
         assert entry.category == BlocklistCategory.COMPANY_NAME
         assert entry.notes == "Test company"
-        assert isinstance(entry.added_date, datetime)
+        assert isinstance(entry.created_at, datetime)
 
     def test_entry_defaults(self) -> None:
         """Test entry creation with default values."""
@@ -32,7 +32,7 @@ class TestBlocklistEntry:
         assert entry.pattern_type == BlocklistPatternType.EXACT
         assert entry.category == BlocklistCategory.OTHER
         assert entry.notes == ""
-        assert isinstance(entry.added_date, datetime)
+        assert isinstance(entry.created_at, datetime)
 
     def test_exact_match_positive(self) -> None:
         """Test exact matching finds the pattern."""

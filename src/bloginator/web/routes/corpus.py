@@ -1,10 +1,9 @@
 """Corpus management API routes."""
 
-import tempfile
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from bloginator.safety.blocklist import BlocklistManager
@@ -31,116 +30,6 @@ class BlocklistEntryResponse(BaseModel):
     category: str
     notes: str
     created_at: str
-
-
-class IndexStatsResponse(BaseModel):
-    """Response model for index statistics."""
-
-    total_documents: int
-    total_chunks: int
-    index_path: str
-
-
-@router.post("/upload")
-async def upload_documents(
-    files: list[UploadFile] = File(...),
-    quality: str | None = Form(None),
-    tags: str | None = Form(None),
-) -> dict[str, Any]:
-    """Upload and extract documents.
-
-    Args:
-        files: List of files to upload
-        quality: Quality rating (preferred, standard, reference)
-        tags: Comma-separated tags
-
-    Returns:
-        Extraction results
-    """
-    if not files:
-        raise HTTPException(status_code=400, detail="No files provided")
-
-    # Create temporary directory for uploaded files
-    with tempfile.TemporaryDirectory() as tmpdir:
-        temp_path = Path(tmpdir)
-
-        # Save uploaded files
-        file_paths = []
-        for file in files:
-            file_path = temp_path / file.filename
-            content = await file.read()
-            with file_path.open("wb") as f:
-                f.write(content)
-            file_paths.append(file_path)
-
-        # TODO: Implement document extraction for web upload
-        # The DocumentExtractor class referenced in original code doesn't exist.
-        # Should use functions from bloginator.extraction module instead.
-        # See src/bloginator/cli/extract_single.py for reference implementation.
-        raise NotImplementedError(
-            "Document upload and extraction not yet implemented for web API. "
-            "Use CLI: bloginator extract <source> -o <output_dir>"
-        )
-
-
-@router.post("/index/create")
-async def create_index(
-    corpus_path: str = Form(...),
-    index_path: str = Form(...),
-) -> dict[str, Any]:
-    """Create vector index from extracted corpus.
-
-    Args:
-        corpus_path: Path to extracted corpus directory
-        index_path: Path where index should be created
-
-    Returns:
-        Indexing results
-    """
-    corpus_dir = Path(corpus_path)
-    if not corpus_dir.exists():
-        raise HTTPException(status_code=404, detail="Corpus directory not found")
-
-    try:
-        # TODO: Implement batch indexing API for web routes
-        # Current CorpusIndexer API requires indexing documents one at a time
-        # See src/bloginator/indexing/indexer.py for available methods
-        raise NotImplementedError(
-            "Batch corpus indexing not yet implemented for web API. "
-            "Use CLI: bloginator index <corpus_dir> -o <index_dir>"
-        )
-    except NotImplementedError:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Indexing failed: {str(e)}")
-
-
-@router.get("/index/stats")
-async def get_index_stats(index_path: str) -> IndexStatsResponse:
-    """Get statistics about an index.
-
-    Args:
-        index_path: Path to index directory
-
-    Returns:
-        Index statistics
-    """
-    index_dir = Path(index_path)
-    if not index_dir.exists():
-        raise HTTPException(status_code=404, detail="Index not found")
-
-    try:
-        # TODO: Implement index stats API for web routes
-        # Current CorpusIndexer doesn't have get_index_stats method
-        # Use CorpusSearcher.get_stats() instead or implement new method
-        raise NotImplementedError(
-            "Index statistics not yet implemented for web API. "
-            "Use CLI: bloginator search <index_dir> --stats"
-        )
-    except NotImplementedError:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get stats: {str(e)}")
 
 
 @router.post("/blocklist/add")

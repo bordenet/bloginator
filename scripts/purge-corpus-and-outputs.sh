@@ -1,70 +1,5 @@
 #!/usr/bin/env bash
 
-################################################################################
-# Purge Bloginator Corpus and Outputs
-################################################################################
-#
-# NAME
-#   purge-corpus-and-outputs.sh - Reset Bloginator workspace to clean state
-#
-# SYNOPSIS
-#   purge-corpus-and-outputs.sh [-y|--yes] [-v|--verbose] [-n|--what-if]
-#                               [--wipe-shadow-copies] [-h|--help]
-#
-# DESCRIPTION
-#   Cleans up all generated artifacts from Bloginator operations while
-#   preserving configuration files. Uses bloginator CLI commands where
-#   available to exercise the API, falling back to direct file operations
-#   when necessary.
-#
-#   This script is intended for development and testing workflows where
-#   you need to reset to a known clean state before running end-to-end tests.
-#
-# REMOVES
-#   $BLOGINATOR_OUTPUT_DIR/extracted/  Extracted document text and metadata
-#   $BLOGINATOR_OUTPUT_DIR/generated/  Generated outlines and drafts
-#   $BLOGINATOR_CHROMA_DIR/            ChromaDB vector index
-#   $BLOGINATOR_DATA_DIR/history/      Generation history (via CLI)
-#   $BLOGINATOR_DATA_DIR/llm_*/        LLM request/response files
-#   chroma_db/                         Legacy ChromaDB location
-#
-# PRESERVES (by default)
-#   .env                         Environment configuration (NEVER touched)
-#   corpus/*.yaml                Corpus configuration files
-#   .bloginator/templates/       Custom prompt templates
-#   .bloginator/blocklist.json   Proprietary term blocklist
-#   /tmp/bloginator/corpus_shadow/  Shadow copies of source files (for offline)
-#
-# OPTIONS
-#   -y, --yes              Auto-confirm all prompts (non-interactive mode)
-#   -v, --verbose          Show detailed output for each operation
-#   -n, --what-if          Show what would be deleted without actually deleting
-#   --wipe-shadow-copies   DANGEROUS: Also delete /tmp/bloginator/corpus_shadow/
-#                          Requires explicit confirmation (10s timeout, default No)
-#   -h, --help             Display this help message and exit
-#
-# EXAMPLES
-#   Interactive cleanup:
-#     ./scripts/purge-corpus-and-outputs.sh
-#
-#   Non-interactive (for CI/scripts):
-#     ./scripts/purge-corpus-and-outputs.sh -y
-#
-#   Preview what would be deleted:
-#     ./scripts/purge-corpus-and-outputs.sh --what-if
-#
-#   Full wipe including shadow copies (DANGEROUS when offline):
-#     ./scripts/purge-corpus-and-outputs.sh -y --wipe-shadow-copies
-#
-# EXIT STATUS
-#   0   Cleanup completed successfully
-#   1   User cancelled or error occurred
-#
-# AUTHOR
-#   Bloginator Team
-#
-################################################################################
-
 set -euo pipefail
 
 # Resolve symlinks to get actual script location
@@ -159,24 +94,88 @@ log_verbose() {
     fi
 }
 
-# Execute or simulate based on --what-if flag
-do_remove() {
-    local target="$1"
+# Add a path to the cleanup queue for processing later
+add_to_cleanup_queue() {
+    local path="$1"
     local description="$2"
+    if [[ -e "$path" ]]; then
+        CLEANUP_PATHS+=("$path")
+        CLEANUP_DESCRIPTIONS+=("$description")
+    else
+        log_verbose "Target '$path' not found, skipping."
+    fi
+}
 
-    if [[ ! -e "$target" ]]; then
-        log_verbose "$target not found, skipping"
+# Process the queued paths: report size and file counts, then optionally delete
+process_cleanup_queue() {
+    local title="$1"
+    local confirmation_prompt="$2"
+    local confirmation_fn=${3:-confirm}
+
+    if [ ${#CLEANUP_PATHS[@]} -eq 0 ]; then
+        log_verbose "No items in queue for '$title', skipping."
         return 0
     fi
 
+    echo "$title"
+    local total_files=0
+    local total_size_bytes=0
+    local report_lines=()
+
+    # Create a detailed report
+    for i in "${!CLEANUP_PATHS[@]}"; do
+        local path="${CLEANUP_PATHS[i]}"
+        local desc="${CLEANUP_DESCRIPTIONS[i]}"
+        local file_count
+        file_count=$(find "$path" -type f 2>/dev/null | wc -l | tr -d ' ')
+        local size_bytes=0
+        local size_human="0B"
+
+        if [[ "$file_count" -gt 0 ]]; then
+            # Use -sk for kilobytes (macOS compatible) and convert to bytes
+            local size_kb
+            size_kb=$(du -sk "$path" 2>/dev/null | awk '{print $1}')
+            size_bytes=$((size_kb * 1024))
+            size_human=$(du -sh "$path" 2>/dev/null | awk '{print $1}')
+        fi
+
+        total_files=$((total_files + file_count))
+        total_size_bytes=$((total_size_bytes + size_bytes))
+        report_lines+=("$(printf "  • %-24s -> %-25s (%d files, %s)" "$desc" "$path" "$file_count" "$size_human")")
+    done
+
+    # Print the report
+    for line in "${report_lines[@]}"; do
+        echo "$line"
+    done
+
+    local total_size_human
+    total_size_human=$(echo "$total_size_bytes" | numfmt --to=iec-i --suffix=B --format="%.1f")
+    echo "--------------------------------------------------------------------------------"
+    printf "  TOTAL: %d files, %s\n\n" "$total_files" "$total_size_human"
+
+    # Handle what-if mode or get confirmation
     if [[ "$WHAT_IF" == "true" ]]; then
-        echo "  [WHAT-IF] Would remove: $target"
+        echo "  [WHAT-IF MODE] No files will be deleted."
+        # Clear the queue for the next potential processing group (e.g., shadow copies)
+        CLEANUP_PATHS=()
+        CLEANUP_DESCRIPTIONS=()
         return 0
     fi
 
-    task_start "$description"
-    rm -rf "$target"
-    task_ok "${description} - done"
+    if $confirmation_fn "$confirmation_prompt"; then
+        task_start "Removing ${#CLEANUP_PATHS[@]} locations"
+        for path in "${CLEANUP_PATHS[@]}"; do
+            rm -rf "$path"
+        done
+        task_ok "${#CLEANUP_PATHS[@]} locations removed"
+    else
+        echo "Cleanup for '$title' cancelled."
+    fi
+
+    # Reset queue for next run
+    CLEANUP_PATHS=()
+    CLEANUP_DESCRIPTIONS=()
 }
 
 ################################################################################
@@ -232,39 +231,16 @@ echo "  DATA_DIR:   $BLOGINATOR_DATA_DIR"
 echo "  OUTPUT_DIR: $BLOGINATOR_OUTPUT_DIR"
 echo "  CHROMA_DIR: $BLOGINATOR_CHROMA_DIR"
 echo ""
-echo "This will remove:"
-echo "  • $EXTRACTED_DIR/   (extracted documents)"
-echo "  • $GENERATED_DIR/   (generated blogs)"
-echo "  • $BLOGINATOR_CHROMA_DIR/   (vector index)"
-echo "  • $LLM_REQUESTS_DIR/   (LLM request files)"
-echo "  • $LLM_RESPONSES_DIR/  (LLM response files)"
-echo "  • $HISTORY_DIR/   (generation history)"
-echo "  • chroma_db/            (legacy index location)"
-echo ""
-echo "Preserved:"
-echo "  • .env, corpus/*.yaml, ${BLOGINATOR_DATA_DIR}/templates/"
-echo "  • ${BLOGINATOR_DATA_DIR}/blocklist.json"
-echo "  • $SHADOW_COPY_DIR/ ($SHADOW_SIZE) - source file shadow copies"
-if [[ "$WIPE_SHADOW_COPIES" == "true" ]]; then
-    echo ""
-    echo "⚠️  --wipe-shadow-copies specified: Shadow copies WILL be deleted"
-fi
-echo ""
 
-if [[ "$WHAT_IF" != "true" ]]; then
-    if ! confirm "Proceed with cleanup?"; then
-        echo "Aborted."
-        exit 0
-    fi
-fi
-
-echo ""
+# Set up the cleanup queue
+declare -a CLEANUP_PATHS=()
+declare -a CLEANUP_DESCRIPTIONS=()
 
 # Use bloginator history clear if available (uses API)
 if command -v bloginator &> /dev/null; then
     if [[ -d "$HISTORY_DIR" ]] && [[ -n "$(ls -A "$HISTORY_DIR" 2>/dev/null)" ]]; then
         if [[ "$WHAT_IF" == "true" ]]; then
-            echo "  [WHAT-IF] Would clear generation history via CLI"
+            echo "  [WHAT-IF] Would clear generation history via: 'bloginator history clear --yes'"
         else
             task_start "Clearing generation history via CLI"
             bloginator history clear --yes 2>/dev/null || true
@@ -273,45 +249,27 @@ if command -v bloginator &> /dev/null; then
     fi
 fi
 
-# Clear standard directories
-do_remove "$EXTRACTED_DIR" "Removing extracted documents"
-do_remove "$GENERATED_DIR" "Removing generated content"
-do_remove "$BLOGINATOR_CHROMA_DIR" "Removing ChromaDB index"
-do_remove "chroma_db" "Removing legacy ChromaDB"
-do_remove "$LLM_REQUESTS_DIR" "Removing LLM request files"
-do_remove "$LLM_RESPONSES_DIR" "Removing LLM response files"
+# Queue standard directories for removal
+add_to_cleanup_queue "$EXTRACTED_DIR" "Extracted documents"
+add_to_cleanup_queue "$GENERATED_DIR" "Generated content"
+add_to_cleanup_queue "$BLOGINATOR_CHROMA_DIR" "ChromaDB index"
+add_to_cleanup_queue "chroma_db" "Legacy ChromaDB"
+add_to_cleanup_queue "$LLM_REQUESTS_DIR" "LLM request files"
+add_to_cleanup_queue "$LLM_RESPONSES_DIR" "LLM response files"
+
+# Process the main cleanup queue
+process_cleanup_queue "The following standard items will be removed:" "Proceed with standard cleanup?"
 
 # Handle shadow copy deletion (dangerous operation)
 if [[ "$WIPE_SHADOW_COPIES" == "true" ]]; then
-    if [[ -d "$SHADOW_COPY_DIR" ]]; then
-        echo ""
-        echo "═══════════════════════════════════════════════════════════════"
-        echo "⚠️  SHADOW COPY DELETION REQUESTED"
-        echo "═══════════════════════════════════════════════════════════════"
-        echo ""
-        echo "Shadow copy directory: $SHADOW_COPY_DIR"
-        echo "Size: $SHADOW_SIZE"
-        echo ""
-        echo "This contains cached copies of files from:"
-        echo "  • SMB network shares (NAS)"
-        echo "  • OneDrive cloud files"
-        echo ""
-        echo "If you delete these while offline, you will NOT be able to"
-        echo "re-extract or re-index your corpus until you're back online."
-        echo ""
+    echo ""
+    echo "═══════════════════════════════════════════════════════════════"
+    echo "⚠️  SHADOW COPY DELETION REQUESTED"
+    echo "═══════════════════════════════════════════════════════════════"
 
-        if [[ "$WHAT_IF" == "true" ]]; then
-            echo "  [WHAT-IF] Would delete: $SHADOW_COPY_DIR/"
-        elif confirm_with_timeout "Delete shadow copies?" 10; then
-            task_start "Removing shadow copies"
-            rm -rf "$SHADOW_COPY_DIR"
-            task_ok "Shadow copies removed"
-        else
-            echo "Shadow copies preserved."
-        fi
-    else
-        log_verbose "$SHADOW_COPY_DIR not found, skipping"
-    fi
+    add_to_cleanup_queue "$SHADOW_COPY_DIR" "Shadow copies"
+
+    process_cleanup_queue "The following shadow copy items will be removed:" "Delete shadow copies?" "confirm_with_timeout"
 fi
 
 # Ensure output directory exists (but empty)
