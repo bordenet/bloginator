@@ -41,7 +41,7 @@ jobs:
           COVERAGE=$(python -c "import json; print(json.load(open('coverage.json'))['totals']['percent_covered'])")
           echo "Current coverage: ${COVERAGE}%"
 
-          # Set minimum coverage threshold
+          # Set minimum coverage threshold (quality over vanity metrics)
           MIN_COVERAGE=70.0
 
           # Compare coverage (using bc for floating point comparison)
