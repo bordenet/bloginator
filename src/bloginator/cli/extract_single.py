@@ -294,11 +294,17 @@ def _extract_and_save_document(
         quality: Quality rating
         tag_list: Tags to apply
     """
-    # Wait for file availability (critical for OneDrive files)
-    if not wait_for_file_availability(file_path, timeout_seconds=10.0):
-        raise FileNotFoundError(
-            f"File not available after 10s timeout (OneDrive download failed): {file_path}"
-        )
+    # Wait for file availability (critical for OneDrive/iCloud files)
+    is_available, reason = wait_for_file_availability(
+        file_path, timeout_seconds=30.0, attempt_hydration_flag=True
+    )
+    if not is_available:
+        if reason == "cloud_only":
+            raise FileNotFoundError(
+                f"File is a cloud-only placeholder (OneDrive/iCloud not downloaded). "
+                f"Right-click in Finder and select 'Always Keep on This Device': {file_path}"
+            )
+        raise FileNotFoundError(f"File not available ({reason}): {file_path}")
 
     # Check file size before extraction
     file_size = file_path.stat().st_size

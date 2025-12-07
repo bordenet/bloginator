@@ -3,6 +3,76 @@
 This document defines coding conventions and quality standards that MUST be followed
 without exception for all work on this repository.
 
+## ⛔ CRITICAL: WHEN STUCK, ASK FOR PERPLEXITY HELP ⛔
+
+**The moment you get blocked or find yourself going in circles, STOP immediately.**
+
+Do NOT continue trying random approaches. Instead:
+1. **Generate a detailed Perplexity.ai prompt** for the user to run
+2. Include: what you've tried, why it failed, specific technical details, environment info
+3. **Wait for the user to return with Perplexity's response** before continuing
+4. Fresh external research often unblocks problems that training data cannot solve
+
+This is essential because:
+- Your training data may be outdated or incomplete
+- Perplexity has access to current documentation and community solutions
+- The user can quickly get targeted answers for macOS/API-specific issues
+- It prevents wasted time on dead-end approaches
+
+## ⛔ CRITICAL: NEVER BYPASS THE CORPUS ⛔
+
+**THIS IS THE MOST IMPORTANT RULE IN THIS DOCUMENT.**
+
+When generating blog content, you MUST use the bloginator pipeline with corpus search.
+NEVER write blog content directly from your training data.
+
+### Why This Matters
+
+The ENTIRE PURPOSE of bloginator is to generate content that:
+1. Reflects the user's documented knowledge in the corpus
+2. Matches the user's writing voice (voice scoring)
+3. Uses the user's specific terminology and examples
+4. Is grounded in RAG search results from the corpus
+
+Content generated from your training data is USELESS because:
+- It doesn't reflect the user's actual practices
+- It doesn't match the user's voice
+- It's generic "industry standard" content
+- It defeats the entire purpose of this project
+
+### How to Generate Blog Content Correctly
+
+**ALWAYS use one of these approaches:**
+
+1. **Interactive mode** (user provides LLM responses):
+   ```bash
+   BLOGINATOR_LLM_MOCK=interactive bloginator outline --index .bloginator/chroma "Topic"
+   BLOGINATOR_LLM_MOCK=interactive bloginator draft --index .bloginator/chroma --outline outline.json -o draft.md
+   ```
+
+2. **Assistant mode** (Claude acts as LLM backend):
+   ```bash
+   BLOGINATOR_LLM_MOCK=assistant bloginator outline --index .bloginator/chroma "Topic"
+   # Then read requests from .bloginator/llm_requests/
+   # Write responses to .bloginator/llm_responses/
+   # Responses MUST be based on corpus search results in the request
+   ```
+
+**NEVER do this:**
+- Write markdown files directly with `save-file` for blog content
+- Generate content from your training data
+- Skip the corpus search step
+- Take shortcuts for speed
+
+### If You're Tempted to Shortcut
+
+STOP. Ask the user how they want to proceed. Options:
+- Wait for interactive mode (slower but correct)
+- Use assistant mode (you act as LLM, reading corpus results)
+- Batch process with a script
+
+Speed is NOT worth generating useless content.
+
 ## CRITICAL: Repository Cleanliness
 
 ### Temporary Files Policy

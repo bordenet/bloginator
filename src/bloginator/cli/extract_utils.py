@@ -1,9 +1,10 @@
 """Shared utilities for document extraction."""
 
 import json
-import time
 from datetime import datetime
 from pathlib import Path
+
+from bloginator.utils.cloud_files import CloudFileStatus, attempt_hydration, get_cloud_file_status
 
 
 def load_existing_extractions(output_dir: Path) -> dict[str, tuple[str, datetime]]:
@@ -144,20 +145,31 @@ def is_temp_file(filename: str) -> bool:
 
 
 def wait_for_file_availability(
-    file_path: Path, timeout_seconds: float = 10.0, poll_interval: float = 0.2
-) -> bool:
-    """Wait for a file to become available with non-zero size.
+    file_path: Path,
+    timeout_seconds: float = 30.0,
+    attempt_hydration_flag: bool = True,
+) -> tuple[bool, str]:
+    """Wait for a file to become available, handling cloud-only placeholders.
 
-    This is critical for OneDrive files which may appear in directory listings
-    but aren't locally available until accessed. OneDrive downloads files on-demand.
+    This function properly handles OneDrive/iCloud Files-On-Demand on macOS.
+    Cloud-only files have st_blocks == 0 even when st_size > 0.
+
+    The function will:
+    1. Check if file is already local (st_blocks > 0)
+    2. If cloud-only and attempt_hydration_flag is True, try to trigger download
+    3. Return status and reason
 
     Args:
         file_path: Path to the file to check
-        timeout_seconds: Maximum time to wait (default: 10 seconds)
-        poll_interval: Time between polls (default: 200ms)
+        timeout_seconds: Maximum time to wait for hydration (default: 30 seconds)
+        attempt_hydration_flag: If True, attempt to trigger cloud download
 
     Returns:
-        True if file is available with size > 0, False if timeout reached
+        Tuple of (is_available, reason_string)
+        - (True, "local") - File is available locally
+        - (True, "hydrated") - File was cloud-only but successfully downloaded
+        - (False, "cloud_only") - File is cloud-only and hydration failed/skipped
+        - (False, "not_found") - File does not exist
 
     Raises:
         FileNotFoundError: If file doesn't exist at all
@@ -165,38 +177,31 @@ def wait_for_file_availability(
     if not file_path.exists():
         raise FileNotFoundError(f"File does not exist: {file_path}")
 
-    start_time = time.time()
-    elapsed = 0.0
+    # Check current status using st_blocks heuristic
+    status = get_cloud_file_status(file_path)
 
-    while elapsed < timeout_seconds:
-        try:
-            file_size = file_path.stat().st_size
+    if status == CloudFileStatus.LOCAL:
+        return True, "local"
 
-            # File is available if size > 0
-            if file_size > 0:
-                return True
+    if status == CloudFileStatus.CLOUD_ONLY:
+        if not attempt_hydration_flag:
+            return False, "cloud_only"
 
-            # File exists but is 0 bytes - OneDrive placeholder
-            # Trigger download by attempting to open it
-            try:
-                with file_path.open("rb") as f:
-                    # Read first byte to trigger download
-                    f.read(1)
-            except Exception:
-                # If open fails, continue polling
-                pass
+        # Attempt to hydrate the file
+        success = attempt_hydration(file_path, timeout_seconds=timeout_seconds)
 
-            # Wait before next poll
-            time.sleep(poll_interval)
-            elapsed = time.time() - start_time
+        if success:
+            return True, "hydrated"
+        else:
+            return False, "cloud_only"
 
-        except (OSError, PermissionError):
-            # File stat failed, wait and retry
-            time.sleep(poll_interval)
-            elapsed = time.time() - start_time
-
-    # Timeout reached - check final state
+    # Unknown status - try to read and see what happens
+    # But use a very short timeout to avoid blocking
     try:
-        return file_path.stat().st_size > 0
-    except (OSError, PermissionError):
-        return False
+        stat_info = file_path.stat()
+        if stat_info.st_size > 0 and stat_info.st_blocks > 0:
+            return True, "local"
+    except OSError:
+        pass
+
+    return False, "unknown"

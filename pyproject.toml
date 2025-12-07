@@ -194,6 +194,7 @@ ignore = [
     "ARG",    # Allow unused arguments in tests
     "FBT",    # Allow boolean trap in tests
 ]
+"src/bloginator/utils/cloud_files.py" = ["TCH003"]  # Path used at runtime, not just type hints
 
 [tool.ruff.lint.isort]
 known-first-party = ["bloginator"]

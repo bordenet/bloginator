@@ -4,6 +4,7 @@ import click
 
 from bloginator import __version__
 from bloginator.cli.blocklist import blocklist
+from bloginator.cli.cloud_check import cloud_check
 from bloginator.cli.diff import diff
 from bloginator.cli.draft import draft
 from bloginator.cli.extract import extract
@@ -71,6 +72,7 @@ def cli(ctx: click.Context) -> None:
 
 # Register commands
 cli.add_command(blocklist)
+cli.add_command(cloud_check)
 cli.add_command(diff)
 cli.add_command(draft)
 cli.add_command(extract)
