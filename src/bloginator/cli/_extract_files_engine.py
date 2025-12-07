@@ -97,21 +97,23 @@ def extract_source_files(
                     progress.update(task, advance=1)
                     continue
 
-                # Wait for file availability (critical for OneDrive/iCloud files)
+                # Check file availability (critical for OneDrive/iCloud files)
                 # Cloud files may appear in directory but are placeholders (st_blocks=0)
+                # We do NOT attempt hydration here - it's slow and unreliable for OneDrive Personal.
+                # Users should run `bloginator cloud-check` to identify and manually download files.
                 is_available, availability_reason = wait_for_file_availability(
-                    file_path, timeout_seconds=30.0, attempt_hydration_flag=True
+                    file_path, timeout_seconds=1.0, attempt_hydration_flag=False
                 )
                 if not is_available:
                     # File not available - determine skip category
                     if availability_reason == "cloud_only":
                         error_tracker.record_skip(
                             SkipCategory.CLOUD_ONLY,
-                            f"{file_path} (OneDrive/iCloud placeholder - not downloaded)",
+                            f"{file_path} (cloud placeholder - run 'bloginator cloud-check')",
                         )
                         if verbose:
                             progress.console.print(
-                                f"[SKIP] {file_path} (cloud_only: hydration failed)",
+                                f"[SKIP] {file_path} (cloud_only)",
                                 highlight=False,
                             )
                     else:
@@ -128,7 +130,7 @@ def extract_source_files(
                     progress.update(task, advance=1)
                     continue
 
-                # Log successful hydration if verbose
+                # Log successful hydration if verbose (shouldn't happen now)
                 if verbose and availability_reason == "hydrated":
                     progress.console.print(
                         f"[HYDRATED] {file_path} (cloud file downloaded)",
