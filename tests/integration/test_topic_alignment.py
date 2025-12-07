@@ -188,7 +188,12 @@ class TestCategoryBSimilarTopics:
         self, outline_generator, mock_llm_client, mock_corpus_searcher
     ):
         """B1: 'Building Dashboards That Drive Action' synthesizes from multiple docs."""
-        # 6 results at moderate similarity = (6/10) * 0.7 * 100 = 42%
+        # 6 results at LOW similarity to test moderate coverage
+        # Coverage formula: (result_factor * normalized_similarity) * 100
+        # - effective_sim = 0.9 * best + 0.1 * avg = 0.9 * 0.15 + 0.1 * 0.15 = 0.15
+        # - normalized_sim = min(0.15 / 0.25, 1.0) = 0.6
+        # - result_factor = min(6 / 2.0, 1.0) = 1.0
+        # - coverage = 1.0 * 0.6 * 100 = 60%
         mock_corpus_searcher.search.return_value = [
             SearchResult(
                 chunk_id=f"dash-{i}",
@@ -198,7 +203,7 @@ class TestCategoryBSimilarTopics:
                     "filename": f"Dashboard_Doc_{i}.md",
                     "document_id": f"doc{i}",
                 },
-                distance=0.30,  # similarity_score = 0.70 (moderate match)
+                distance=0.85,  # similarity_score = 0.15 (low match for moderate coverage)
             )
             for i in range(6)
         ]
@@ -218,8 +223,8 @@ class TestCategoryBSimilarTopics:
             thesis="Effective dashboards surface actionable insights rather than vanity metrics",
         )
 
-        # With 6 results at 0.7 similarity: (6/10) * 0.7 * 100 = 42%
-        assert 30 <= outline.avg_coverage <= 60
+        # With 6 results at 0.15 similarity: coverage ~60%
+        assert 50 <= outline.avg_coverage <= 70
         assert len(outline.sections) > 0
 
 
