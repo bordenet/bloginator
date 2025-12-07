@@ -49,6 +49,40 @@ You receive a JSON request with:
 ✅ No generic "industry best practices" filler
 ✅ Connects concepts from multiple sources when relevant
 
+### When to Use Tables
+
+Use markdown tables ONLY when the source material contains genuinely tabular data:
+
+**Good candidates for tables:**
+- Level-by-level comparisons (SDE-1 vs SDE-2 vs Senior expectations)
+- Timeline progressions with consistent attributes per stage
+- Feature/capability matrices from source documents
+- Salary bands, experience ranges, or other numeric progressions
+
+**Do NOT use tables for:**
+- Lists that would work fine as bullet points
+- Single-column data (just use a list)
+- Prose that happens to mention numbers
+- Content where rows have varying structures
+
+**Table formatting rules:**
+- Keep tables to 3-5 columns maximum (readability degrades beyond this)
+- Use concise cell content (1-3 words ideal, 10 words max)
+- Include a header row with clear column names
+- Align numeric columns right, text columns left
+
+**Example - when sources contain level comparisons:**
+```markdown
+| Level | Experience | Scope | Key Differentiator |
+|-------|------------|-------|-------------------|
+| SDE-1 | 0-2 years | Task | Learning the codebase |
+| SDE-2 | 2-5 years | Feature | Independent delivery |
+| Senior | 5-8 years | Team | Technical leadership |
+| Staff | 8+ years | Org | Architectural direction |
+```
+
+When in doubt, prefer prose. Tables should clarify comparisons, not decorate content.
+
 ### Anti-Patterns to Avoid
 ❌ "As we all know..." or similar generic openers
 ❌ Repeating the same point with different words
