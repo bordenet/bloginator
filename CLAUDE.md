@@ -46,13 +46,16 @@ Content generated from your training data is USELESS because:
 
 1. **Interactive mode** (user provides LLM responses):
    ```bash
-   BLOGINATOR_LLM_MOCK=interactive bloginator outline --index .bloginator/chroma "Topic"
-   BLOGINATOR_LLM_MOCK=interactive bloginator draft --index .bloginator/chroma --outline outline.json -o draft.md
+   BLOGINATOR_LLM_MOCK=interactive bloginator outline --index .bloginator/chroma \
+       --title "Topic Title" --keywords "keyword1,keyword2,keyword3" -o outline.json
+   BLOGINATOR_LLM_MOCK=interactive bloginator draft --index .bloginator/chroma \
+       --outline outline.json -o draft.md
    ```
 
 2. **Assistant mode** (Claude acts as LLM backend):
    ```bash
-   BLOGINATOR_LLM_MOCK=assistant bloginator outline --index .bloginator/chroma "Topic"
+   BLOGINATOR_LLM_MOCK=assistant bloginator outline --index .bloginator/chroma \
+       --title "Topic Title" --keywords "keyword1,keyword2" -o outline.json
    # Then read requests from .bloginator/llm_requests/
    # Write responses to .bloginator/llm_responses/
    # Responses MUST be based on corpus search results in the request
@@ -116,7 +119,7 @@ When `BLOGINATOR_LLM_MOCK=assistant`:
 
 To act as the LLM backend:
 1. Set `BLOGINATOR_LLM_MOCK=assistant` in `.env`
-2. Run a bloginator command (e.g., `bloginator outline "Topic"`)
+2. Run a bloginator command (e.g., `bloginator outline --index .bloginator/chroma --title "Topic" --keywords "key1,key2" -o outline.json`)
 3. Monitor `.bloginator/llm_requests/` for new request files
 4. Read the request, generate a response, write to `.bloginator/llm_responses/`
 
