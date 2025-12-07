@@ -97,23 +97,43 @@ def extract_source_files(
                     progress.update(task, advance=1)
                     continue
 
-                # Wait for file availability (critical for OneDrive files)
-                # OneDrive files may appear in directory but have 0 bytes until downloaded
-                if not wait_for_file_availability(file_path, timeout_seconds=10.0):
-                    # File not available after timeout - skip it
-                    error_tracker.record_skip(
-                        SkipCategory.PATH_NOT_FOUND,
-                        f"{file_path} (not available - OneDrive download timeout)",
-                    )
-                    # Output parseable skip event (verbose only)
-                    if verbose:
-                        progress.console.print(
-                            f"[SKIP] {file_path} (path_not_found: OneDrive timeout)",
-                            highlight=False,
+                # Wait for file availability (critical for OneDrive/iCloud files)
+                # Cloud files may appear in directory but are placeholders (st_blocks=0)
+                is_available, availability_reason = wait_for_file_availability(
+                    file_path, timeout_seconds=30.0, attempt_hydration_flag=True
+                )
+                if not is_available:
+                    # File not available - determine skip category
+                    if availability_reason == "cloud_only":
+                        error_tracker.record_skip(
+                            SkipCategory.CLOUD_ONLY,
+                            f"{file_path} (OneDrive/iCloud placeholder - not downloaded)",
                         )
+                        if verbose:
+                            progress.console.print(
+                                f"[SKIP] {file_path} (cloud_only: hydration failed)",
+                                highlight=False,
+                            )
+                    else:
+                        error_tracker.record_skip(
+                            SkipCategory.PATH_NOT_FOUND,
+                            f"{file_path} (not available - {availability_reason})",
+                        )
+                        if verbose:
+                            progress.console.print(
+                                f"[SKIP] {file_path} (path_not_found: {availability_reason})",
+                                highlight=False,
+                            )
                     skipped_count += 1
                     progress.update(task, advance=1)
                     continue
+
+                # Log successful hydration if verbose
+                if verbose and availability_reason == "hydrated":
+                    progress.console.print(
+                        f"[HYDRATED] {file_path} (cloud file downloaded)",
+                        highlight=False,
+                    )
 
                 # Check file size before extraction
                 file_size = file_path.stat().st_size

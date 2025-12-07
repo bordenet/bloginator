@@ -36,6 +36,7 @@ class SkipCategory(str, Enum):
     EMPTY_CONTENT = "empty_content"
     URL_SOURCE = "url_source"
     PATH_NOT_FOUND = "path_not_found"
+    CLOUD_ONLY = "cloud_only"  # OneDrive/iCloud placeholder not downloaded
 
 
 class ErrorTracker:
