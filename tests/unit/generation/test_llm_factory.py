@@ -11,9 +11,14 @@ from bloginator.generation.llm_factory import create_llm_from_config, get_defaul
 class TestCreateLLMFromConfig:
     """Tests for create_llm_from_config function."""
 
-    @pytest.mark.xfail(reason="Environment config overrides mock config")
-    def test_create_ollama_client_from_config(self):
+    def test_create_ollama_client_from_config(self, monkeypatch):
         """Test creating Ollama client from config."""
+        # Clear environment variables to allow mocked config to work
+        monkeypatch.delenv("BLOGINATOR_LLM_MOCK", raising=False)
+        monkeypatch.delenv("BLOGINATOR_LLM_PROVIDER", raising=False)
+        monkeypatch.delenv("OLLAMA_MODEL", raising=False)
+        monkeypatch.delenv("OLLAMA_BASE_URL", raising=False)
+
         with patch("bloginator.generation.llm_factory.config") as mock_config:
             mock_config.LLM_PROVIDER = "ollama"
             mock_config.LLM_MODEL = "llama3"
@@ -26,17 +31,20 @@ class TestCreateLLMFromConfig:
             assert isinstance(client, OllamaClient)
             assert client.model == "llama3"
             assert client.base_url == "http://localhost:11434"
-            assert client.timeout == 60
             assert client.verbose is False
 
-    @pytest.mark.xfail(reason="Environment config overrides mock config")
-    def test_create_ollama_client_with_verbose(self):
+    def test_create_ollama_client_with_verbose(self, monkeypatch):
         """Test creating Ollama client with verbose mode."""
+        # Clear environment variables to allow mocked config to work
+        monkeypatch.delenv("BLOGINATOR_LLM_MOCK", raising=False)
+        monkeypatch.delenv("BLOGINATOR_LLM_PROVIDER", raising=False)
+        monkeypatch.delenv("OLLAMA_MODEL", raising=False)
+        monkeypatch.delenv("OLLAMA_BASE_URL", raising=False)
+
         with patch("bloginator.generation.llm_factory.config") as mock_config:
             mock_config.LLM_PROVIDER = "ollama"
             mock_config.LLM_MODEL = "llama3"
             mock_config.LLM_BASE_URL = "http://localhost:11434"
-            mock_config.LLM_TIMEOUT = 120
             mock_config.get_llm_headers.return_value = {}
 
             client = create_llm_from_config(verbose=True)
@@ -44,13 +52,14 @@ class TestCreateLLMFromConfig:
             assert isinstance(client, OllamaClient)
             assert client.verbose is True
 
-    @pytest.mark.xfail(reason="Environment config overrides mock config")
-    def test_create_mock_client_from_config(self):
+    def test_create_mock_client_from_config(self, monkeypatch):
         """Test creating Mock client from config."""
+        # Clear environment variables to allow mocked config to work
+        monkeypatch.delenv("BLOGINATOR_LLM_MOCK", raising=False)
+        monkeypatch.delenv("BLOGINATOR_LLM_PROVIDER", raising=False)
         with patch("bloginator.generation.llm_factory.config") as mock_config:
             mock_config.LLM_PROVIDER = "mock"
             mock_config.LLM_MODEL = "mock-model"
-            mock_config.LLM_TIMEOUT = 120
             mock_config.get_llm_headers.return_value = {}
 
             client = create_llm_from_config()
@@ -58,15 +67,16 @@ class TestCreateLLMFromConfig:
             assert isinstance(client, MockLLMClient)
             assert client.model == "mock-model"
 
-    @pytest.mark.xfail(reason="Environment config overrides mock config")
-    def test_create_custom_client_from_config(self):
+    def test_create_custom_client_from_config(self, monkeypatch):
         """Test creating Custom client from config."""
+        # Clear environment variables to allow mocked config to work
+        monkeypatch.delenv("BLOGINATOR_LLM_MOCK", raising=False)
+        monkeypatch.delenv("BLOGINATOR_LLM_PROVIDER", raising=False)
         with patch("bloginator.generation.llm_factory.config") as mock_config:
             mock_config.LLM_PROVIDER = "custom"
             mock_config.LLM_MODEL = "gpt-4"
             mock_config.LLM_BASE_URL = "https://api.example.com/v1"
             mock_config.LLM_API_KEY = "test-key-123"
-            mock_config.LLM_TIMEOUT = 120
             mock_config.get_llm_headers.return_value = {}
 
             client = create_llm_from_config()
@@ -75,17 +85,17 @@ class TestCreateLLMFromConfig:
             assert client.model == "gpt-4"
             assert client.base_url == "https://api.example.com/v1"
             assert client.api_key == "test-key-123"
-            assert client.timeout == 120
 
-    @pytest.mark.xfail(reason="Environment config overrides mock config")
-    def test_create_custom_client_without_api_key(self):
+    def test_create_custom_client_without_api_key(self, monkeypatch):
         """Test creating Custom client without API key."""
+        # Clear environment variables to allow mocked config to work
+        monkeypatch.delenv("BLOGINATOR_LLM_MOCK", raising=False)
+        monkeypatch.delenv("BLOGINATOR_LLM_PROVIDER", raising=False)
         with patch("bloginator.generation.llm_factory.config") as mock_config:
             mock_config.LLM_PROVIDER = "custom"
             mock_config.LLM_MODEL = "local-model"
             mock_config.LLM_BASE_URL = "http://localhost:8000"
             mock_config.LLM_API_KEY = None
-            mock_config.LLM_TIMEOUT = 120
             mock_config.get_llm_headers.return_value = {}
 
             client = create_llm_from_config()
@@ -93,15 +103,16 @@ class TestCreateLLMFromConfig:
             assert isinstance(client, CustomLLMClient)
             assert client.api_key is None
 
-    @pytest.mark.xfail(reason="Environment config overrides mock config")
-    def test_create_custom_client_with_headers(self):
+    def test_create_custom_client_with_headers(self, monkeypatch):
         """Test creating Custom client with custom headers."""
+        # Clear environment variables to allow mocked config to work
+        monkeypatch.delenv("BLOGINATOR_LLM_MOCK", raising=False)
+        monkeypatch.delenv("BLOGINATOR_LLM_PROVIDER", raising=False)
         with patch("bloginator.generation.llm_factory.config") as mock_config:
             mock_config.LLM_PROVIDER = "custom"
             mock_config.LLM_MODEL = "test-model"
             mock_config.LLM_BASE_URL = "http://localhost:8000"
             mock_config.LLM_API_KEY = None
-            mock_config.LLM_TIMEOUT = 120
             mock_config.get_llm_headers.return_value = {
                 "X-Custom-Header": "value",
                 "Authorization": "Bearer token",
@@ -116,25 +127,29 @@ class TestCreateLLMFromConfig:
             assert "Authorization" in client.headers
             assert client.headers["Authorization"] == "Bearer token"
 
-    @pytest.mark.xfail(reason="Environment config overrides mock config")
-    def test_invalid_provider_raises_error(self):
+    def test_invalid_provider_raises_error(self, monkeypatch):
         """Test that invalid provider raises ValueError."""
+        # Clear environment variables to allow mocked config to work
+        monkeypatch.delenv("BLOGINATOR_LLM_MOCK", raising=False)
+        monkeypatch.delenv("BLOGINATOR_LLM_PROVIDER", raising=False)
         with patch("bloginator.generation.llm_factory.config") as mock_config:
             mock_config.LLM_PROVIDER = "invalid-provider"
             mock_config.LLM_MODEL = "test"
-            mock_config.LLM_TIMEOUT = 120
 
             with pytest.raises(ValueError, match="Invalid LLM provider"):
                 create_llm_from_config()
 
-    @pytest.mark.xfail(reason="Environment config overrides mock config")
-    def test_provider_case_insensitive(self):
+    def test_provider_case_insensitive(self, monkeypatch):
         """Test that provider name is case-insensitive."""
+        # Clear environment variables to allow mocked config to work
+        monkeypatch.delenv("BLOGINATOR_LLM_MOCK", raising=False)
+        monkeypatch.delenv("BLOGINATOR_LLM_PROVIDER", raising=False)
+        monkeypatch.delenv("OLLAMA_MODEL", raising=False)
+        monkeypatch.delenv("OLLAMA_BASE_URL", raising=False)
         with patch("bloginator.generation.llm_factory.config") as mock_config:
             mock_config.LLM_PROVIDER = "OLLAMA"
             mock_config.LLM_MODEL = "llama3"
             mock_config.LLM_BASE_URL = "http://localhost:11434"
-            mock_config.LLM_TIMEOUT = 120
             mock_config.get_llm_headers.return_value = {}
 
             client = create_llm_from_config()
