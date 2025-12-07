@@ -295,26 +295,33 @@ def _extract_and_save_document(
         tag_list: Tags to apply
     """
     # Wait for file availability (critical for OneDrive/iCloud files)
-    is_available, reason = wait_for_file_availability(
-        file_path, timeout_seconds=30.0, attempt_hydration_flag=True
+    # Uses copy-based hydration for cloud-only files
+    is_available, reason, alt_path = wait_for_file_availability(
+        file_path,
+        timeout_seconds=120.0,
+        attempt_hydration_flag=True,
+        use_copy_hydration=True,
     )
     if not is_available:
         if reason == "cloud_only":
             raise FileNotFoundError(
                 f"File is a cloud-only placeholder (OneDrive/iCloud not downloaded). "
-                f"Right-click in Finder and select 'Always Keep on This Device': {file_path}"
+                f"Copy-based hydration failed: {file_path}"
             )
         raise FileNotFoundError(f"File not available ({reason}): {file_path}")
 
+    # Use alternate path if file was copied to temp
+    extract_from = alt_path if alt_path else file_path
+
     # Check file size before extraction
-    file_size = file_path.stat().st_size
+    file_size = extract_from.stat().st_size
     if file_size == 0:
         raise ValueError(
             f"File is empty (0 bytes - likely OneDrive placeholder not downloaded): {file_path}"
         )
 
-    # Extract text
-    text = extract_text_from_file(file_path)
+    # Extract text from available path (original or temp copy)
+    text = extract_text_from_file(extract_from)
 
     # Check for empty content after extraction
     if not text or not text.strip():
@@ -322,13 +329,13 @@ def _extract_and_save_document(
             f"File has no extractable text ({file_size} bytes but empty content): {file_path}"
         )
 
-    # Get file metadata
+    # Get file metadata from original path (for correct dates/paths)
     file_meta = extract_file_metadata(file_path)
 
     # Try to extract frontmatter if Markdown
     frontmatter = {}
     if file_path.suffix.lower() in [".md", ".markdown"]:
-        content = file_path.read_text(encoding="utf-8")
+        content = extract_from.read_text(encoding="utf-8")
         frontmatter = extract_yaml_frontmatter(content)
 
     # Calculate content checksum for incremental indexing

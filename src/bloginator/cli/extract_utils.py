@@ -4,7 +4,12 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-from bloginator.utils.cloud_files import CloudFileStatus, attempt_hydration, get_cloud_file_status
+from bloginator.utils.cloud_files import (
+    CloudFileStatus,
+    attempt_hydration,
+    get_cloud_file_status,
+    hydrate_via_copy,
+)
 
 
 def load_existing_extractions(output_dir: Path) -> dict[str, tuple[str, datetime]]:
@@ -148,7 +153,8 @@ def wait_for_file_availability(
     file_path: Path,
     timeout_seconds: float = 30.0,
     attempt_hydration_flag: bool = True,
-) -> tuple[bool, str]:
+    use_copy_hydration: bool = True,
+) -> tuple[bool, str, Path | None]:
     """Wait for a file to become available, handling cloud-only placeholders.
 
     This function properly handles OneDrive/iCloud Files-On-Demand on macOS.
@@ -157,19 +163,22 @@ def wait_for_file_availability(
     The function will:
     1. Check if file is already local (st_blocks > 0)
     2. If cloud-only and attempt_hydration_flag is True, try to trigger download
-    3. Return status and reason
+    3. If hydration fails and use_copy_hydration is True, copy to /tmp to force download
+    4. Return status, reason, and optional alternate path
 
     Args:
         file_path: Path to the file to check
         timeout_seconds: Maximum time to wait for hydration (default: 30 seconds)
         attempt_hydration_flag: If True, attempt to trigger cloud download
+        use_copy_hydration: If True, copy cloud files to /tmp to force download
 
     Returns:
-        Tuple of (is_available, reason_string)
-        - (True, "local") - File is available locally
-        - (True, "hydrated") - File was cloud-only but successfully downloaded
-        - (False, "cloud_only") - File is cloud-only and hydration failed/skipped
-        - (False, "not_found") - File does not exist
+        Tuple of (is_available, reason_string, alternate_path)
+        - (True, "local", None) - File is available locally
+        - (True, "hydrated", None) - File was cloud-only but successfully downloaded
+        - (True, "copy_hydrated", Path) - Cloud file copied to temp; use alternate path
+        - (False, "cloud_only", None) - File is cloud-only and all hydration failed
+        - (False, "not_found", None) - File does not exist
 
     Raises:
         FileNotFoundError: If file doesn't exist at all
@@ -181,27 +190,32 @@ def wait_for_file_availability(
     status = get_cloud_file_status(file_path)
 
     if status == CloudFileStatus.LOCAL:
-        return True, "local"
+        return True, "local", None
 
     if status == CloudFileStatus.CLOUD_ONLY:
-        if not attempt_hydration_flag:
-            return False, "cloud_only"
+        if not attempt_hydration_flag and not use_copy_hydration:
+            return False, "cloud_only", None
 
-        # Attempt to hydrate the file
-        success = attempt_hydration(file_path, timeout_seconds=timeout_seconds)
+        # Try normal hydration first (Quick Look, Spotlight, etc.)
+        if attempt_hydration_flag:
+            success = attempt_hydration(file_path, timeout_seconds=min(timeout_seconds, 5.0))
+            if success:
+                return True, "hydrated", None
 
-        if success:
-            return True, "hydrated"
-        else:
-            return False, "cloud_only"
+        # Try copy-based hydration - copying forces OneDrive to download
+        if use_copy_hydration:
+            temp_copy = hydrate_via_copy(file_path, timeout_seconds=timeout_seconds)
+            if temp_copy is not None:
+                return True, "copy_hydrated", temp_copy
+
+        return False, "cloud_only", None
 
     # Unknown status - try to read and see what happens
-    # But use a very short timeout to avoid blocking
     try:
         stat_info = file_path.stat()
         if stat_info.st_size > 0 and stat_info.st_blocks > 0:
-            return True, "local"
+            return True, "local", None
     except OSError:
         pass
 
-    return False, "unknown"
+    return False, "unknown", None
