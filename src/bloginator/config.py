@@ -111,6 +111,16 @@ class Config:
     # Debug
     DEBUG: bool = os.getenv("BLOGINATOR_DEBUG", "false").lower() == "true"
 
+    # Corpus Shadow Copies - for offline access to SMB/OneDrive sources
+    # When enabled, extraction creates copies of corpus files to /tmp/bloginator/corpus_shadow
+    # This allows offline access when SMB shares or OneDrive paths are unavailable
+    CORPUS_MAINTAIN_SHADOW_COPIES: bool = (
+        os.getenv("CORPUS_MAINTAIN_SHADOW_COPIES", "false").lower() == "true"
+    )
+
+    # Shadow copy root directory (not configurable via env, but exposed for testing)
+    SHADOW_COPY_ROOT: Path = Path("/tmp/bloginator/corpus_shadow")
+
     # Company Branding (for blog personalization)
     # These are injected into prompts for company-specific content
     COMPANY_NAME: str = os.getenv("BLOGINATOR_COMPANY_NAME", "our company")

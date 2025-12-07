@@ -8,10 +8,33 @@ from rich.console import Console
 from rich.table import Table
 
 from bloginator.cli._extract_files_engine import extract_source_files
-from bloginator.cli._smb_resolver import resolve_smb_path
+from bloginator.cli._smb_resolver import SHADOW_COPY_ROOT, resolve_smb_path
 from bloginator.cli.error_reporting import ErrorTracker, SkipCategory, create_error_panel
 from bloginator.cli.extract_utils import is_temp_file
 from bloginator.corpus_config import CorpusConfig, CorpusSource
+
+
+def _get_shadow_path_for_local(original_path: Path) -> Path | None:
+    """Get shadow copy path for a local filesystem path.
+
+    The shadow copy script creates a directory structure like:
+    /tmp/bloginator/corpus_shadow/local/<original_path>/
+
+    Args:
+        original_path: Original local path (e.g., OneDrive path)
+
+    Returns:
+        Path to shadow copy if it exists, None otherwise
+    """
+    # Build shadow path: /tmp/bloginator/corpus_shadow/local/<original_path>
+    # Strip leading slash to avoid double-slash in path
+    relative_part = str(original_path).lstrip("/")
+    shadow_path = SHADOW_COPY_ROOT / "local" / relative_part
+
+    if shadow_path.exists():
+        return shadow_path
+
+    return None
 
 
 def load_config(config_path: Path, error_tracker: ErrorTracker, console: Console) -> CorpusConfig:
@@ -132,6 +155,9 @@ def resolve_source_path(
 ) -> Path | str | None:
     """Resolve and validate source path.
 
+    Falls back to shadow copy at /tmp/bloginator/corpus_shadow/ when original
+    paths are unavailable (e.g., OneDrive offline, SMB share disconnected).
+
     Args:
         source_cfg: Source configuration
         config_dir: Directory containing config file
@@ -150,18 +176,29 @@ def resolve_source_path(
         return None
 
     # Handle URLs (like smb://) - accept without existence check
+    # Shadow copy fallback for SMB is handled in resolve_smb_path
     if isinstance(resolved_path, str):
         console.print(f"[cyan]→ Using network path '{source_cfg.name}': {resolved_path}[/cyan]")
         return resolved_path
 
-    # Handle local paths - check existence
+    # Handle local paths - check existence, try shadow copy if not found
     if not resolved_path.exists():
+        # Try shadow copy fallback
+        shadow_path = _get_shadow_path_for_local(resolved_path)
+        if shadow_path is not None:
+            console.print(
+                f"[cyan]→ Using shadow copy for '{source_cfg.name}': {shadow_path}[/cyan]"
+            )
+            return shadow_path
+
+        # Neither original nor shadow copy available
         error_tracker.record_skip(
-            SkipCategory.PATH_NOT_FOUND, f"{source_cfg.name}: {resolved_path}"
+            SkipCategory.PATH_NOT_FOUND,
+            f"{source_cfg.name}: {resolved_path} (no shadow copy found)",
         )
         console.print(
             f"[yellow]⊘ Skipping '{source_cfg.name}' "
-            f"(path does not exist: {resolved_path})[/yellow]"
+            f"(path does not exist and no shadow copy: {resolved_path})[/yellow]"
         )
         return None
 
