@@ -480,10 +480,14 @@ class TestShadowCopyCreation:
         # Mock the stat call inside should_update_shadow_copy to raise OSError
         # We need to patch after exists() check passes
         original_stat = Path.stat
+        call_count = 0
 
         def stat_side_effect(self, *args, **kwargs):
-            # Let exists() work, but fail on the actual stat calls
-            if "follow_symlinks" in kwargs:
+            nonlocal call_count
+            call_count += 1
+            # Let the first two calls work (exists() checks for shadow and source)
+            # Then fail on the explicit stat() calls for mtime comparison
+            if call_count <= 2:
                 return original_stat(self, *args, **kwargs)
             raise OSError("Permission denied")
 
