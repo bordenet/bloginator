@@ -297,4 +297,4 @@ pytest --cov=src/bloginator --cov-report=term-missing
 - **Target for new code**: 80%+
 - **Critical paths**: 90%+ recommended
 
-Current coverage: ~73% (as of 2025-12-05)
+Current coverage: ~71% (as of 2025-12-07)
