@@ -1,6 +1,7 @@
 """CLI command for generating drafts."""
 
 import logging
+import re
 from pathlib import Path
 
 import click
@@ -20,6 +21,32 @@ from bloginator.cli._draft_validators import (
     validate_safety_pre_generation,
 )
 from bloginator.generation import DraftGenerator
+from bloginator.generation.llm_base import LLMResponse
+from bloginator.models.draft import Draft, DraftSection
+
+
+def _replace_batch_placeholders(draft: Draft, responses: dict[int, LLMResponse]) -> None:
+    """Replace placeholder content in draft sections with actual LLM responses.
+
+    Args:
+        draft: Draft object with placeholder content
+        responses: Dictionary mapping request_id to LLMResponse
+    """
+    placeholder_pattern = re.compile(r"__BATCH_PLACEHOLDER_(\d+)__")
+
+    def replace_in_section(section: DraftSection) -> None:
+        """Recursively replace placeholders in section and subsections."""
+        match = placeholder_pattern.match(section.content)
+        if match:
+            request_id = int(match.group(1))
+            if request_id in responses:
+                section.content = responses[request_id].content
+
+        for subsection in section.subsections:
+            replace_in_section(subsection)
+
+    for section in draft.sections:
+        replace_in_section(section)
 
 
 @click.command()
@@ -113,6 +140,19 @@ from bloginator.generation import DraftGenerator
     default=0.75,
     help="Voice similarity threshold 0.0-1.0 (default: 0.75)",
 )
+@click.option(
+    "--batch",
+    is_flag=True,
+    envvar="BLOGINATOR_BATCH_MODE",
+    help="Batch mode: generate all LLM requests upfront, then wait for all responses",
+)
+@click.option(
+    "--batch-timeout",
+    type=int,
+    default=1800,
+    envvar="BLOGINATOR_BATCH_TIMEOUT",
+    help="Batch mode timeout in seconds (default: 1800 = 30 minutes)",
+)
 def draft(
     index_dir: Path,
     outline_file: Path,
@@ -129,6 +169,8 @@ def draft(
     verbose: bool,
     citations: bool,
     similarity: float,
+    batch: bool,
+    batch_timeout: int,
 ) -> None:
     r"""Generate document draft from outline.
 
@@ -190,8 +232,10 @@ def draft(
         # Load searcher
         searcher = initialize_searcher(index_dir, progress, logger, console)
 
-        # Initialize LLM client
-        llm_client = initialize_llm(progress, verbose, logger, console)
+        # Initialize LLM client (with batch_mode if requested)
+        llm_client = initialize_llm(
+            progress, verbose, logger, console, batch_mode=batch, batch_timeout=batch_timeout
+        )
 
         # Pre-validate inputs if safety validation enabled
         if validate_safety:
@@ -214,6 +258,19 @@ def draft(
             logger,
             console,
         )
+
+        # In batch mode, collect responses and replace placeholders
+        if batch:
+            from bloginator.generation._llm_assistant_client import AssistantLLMClient
+
+            if isinstance(llm_client, AssistantLLMClient):
+                task = progress.add_task("Waiting for batch responses...", total=None)
+                responses = llm_client.collect_batch_responses()
+                progress.update(task, completed=True)
+
+                # Replace placeholder content with actual responses
+                _replace_batch_placeholders(draft_obj, responses)
+                logger.info(f"Replaced {len(responses)} batch placeholders with responses")
 
         # Validate safety if requested
         if validate_safety:

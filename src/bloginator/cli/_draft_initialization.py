@@ -75,7 +75,12 @@ def initialize_searcher(
 
 
 def initialize_llm(
-    progress: Progress, verbose: bool, logger: logging.Logger, console: Console
+    progress: Progress,
+    verbose: bool,
+    logger: logging.Logger,
+    console: Console,
+    batch_mode: bool = False,
+    batch_timeout: int = 1800,
 ) -> LLMClient:
     """Initialize LLM client from configuration.
 
@@ -84,6 +89,8 @@ def initialize_llm(
         verbose: Whether to show verbose output
         logger: Logger instance
         console: Rich console for output
+        batch_mode: If True, enable batch mode for AssistantLLMClient
+        batch_timeout: Timeout in seconds for batch mode (default: 1800 = 30 min)
 
     Returns:
         Initialized LLM client
@@ -94,7 +101,9 @@ def initialize_llm(
     task = progress.add_task("Connecting to LLM...", total=None)
     try:
         logger.info("Connecting to LLM from config")
-        llm_client = create_llm_from_config(verbose=verbose)
+        llm_client = create_llm_from_config(
+            verbose=verbose, batch_mode=batch_mode, batch_timeout=batch_timeout
+        )
         logger.info("LLM client connected")
         progress.update(task, completed=True)
         return llm_client
