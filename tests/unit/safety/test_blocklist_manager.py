@@ -30,7 +30,7 @@ class TestBlocklistManager:
                 "pattern": "Acme Corp",
                 "pattern_type": "exact",
                 "category": "company_name",
-                "added_date": "2025-01-01T00:00:00",
+                "created_at": "2025-01-01T00:00:00",
                 "notes": "Test",
             }
         ]
@@ -62,7 +62,7 @@ class TestBlocklistManager:
                 "pattern": "Valid Pattern",
                 "pattern_type": "exact",
                 "category": "company_name",
-                "added_date": "2025-01-01T00:00:00",
+                "created_at": "2025-01-01T00:00:00",
                 "notes": "Valid",
             },
             {
@@ -74,7 +74,7 @@ class TestBlocklistManager:
                 "pattern": "Another Valid",
                 "pattern_type": "exact",
                 "category": "other",
-                "added_date": "2025-01-01T00:00:00",
+                "created_at": "2025-01-01T00:00:00",
                 "notes": "",
             },
         ]
