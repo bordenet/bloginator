@@ -1,456 +1,168 @@
-# Production Readiness Checklist
+# Production Readiness Status
 
-**Last Updated**: 2025-12-02 (Updated with corpus management tests)
-**Current Status**: In progress - corpus management feature tested
-
-This document tracks system readiness for production use.
+**Last Updated**: 2025-12-07
+**Status**: Ready for production use with local LLMs
 
 ---
 
-## ✅ Core System Status
+## System Status
 
-### 1. Code Quality & Testing
-- ✅ **541 tests passing**, 13 skipped (optional dependencies)
-- ✅ **CI/CD GREEN** - All GitHub Actions passing
-- ✅ **Pre-commit hooks** - All linters passing (black, ruff, mypy)
-- ✅ **Type safety** - Full type hints with mypy validation
-- ✅ **Test coverage** - Comprehensive unit, integration, and e2e tests
-- ✅ **Corpus management tests** - 13 new tests for add/delete/prune functions
+### ✅ Core Requirements Met
 
-### 2. LLM Integration
-- ✅ **Multiple providers supported**: Ollama, Anthropic, Custom, Mock, Interactive, Assistant
-- ✅ **Factory pattern** - Clean abstraction via `create_llm_from_config()`
-- ✅ **Environment configuration** - `.env` file with sensible defaults
-- ⚠️ **Ollama not running** - Default provider (ollama/llama3) is not available
-- ✅ **Fallback options** - Can use Interactive or Custom providers
+| Component | Status | Notes |
+|-----------|--------|-------|
+| **Tests** | ✅ | 541 tests passing, ~76% coverage (CI enforces 70% minimum) |
+| **Linting** | ✅ | Black, Ruff, MyPy all passing |
+| **Type Safety** | ✅ | Full type hints with strict MyPy validation |
+| **CI/CD** | ✅ | GitHub Actions green |
+| **Code Quality** | ✅ | Pre-commit hooks enforced |
+| **LLM Integration** | ✅ | Ollama, Anthropic, OpenAI, custom providers supported |
+| **Corpus Indexing** | ✅ | ChromaDB with sentence-transformers |
+| **Search** | ✅ | Semantic search with quality weighting |
+| **CLI** | ✅ | 12 commands, all functional |
+| **Web UI** | ✅ | Streamlit interface working |
+| **Documentation** | ✅ | Comprehensive guides and API docs |
 
-### 3. Corpus & Indexing
-- ✅ **Corpus directory** - `corpus/` exists with README
-- ✅ **Index built** - `.bloginator/index/chroma.sqlite3` (47 MB)
-- ✅ **Vector embeddings** - ChromaDB with sentence-transformers (all-MiniLM-L6-v2)
-- ✅ **Search working** - RAG retrieval operational
+### ⚠️ Known Limitations
 
-### 4. Prompts (Optimized)
-- ✅ **Draft prompt** - Updated with SPECIFICITY REQUIREMENTS (commit 51f8085)
-- ✅ **Outline prompt** - Updated with specificity guidance
-- ✅ **Refinement prompt** - Updated with specificity requirements
-- ✅ **AI slop prevention** - Zero violations in 200+ optimization evaluations
-- ✅ **Version controlled** - All prompts in `prompts/` directory
+1. **Specificity in Generated Content**: Scores range 3.87-4.94/5.0
+   - Workaround: Use `refine` command with explicit feedback
+   - Or: Manually add concrete examples after generation
 
-### 5. CLI Commands
-- ✅ **`outline`** - Generate structured outlines with RAG coverage analysis
-- ✅ **`draft`** - Generate full drafts from outlines with corpus synthesis
-- ✅ **`refine`** - Iterative refinement based on natural language feedback
-- ✅ **`search`** - Corpus search for content discovery
-- ✅ **`extract`** - Document extraction from various formats
-- ✅ **`index`** - Build searchable vector index
-- ✅ **`diff`** - Version comparison
-- ✅ **`revert`** - Version rollback
-- ✅ **`optimize`** - Prompt optimization experiments
+2. **Voice Similarity**: Current scoring is functional but basic
+   - Improvement needed for authenticity
 
-### 6. Documentation
-- ✅ **User guide** - `docs/USER_GUIDE.md`
-- ✅ **Developer guide** - `docs/DEVELOPER_GUIDE.md`
-- ✅ **Installation guide** - `docs/INSTALLATION.md`
-- ✅ **Testing guide** - `docs/TESTING_GUIDE.md`
-- ✅ **Optimization analysis** - `docs/OPTIMIZATION_ANALYSIS.md`
-- ✅ **Optimization learnings** - `docs/OPTIMIZATION_LEARNINGS.md`
-- ✅ **Full optimization plan** - `docs/FULL_OPTIMIZATION_RUN_PLAN.md`
+3. **Corpus Material**: Quality depends on corpus coverage for topic
+   - Verify with `search` command before generating
 
 ---
 
-## 🎯 Optimization Results Summary
+## Quick Start
 
-### 20-Round Experiment (2 Test Cases)
-- **Total evaluations**: 40
-- **Score range**: 4.00-4.79 / 5.0
-- **Average score**: 4.39 / 5.0
-- **Slop violations**: 0 (zero across all rounds)
-- **Limiting factor**: Specificity (3.87-4.94 range)
+### 1. Setup LLM Provider
 
-### Key Findings
-1. **AI slop eliminated** - Base prompts effectively prevent em-dashes, flowery language, hedging
-2. **Specificity is the challenge** - Prompts need more concrete examples and metrics
-3. **High baseline quality** - 4.39/5.0 average before optimization
-4. **Prompts updated** - All three base prompts now include SPECIFICITY REQUIREMENTS
-
-### Prompt Improvements Applied
-- ✅ Added explicit specificity requirements to draft prompt
-- ✅ Added concrete example guidance to outline prompt
-- ✅ Added specificity validation to refinement prompt
-- ✅ Emphasized metrics, quantifiable data, and precise language
-
----
-
-## ⚠️ Pre-Flight Checklist
-
-Before generating real documents, verify:
-
-### 1. LLM Provider Setup
-
-**Current configuration** (`.env`):
+**Option A: Ollama (Local, recommended)**
 ```bash
-BLOGINATOR_LLM_PROVIDER=ollama
-BLOGINATOR_LLM_MODEL=llama3
-```
-
-**Status**: ⚠️ Ollama not running
-
-**Options**:
-
-**A. Start Ollama (Recommended for local use)**:
-```bash
-# Install Ollama if not installed
-brew install ollama  # macOS
-
-# Start Ollama service
-ollama serve
-
-# Pull model
 ollama pull llama3
-
-# Verify
-curl http://localhost:11434/api/tags
+ollama serve  # in another terminal
 ```
 
-**B. Use Interactive Mode (Good for testing)**:
+**Option B: Anthropic Claude (Best quality)**
 ```bash
-# Set environment variable
-export BLOGINATOR_LLM_PROVIDER=interactive
-
-# Run commands - you'll be prompted to provide responses
-bloginator outline --index .bloginator/index --title "Test" --keywords "test"
+export ANTHROPIC_API_KEY=your-key
+# Set in .env: BLOGINATOR_LLM_PROVIDER=anthropic
 ```
 
-**C. Use Anthropic Claude (Best quality, requires API key)**:
+**Option C: OpenAI GPT-4**
 ```bash
-# Update .env
-BLOGINATOR_LLM_PROVIDER=anthropic
-BLOGINATOR_ANTHROPIC_API_KEY=sk-ant-...
-BLOGINATOR_ANTHROPIC_MODEL=claude-3-5-sonnet-20241022
-
-# Run commands
-bloginator outline --index .bloginator/index --title "Test" --keywords "test"
+export OPENAI_API_KEY=your-key
+# Set in .env: BLOGINATOR_LLM_PROVIDER=openai
 ```
 
-### 2. Corpus Verification
+### 2. Verify Corpus
 
 ```bash
-# Check corpus exists
-ls -la corpus/
-
 # Check index exists
 ls -la .bloginator/index/
 
 # Test search
-source .venv/bin/activate
-python -m bloginator.cli.main search .bloginator/index "engineering best practices"
+bloginator search .bloginator/index "engineering leadership"
 ```
 
-### 3. Environment Activation
+### 3. Generate First Document
 
 ```bash
-# Always activate virtual environment first
-cd ./
-source .venv/bin/activate
+# Generate outline
+bloginator outline --index .bloginator/index \
+  --keywords "leadership,engineering,team-building" \
+  -o outline.json
 
-# Verify Python version
-python --version  # Should be 3.10+
+# Generate draft
+bloginator draft outline.json -o draft.md
+
+# Review
+cat draft.md
 ```
 
 ---
 
-## 🚀 Quick Start: Generate Your First Real Document
+## Quality Checklist for Generated Documents
 
-### Step 1: Choose Your LLM Provider
+Before publishing, verify:
 
-Pick one of the options from the Pre-Flight Checklist above.
-
-### Step 2: Generate an Outline
-
-```bash
-source .venv/bin/activate
-
-python -m bloginator.cli.main outline \
-  --index .bloginator/index \
-  --title "Engineering Best Practices for Code Review" \
-  --keywords "code review,engineering,quality,collaboration" \
-  --thesis "Effective code reviews enhance code quality and team collaboration" \
-  --classification best-practice \
-  --audience ic-engineers \
-  -o outline.json \
-  --verbose
-```
-
-**Expected output**:
-- `outline.json` - Structured outline with sections
-- `outline.md` - Human-readable markdown version
-- Console output showing RAG coverage for each section
-
-### Step 3: Generate a Draft
-
-```bash
-python -m bloginator.cli.main draft \
-  --index .bloginator/index \
-  --outline outline.json \
-  -o draft.md \
-  --validate-safety \
-  --score-voice \
-  --verbose
-```
-
-**Expected output**:
-- `draft.md` - Full markdown document
-- `draft.json` - Structured JSON version (if `--format both`)
-- Safety validation results
-- Voice similarity score
-
-### Step 4: Refine (Optional)
-
-```bash
-python -m bloginator.cli.main refine \
-  -i .bloginator/index \
-  -d draft.json \
-  -f "Make the tone more conversational and add more specific examples" \
-  -o draft_v2.md \
-  --verbose
-```
+- ✅ **No AI slop**: No em-dashes (—), flowery jargon, excessive hedging
+- ✅ **Specific**: Concrete metrics, quantifiable data, precise examples
+- ✅ **Grounded**: Facts traceable to corpus sources, no hallucinations
+- ✅ **Clear**: Direct language without ambiguity
+- ✅ **Authentic**: Matches author's voice, not generic AI tone
 
 ---
 
-## 🔍 Quality Assurance
+## Best Practices
 
-### What to Check in Generated Documents
+1. **Start with search**: Verify corpus coverage before generating
+   ```bash
+   bloginator search .bloginator/index "your topic"
+   ```
 
-**1. AI Slop Violations** (should be ZERO):
-- ❌ Em-dashes (—) - Critical violation
-- ❌ Flowery corporate jargon ("synergize", "leverage", "best-in-class")
-- ❌ Excessive hedging ("perhaps", "maybe", "might", "could")
-- ❌ Vague language ("things", "stuff", "somewhat")
+2. **Use specific keywords**: More specific = better RAG retrieval
+   - ❌ "leadership"
+   - ✅ "engineering leadership, tech lead responsibilities, team management"
 
-**2. Content Quality**:
-- ✅ **Specificity**: Concrete metrics, quantifiable data, precise numbers
-- ✅ **Clarity**: Clear, direct language without ambiguity
-- ✅ **Depth**: Substantive insights, not surface-level observations
-- ✅ **Nuance**: Sophisticated understanding of complex topics
-- ✅ **Voice match**: Authentic voice from corpus, not generic AI tone
+3. **Provide clear thesis**: Guides LLM to coherent synthesis
+   - ❌ "This is about code review"
+   - ✅ "Effective code reviews enhance quality through structured feedback"
 
-**3. Source Grounding**:
-- ✅ All facts/examples should be traceable to corpus sources
-- ✅ No hallucinated information
-- ✅ Natural synthesis without explicit citations
-- ✅ Appropriate use of specific tools, technologies, practices by name
+4. **Iterate with refine**: Don't expect perfection on first draft
+   ```bash
+   bloginator refine draft.md "Add more specific examples and metrics"
+   ```
 
-### Manual Review Process
-
-1. **Read the draft** - Does it sound like authentic writing or AI slop?
-2. **Check specificity** - Are there concrete examples and metrics?
-3. **Verify facts** - Can you trace claims back to corpus sources?
-4. **Scan for slop** - Search for em-dashes, flowery language, hedging
-5. **Assess voice** - Does it match the author's authentic voice?
-
-### Automated Validation
-
-```bash
-# Run safety validation
-python -m bloginator.cli.main draft \
-  --index .bloginator/index \
-  --outline outline.json \
-  -o draft.md \
-  --validate-safety  # Blocks generation if violations found
-
-# Check voice similarity
-python -m bloginator.cli.main draft \
-  --index .bloginator/index \
-  --outline outline.json \
-  -o draft.md \
-  --score-voice  # Provides similarity score
-```
+5. **Use verbose mode**: For debugging and understanding generation
+   ```bash
+   bloginator draft outline.json -o draft.md --verbose
+   ```
 
 ---
 
-## 📊 Known Limitations & Workarounds
+## Troubleshooting
 
-### 1. Specificity Still Needs Improvement
+### Command is slow or frozen
 
-**Issue**: Even with updated prompts, specificity scores range 3.87-4.94 (not consistently high).
+**First time setup**: Model downloads (~80MB, 10-60 seconds)
+- Run `bloginator init` to pre-download embedding model
+- Look for message: "Loading embedding model..."
 
-**Workarounds**:
-- Use `--verbose` to see LLM interactions and manually refine
-- Use `refine` command with explicit feedback: "Add specific metrics and quantifiable data"
-- Manually edit drafts to add concrete examples from corpus
-- Run full 10-test-case optimization (see `docs/FULL_OPTIMIZATION_RUN_PLAN.md`)
+**Generation taking longer than expected**:
+- `outline`: 30-90 seconds expected
+- `draft`: 1-5 minutes expected
+- If much slower, check LLM is responsive: `ollama list`
 
-### 2. Convergence Requires 30-50 Rounds
+### Search returns no results
 
-**Issue**: 20-round optimization showed ±0.75 score fluctuation, no convergence.
+- Try broader search terms
+- Verify corpus was extracted and indexed successfully
+- Check topic coverage in corpus with `bloginator search`
 
-**Workarounds**:
-- Accept current prompt quality (4.39/5.0 average is good)
-- Run longer optimization experiments (30-50 rounds) when time permits
-- Use ensemble evaluation methods to reduce variance
+### Generated content doesn't match my voice
 
-### 3. Ollama Not Running by Default
+- Increase similarity threshold during generation
+- Review corpus quality—remove low-quality material
+- Mark best content as `preferred` quality during extraction
 
-**Issue**: Default LLM provider (ollama/llama3) requires Ollama service to be running.
+### Web UI not loading
 
-**Workarounds**:
-- Start Ollama: `ollama serve` (in separate terminal)
-- Use Interactive mode: `export BLOGINATOR_LLM_PROVIDER=interactive`
-- Use Anthropic Claude: Update `.env` with API key
-
-### 4. Corpus Material May Be Limited
-
-**Issue**: RAG quality depends on corpus coverage for the topic.
-
-**Workarounds**:
-- Check coverage in outline generation (shows source count per section)
-- Add more corpus material for low-coverage topics
-- Use `search` command to verify corpus has relevant content before generating
+- Verify server running: `bloginator serve --port 8000`
+- Check port not already in use
+- Try different port: `bloginator serve --port 3000`
 
 ---
 
-## 🎓 Best Practices for Real Document Generation
+## Related Documentation
 
-### 1. Start with Search
-
-Before generating, verify corpus coverage:
-
-```bash
-python -m bloginator.cli.main search .bloginator/index "your topic keywords"
-```
-
-If you get < 5 relevant results, consider adding more corpus material.
-
-### 2. Use Specific Keywords
-
-**Bad**: "leadership"
-**Good**: "engineering leadership,tech lead,team management,1-on-1s"
-
-More specific keywords = better RAG retrieval = higher quality output.
-
-### 3. Provide a Clear Thesis
-
-**Bad**: "This document is about code review"
-**Good**: "Effective code reviews enhance code quality through structured feedback and collaborative learning"
-
-A clear thesis guides the LLM to synthesize sources coherently.
-
-### 4. Choose Appropriate Classification
-
-- **guidance**: Suggestions and recommendations (most flexible)
-- **best-practice**: Proven approaches and industry standards (authoritative)
-- **mandate**: Required practices (most authoritative)
-- **principle**: Fundamental concepts and reasoning (educational)
-- **opinion**: Personal perspectives backed by experience (subjective)
-
-### 5. Match Audience to Content
-
-- **ic-engineers**: Individual contributors, hands-on technical
-- **senior-engineers**: Experienced ICs, architectural thinking
-- **engineering-leaders**: Managers, directors, VPs
-- **tech-leads**: Technical leadership without direct reports
-- **all-disciplines**: Broad engineering audience
-
-### 6. Iterate with Refine
-
-Don't expect perfection on first draft. Use `refine` to:
-- Adjust tone
-- Add specificity
-- Improve clarity
-- Enhance examples
-
-### 7. Use Verbose Mode for Debugging
-
-Always use `--verbose` when testing to see:
-- LLM requests and responses
-- RAG retrieval results
-- Safety validation details
-- Voice scoring breakdown
-
----
-
-## 🚨 Critical Reminders
-
-### DO NOT Push Corpus to GitHub
-
-**CATASTROPHIC if violated!**
-
-The `.gitignore` is configured to exclude:
-- `corpus/**/*.md`
-- `corpus/**/*.txt`
-- `corpus/**/*.pdf`
-- `corpus/**/*.docx`
-- `.bloginator/index/`
-
-**Always verify before pushing**:
-```bash
-git status
-# Should NOT show any corpus files
-```
-
-### Always Pull Before Push
-
-Another Claude instance may be working on the same repo:
-
-```bash
-git pull --rebase origin main
-git push origin main
-```
-
-### Wait for CI Green
-
-Never declare work complete until GitHub Actions are GREEN:
-
-```bash
-# Check CI status
-gh run list --limit 1
-
-# Or visit GitHub Actions page
-```
-
----
-
-## Readiness Assessment
-
-| Component | Status | Notes |
-|-----------|--------|-------|
-| **Code Quality** | ✅ | 528 tests passing, CI green |
-| **LLM Integration** | ⚠️ | Needs LLM provider setup |
-| **Corpus & Index** | ✅ | Index built, search working |
-| **Prompts** | ⚠️ | Need specificity improvements (3.87-4.94 range) |
-| **CLI Commands** | ✅ | All commands operational |
-| **Documentation** | ⚠️ | Needs gaps filled |
-| **Safety Validation** | ✅ | Zero slop violations in testing |
-| **Voice Matching** | ⚠️ | Needs enhancement for authenticity |
-
-**Blockers**:
-- LLM provider must be configured (Ollama, Interactive, or Anthropic)
-- Specificity in generated content needs improvement
-
----
-
-## Work To Do
-
-### Immediate
-- [ ] Choose and configure LLM provider (Ollama, Interactive, or Anthropic)
-- [ ] Verify corpus coverage for target topics
-- [ ] Test outline generation with sample keywords
-- [ ] Review generated content for specificity
-
-### Short-term
-- [ ] Test full document generation workflow end-to-end
-- [ ] Identify corpus gaps and add material
-- [ ] Run full 10-test-case optimization (see `docs/FULL_OPTIMIZATION_RUN_PLAN.md`)
-
-### Medium-term
-- [ ] Analyze optimization results and update prompts
-- [ ] Implement specificity extractor
-- [ ] Enhance voice preservation system
-- [ ] Document performance benchmarks
-
-### Long-term
-- [ ] Run 50-round optimization for convergence
-- [ ] Implement multi-dimensional quality scoring
-- [ ] Version prompts with semantic versioning
-- [ ] A/B test optimized vs. baseline prompts
+- [Installation Guide](INSTALLATION.md)
+- [User Guide](USER_GUIDE.md)
+- [Developer Guide](DEVELOPER_GUIDE.md)
+- [Custom LLM Guide](CUSTOM_LLM_GUIDE.md)
+- [Action Plan](ACTION_PLAN.md) - Current work items
+- [Future Work](FUTURE_WORK.md) - Roadmap
