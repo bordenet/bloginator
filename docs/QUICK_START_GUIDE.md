@@ -33,7 +33,7 @@ bloginator outline --index ./my-index \
 ### 4. Generate Draft
 
 ```bash
-bloginator draft outline.json -o draft.md
+bloginator draft --index ./my-index --outline outline.json -o draft.md
 ```
 
 ### 5. Review & Export
