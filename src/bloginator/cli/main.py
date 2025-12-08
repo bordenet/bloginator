@@ -7,6 +7,7 @@ from bloginator.cli.blocklist import blocklist
 from bloginator.cli.cloud_check import cloud_check
 from bloginator.cli.diff import diff
 from bloginator.cli.draft import draft
+from bloginator.cli.export import export
 from bloginator.cli.extract import extract
 from bloginator.cli.history import history
 from bloginator.cli.index import index
@@ -75,6 +76,7 @@ cli.add_command(blocklist)
 cli.add_command(cloud_check)
 cli.add_command(diff)
 cli.add_command(draft)
+cli.add_command(export)
 cli.add_command(extract)
 cli.add_command(history)
 cli.add_command(index)
