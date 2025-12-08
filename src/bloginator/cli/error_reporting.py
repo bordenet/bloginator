@@ -1,15 +1,15 @@
 """Error reporting utilities for CLI commands with actionable guidance."""
 
-import json
 from collections import defaultdict
-from datetime import datetime
 from enum import Enum
 from pathlib import Path
 
-from rich.console import Console, Group
+from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-from rich.text import Text
+
+# Re-export SkipCategory for backwards compatibility
+from bloginator.cli._skip_tracking import SkipCategory
 
 
 class ErrorCategory(str, Enum):
@@ -24,19 +24,6 @@ class ErrorCategory(str, Enum):
     CONFIG_ERROR = "config_error"
     DEPENDENCY_ERROR = "dependency_error"
     UNKNOWN = "unknown"
-
-
-class SkipCategory(str, Enum):
-    """Categories of skipped files (not errors, but useful to report)."""
-
-    ALREADY_EXTRACTED = "already_extracted"
-    TEMP_FILE = "temp_file"
-    IGNORE_PATTERN = "ignore_pattern"
-    UNSUPPORTED_EXTENSION = "unsupported_extension"
-    EMPTY_CONTENT = "empty_content"
-    URL_SOURCE = "url_source"
-    PATH_NOT_FOUND = "path_not_found"
-    CLOUD_ONLY = "cloud_only"  # OneDrive/iCloud placeholder not downloaded
 
 
 class ErrorTracker:
@@ -250,29 +237,9 @@ class ErrorTracker:
         Returns:
             Path to the saved report file
         """
-        output_dir.mkdir(parents=True, exist_ok=True)
+        from bloginator.cli._report_generation import save_report_to_json
 
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        report_file = output_dir / f"{prefix}_report_{timestamp}.json"
-
-        report = {
-            "timestamp": datetime.now().isoformat(),
-            "summary": {
-                "total_skipped": self.total_skipped,
-                "total_errors": self.total_errors,
-            },
-            "skipped": {category.value: items for category, items in self.skipped.items()},
-            "errors": {
-                category.value: [
-                    {"context": ctx, "error": str(exc), "type": type(exc).__name__}
-                    for ctx, exc in items
-                ]
-                for category, items in self.errors.items()
-            },
-        }
-
-        report_file.write_text(json.dumps(report, indent=2), encoding="utf-8")
-        return report_file
+        return save_report_to_json(self, output_dir, prefix)
 
     def generate_corpus_report(self, output_path: Path | None = None) -> Path:
         """Generate a comprehensive corpus extraction report to /tmp.
@@ -283,72 +250,9 @@ class ErrorTracker:
         Returns:
             Path to the generated report file
         """
-        if output_path is None:
-            output_path = Path("/tmp/bloginator_corpus_report.md")
+        from bloginator.cli._report_generation import generate_corpus_report
 
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        lines = [
-            "# Bloginator Corpus Extraction Report",
-            f"\nGenerated: {timestamp}",
-            "",
-            "## Summary",
-            "",
-            f"- **Total Files Found**: {self.total_files_found}",
-            f"- **Successfully Extracted**: {self.total_extracted}",
-            f"- **Skipped**: {self.total_skipped}",
-            f"- **Errors**: {self.total_errors}",
-            "",
-            "## Files by Type",
-            "",
-            "| Extension | Found | Extracted | Skipped/Failed |",
-            "|-----------|-------|-----------|----------------|",
-        ]
-
-        # Sort by count descending
-        for ext, count in sorted(self.files_by_type.items(), key=lambda x: x[1], reverse=True):
-            extracted = self.extracted_by_type.get(ext, 0)
-            skipped_failed = count - extracted
-            lines.append(f"| {ext} | {count} | {extracted} | {skipped_failed} |")
-
-        lines.append("")
-        lines.append("## Skipped Files")
-        lines.append("")
-
-        if self.total_skipped > 0:
-            for category, skip_list in sorted(
-                self.skipped.items(), key=lambda x: len(x[1]), reverse=True
-            ):
-                lines.append(f"### {category.value.replace('_', ' ').title()} ({len(skip_list)})")
-                lines.append("")
-                for item in skip_list[:20]:  # Limit to 20 per category
-                    lines.append(f"- {item}")
-                if len(skip_list) > 20:
-                    lines.append(f"- ... and {len(skip_list) - 20} more")
-                lines.append("")
-        else:
-            lines.append("*No files were skipped.*")
-            lines.append("")
-
-        lines.append("## Errors")
-        lines.append("")
-
-        if self.total_errors > 0:
-            for category, error_list in sorted(
-                self.errors.items(), key=lambda x: len(x[1]), reverse=True
-            ):
-                lines.append(f"### {category.value.replace('_', ' ').title()} ({len(error_list)})")
-                lines.append("")
-                for ctx, exc in error_list[:10]:  # Limit to 10 per category
-                    lines.append(f"- **{ctx}**: {type(exc).__name__}: {exc!s}")
-                if len(error_list) > 10:
-                    lines.append(f"- ... and {len(error_list) - 10} more")
-                lines.append("")
-        else:
-            lines.append("*No errors occurred.*")
-            lines.append("")
-
-        output_path.write_text("\n".join(lines), encoding="utf-8")
-        return output_path
+        return generate_corpus_report(self, output_path)
 
     def print_skip_summary(
         self, console: Console, max_display_lines: int = 32, show_file_path: Path | None = None
@@ -360,82 +264,15 @@ class ErrorTracker:
             max_display_lines: Maximum lines to display (default 32)
             show_file_path: If provided, show path to full report file
         """
-        if self.total_skipped == 0:
-            return
+        from bloginator.cli._skip_tracking import print_skip_summary
 
-        console.print()
-
-        # Build summary table
-        table = Table(
-            title=f"{self.total_skipped} File(s) Skipped",
-            show_header=True,
-            expand=False,
+        print_skip_summary(
+            skipped=self.skipped,
+            total_skipped=self.total_skipped,
+            console=console,
+            max_display_lines=max_display_lines,
+            show_file_path=str(show_file_path) if show_file_path else None,
         )
-        table.add_column("Reason", style="cyan", no_wrap=True)
-        table.add_column("Count", style="yellow", justify="right")
-        table.add_column("Examples", style="dim")
-
-        for category, skip_list in sorted(
-            self.skipped.items(), key=lambda x: len(x[1]), reverse=True
-        ):
-            examples = skip_list[:3]
-            example_str = ", ".join(examples)
-            if len(skip_list) > 3:
-                example_str += f" (+{len(skip_list) - 3} more)"
-
-            table.add_row(
-                category.value.replace("_", " ").title(),
-                str(len(skip_list)),
-                example_str[:60] + "..." if len(example_str) > 60 else example_str,
-            )
-
-        # Build detailed list (constrained to max_display_lines)
-        detail_lines: list[Text] = []
-        lines_used = 0
-        truncated = False
-
-        for category, skip_list in sorted(
-            self.skipped.items(), key=lambda x: len(x[1]), reverse=True
-        ):
-            if lines_used >= max_display_lines:
-                truncated = True
-                break
-
-            # Category header
-            header = Text(f"\n{category.value.replace('_', ' ').title()}:", style="bold cyan")
-            detail_lines.append(header)
-            lines_used += 2  # header + blank line before
-
-            for item in skip_list:
-                if lines_used >= max_display_lines:
-                    truncated = True
-                    break
-                detail_lines.append(Text(f"  • {item}", style="dim"))
-                lines_used += 1
-
-        # Create scrollable panel content
-        content_group = Group(table, *detail_lines)
-
-        if truncated:
-            content_group = Group(
-                table,
-                *detail_lines,
-                Text(
-                    f"\n... (truncated, see full report for all {self.total_skipped} items)",
-                    style="italic yellow",
-                ),
-            )
-
-        if show_file_path:
-            content_group = Group(
-                content_group,
-                Text(f"\nFull report: {show_file_path}", style="dim italic"),
-            )
-
-        console.print(
-            Panel(content_group, title="[bold cyan]Skipped Files[/bold cyan]", expand=False)
-        )
-        console.print()
 
 
 def create_error_panel(title: str, message: str, suggestion: str | None = None) -> Panel:

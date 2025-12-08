@@ -7,11 +7,12 @@ from collections.abc import Callable
 from bloginator.config import Config
 from bloginator.generation._section_refiner import (
     build_source_context,
+    create_citations,
     get_voice_samples,
     refine_section,
 )
 from bloginator.generation.llm_client import LLMClient
-from bloginator.models.draft import Citation, Draft, DraftSection
+from bloginator.models.draft import Draft, DraftSection
 from bloginator.models.outline import Outline, OutlineSection
 from bloginator.prompts.loader import PromptLoader
 from bloginator.search import CorpusSearcher, SearchResult
@@ -159,23 +160,7 @@ class DraftGenerator:
         total_sections: int = 1,
         search_cache: dict[int, list[SearchResult]] | None = None,
     ) -> DraftSection:
-        """Generate content for a single section.
-
-        Args:
-            outline_section: Section from outline
-            keywords: Document keywords for context
-            classification: Content classification for tone
-            audience: Target audience
-            temperature: LLM temperature
-            max_words: Target word count
-            progress_callback: Optional callback for progress updates
-            current_section: Current section number (0-based)
-            total_sections: Total number of sections
-            search_cache: Optional pre-fetched search results cache (keyed by id(section))
-
-        Returns:
-            DraftSection with generated content and citations
-        """
+        """Generate content for a single section with RAG."""
         # Get search results from cache or perform search
         section_id = id(outline_section)
         if search_cache and section_id in search_cache:
@@ -258,16 +243,7 @@ class DraftGenerator:
         )
 
         # Create citations from filtered search results
-        citations = [
-            Citation(
-                chunk_id=r.chunk_id,
-                document_id=r.metadata.get("document_id", "unknown"),
-                filename=r.metadata.get("filename", "unknown"),
-                content_preview=r.content[:100],
-                similarity_score=r.similarity_score,
-            )
-            for r in filtered_results[:5]  # Keep top 5 citations from filtered results
-        ]
+        citations = create_citations(filtered_results, max_citations=5)
 
         # Generate subsections recursively
         subsections = self._generate_subsections(
@@ -351,24 +327,7 @@ class DraftGenerator:
         keywords: list[str],
         temperature: float = 0.7,
     ) -> DraftSection:
-        """Refine a section based on feedback.
-
-        Args:
-            section: Section to refine
-            feedback: Natural language feedback
-            keywords: Document keywords
-            temperature: LLM temperature
-
-        Returns:
-            New DraftSection with refined content
-
-        Example:
-            >>> refined = generator.refine_section(
-            ...     section,
-            ...     "Add more concrete examples from startup experience",
-            ...     keywords
-            ... )
-        """
+        """Refine a section based on natural language feedback."""
         return refine_section(
             section=section,
             feedback=feedback,

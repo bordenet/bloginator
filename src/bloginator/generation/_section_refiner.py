@@ -32,6 +32,28 @@ def build_source_context(results: list[SearchResult]) -> str:
     return "\n".join(context_parts)
 
 
+def create_citations(results: list[SearchResult], max_citations: int = 5) -> list[Citation]:
+    """Create citations from search results.
+
+    Args:
+        results: Search results to create citations from
+        max_citations: Maximum number of citations to create
+
+    Returns:
+        List of Citation objects
+    """
+    return [
+        Citation(
+            chunk_id=r.chunk_id,
+            document_id=r.metadata.get("document_id", "unknown"),
+            filename=r.metadata.get("filename", "unknown"),
+            content_preview=r.content[:100],
+            similarity_score=r.similarity_score,
+        )
+        for r in results[:max_citations]
+    ]
+
+
 def get_voice_samples(searcher: CorpusSearcher, keywords: list[str], num_samples: int = 5) -> str:
     """Fetch diverse voice samples from corpus to help LLM emulate author's style.
 

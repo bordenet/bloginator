@@ -46,14 +46,7 @@ SUPPORTED_FORMATS = {
 
 @dataclass
 class FileInfo:
-    """Information about discovered file.
-
-    Attributes:
-        path: Full path to the file
-        format: File format (pdf, docx, txt, md)
-        size: File size in bytes
-        readable: Whether file is readable
-    """
+    """Information about a discovered file."""
 
     path: Path
     format: str
@@ -63,18 +56,7 @@ class FileInfo:
 
 @dataclass
 class ScanResult:
-    """Result of directory scan.
-
-    Attributes:
-        directory: Directory that was scanned
-        total_files: Total number of discovered files
-        files: List of discovered files
-        by_format: Count of files by format
-        total_size: Total size of all files in bytes
-        is_valid: Whether scan completed successfully
-        error: Error message if scan failed
-        scan_time: Time taken to scan in seconds
-    """
+    """Result of directory scan."""
 
     directory: Path
     total_files: int
@@ -88,19 +70,7 @@ class ScanResult:
 
 @dataclass
 class SourceConfig:
-    """Configuration for corpus source.
-
-    Attributes:
-        name: Unique name for the source
-        path: Path to the directory (may be relative or absolute)
-        enabled: Whether source should be processed
-        quality: Quality rating (preferred, reference, supplemental, deprecated)
-        tags: Custom tags for filtering
-        is_external: Whether source is external
-        voice_notes: Notes about writing voice/style
-        recursive: Whether to recurse into subdirectories
-        file_count: Number of files discovered
-    """
+    """Configuration for a corpus source."""
 
     name: str
     path: str

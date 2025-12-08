@@ -226,21 +226,7 @@ def _process_files_sequential(
     error_tracker: ErrorTracker,
     console: Console,
 ) -> tuple[int, int, int]:
-    """Process files sequentially (original implementation).
-
-    Args:
-        files: List of files to process
-        output: Output directory
-        quality: Quality rating
-        tag_list: Tags to apply
-        existing_docs: Dictionary of existing extractions
-        force: Force re-extraction flag
-        error_tracker: Error tracker instance
-        console: Rich console
-
-    Returns:
-        Tuple of (extracted_count, skipped_count, failed_count)
-    """
+    """Process files sequentially with progress display."""
     extracted_count = 0
     skipped_count = 0
     failed_count = 0
@@ -286,14 +272,7 @@ def _extract_and_save_document(
     quality: str,
     tag_list: list[str],
 ) -> None:
-    """Extract text and save document.
-
-    Args:
-        file_path: Path to file to extract
-        output: Output directory
-        quality: Quality rating
-        tag_list: Tags to apply
-    """
+    """Extract text from file and save document with metadata."""
     # Wait for file availability (critical for OneDrive/iCloud files)
     # Uses copy-based hydration for cloud-only files
     is_available, reason, alt_path = wait_for_file_availability(

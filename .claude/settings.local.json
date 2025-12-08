@@ -85,7 +85,22 @@
       "Bash(./run-e2e.sh:*)",
       "Bash(do)",
       "Bash(echo:*)",
-      "Bash(git mv:*)"
+      "Bash(git mv:*)",
+      "Bash(scripts/purge-corpus-and-outputs.sh:*)",
+      "Bash(wc:*)",
+      "Bash(grep:*)",
+      "Skill(superpowers:brainstorming)",
+      "Skill(superpowers:test-driven-development)",
+      "Bash(src/bloginator/extraction/_email_extractors.py )",
+      "Bash(src/bloginator/extraction/_image_extractors.py )",
+      "Bash(src/bloginator/extraction/_markup_extractors.py )",
+      "Bash(src/bloginator/extraction/_office_extractors.py )",
+      "Bash(src/bloginator/generation/_llm_assistant_client.py )",
+      "Bash(src/bloginator/generation/_batch_response_collector.py )",
+      "Bash(src/bloginator/generation/_section_refiner.py )",
+      "Bash(src/bloginator/generation/draft_generator.py )",
+      "Bash(tests/unit/generation/test_draft_generator.py)",
+      "Bash(./scripts/run-fast-quality-gate.sh:*)"
     ],
     "deny": [],
     "ask": []
