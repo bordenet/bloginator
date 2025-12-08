@@ -4,11 +4,11 @@ import json
 import logging
 import time
 from pathlib import Path
-from typing import Any
 
 from rich.console import Console
 from rich.panel import Panel
 
+from bloginator.generation._batch_response_collector import collect_batch_responses
 from bloginator.generation.llm_base import LLMClient, LLMResponse
 
 
@@ -81,7 +81,6 @@ class AssistantLLMClient(LLMClient):
         # Request counter and pending requests for batch mode
         self.request_counter = 0
         self.pending_requests: list[int] = []
-        self._response_mtimes: dict[int, float] = {}  # Track file modification times
 
     def generate(
         self,
@@ -131,7 +130,8 @@ class AssistantLLMClient(LLMClient):
         if self.batch_mode:
             self.pending_requests.append(request_id)
             console.print(
-                f"[bold cyan]📝 Batch request {request_id} queued ({len(self.pending_requests)} total)[/bold cyan]"
+                f"[bold cyan]📝 Batch request {request_id} queued "
+                f"({len(self.pending_requests)} total)[/bold cyan]"
             )
             # Return placeholder - content will be filled by collect_batch_responses
             return LLMResponse(
@@ -143,10 +143,28 @@ class AssistantLLMClient(LLMClient):
             )
 
         # Serial mode: Wait for response file
+        return self._wait_for_serial_response(request_id, request_file, prompt)
+
+    def _wait_for_serial_response(
+        self, request_id: int, request_file: Path, prompt: str
+    ) -> LLMResponse:
+        """Wait for a single response in serial mode.
+
+        Args:
+            request_id: The request ID to wait for
+            request_file: Path to the request file
+            prompt: Original prompt (for token estimation)
+
+        Returns:
+            LLMResponse with the response content
+
+        Raises:
+            TimeoutError: If response not received within timeout
+        """
         response_file = self.response_dir / f"response_{request_id:04d}.json"
 
         console.print(
-            f"\n[bold yellow]⏳ Waiting for AI assistant response {request_id}...[/bold yellow]"
+            f"\n[bold yellow]⏳ Waiting for AI assistant response {request_id}..." f"[/bold yellow]"
         )
         console.print(f"[dim]Request file: {request_file}[/dim]")
         console.print(f"[dim]Expecting response: {response_file}[/dim]")
@@ -181,19 +199,7 @@ class AssistantLLMClient(LLMClient):
                 )
 
             if elapsed > self.timeout:
-                error_msg = (
-                    f"Timeout waiting for response {request_id} after {self.timeout}s.\n"
-                    f"Expected response file: {response_file}\n"
-                    f"Request file: {request_file}\n\n"
-                    f"To resolve:\n"
-                    f"1. Read the request file and generate a response\n"
-                    f"2. Write response to: {response_file}\n"
-                    f"3. Re-run the command\n\n"
-                    f"Or increase timeout with BLOGINATOR_ASSISTANT_LLM_RESPONSE_TIMEOUT env var"
-                )
-                console.print(f"\n[bold red]❌ TIMEOUT: {error_msg}[/bold red]")
-                logger.error(f"Assistant LLM timeout: {error_msg}")
-                raise TimeoutError(error_msg)
+                self._raise_timeout_error(request_id, request_file, response_file)
 
             time.sleep(1)
 
@@ -220,6 +226,33 @@ class AssistantLLMClient(LLMClient):
             finish_reason=response_data.get("finish_reason", "stop"),
         )
 
+    def _raise_timeout_error(
+        self, request_id: int, request_file: Path, response_file: Path
+    ) -> None:
+        """Raise timeout error with helpful message.
+
+        Args:
+            request_id: The request ID that timed out
+            request_file: Path to the request file
+            response_file: Path to the expected response file
+
+        Raises:
+            TimeoutError: Always raises
+        """
+        error_msg = (
+            f"Timeout waiting for response {request_id} after {self.timeout}s.\n"
+            f"Expected response file: {response_file}\n"
+            f"Request file: {request_file}\n\n"
+            f"To resolve:\n"
+            f"1. Read the request file and generate a response\n"
+            f"2. Write response to: {response_file}\n"
+            f"3. Re-run the command\n\n"
+            f"Or increase timeout with BLOGINATOR_ASSISTANT_LLM_RESPONSE_TIMEOUT env var"
+        )
+        console.print(f"\n[bold red]❌ TIMEOUT: {error_msg}[/bold red]")
+        logger.error(f"Assistant LLM timeout: {error_msg}")
+        raise TimeoutError(error_msg)
+
     def is_available(self) -> bool:
         """Assistant client is always available.
 
@@ -228,94 +261,7 @@ class AssistantLLMClient(LLMClient):
         """
         return True
 
-    def _validate_response(self, response_file: Path, request_id: int) -> dict[str, Any]:
-        """Validate response JSON schema and required fields.
-
-        Schema:
-          REQUIRED: content (str) - the synthesized content
-          OPTIONAL: request_id (int), tokens_used (int), error (str),
-                    prompt_tokens (int), completion_tokens (int), finish_reason (str)
-
-        Args:
-            response_file: Path to response JSON file
-            request_id: Expected request ID
-
-        Returns:
-            Validated response data dict
-
-        Raises:
-            ValueError: If response is invalid (missing required fields or bad types)
-        """
-        try:
-            with response_file.open() as f:
-                response_data = json.load(f)
-        except json.JSONDecodeError as e:
-            raise ValueError(f"Invalid JSON in {response_file}: {e}") from e
-
-        # Check for error field first
-        if "error" in response_data:
-            error_msg = response_data.get("error", "Unknown error")
-            raise ValueError(f"Response contains error: {error_msg}")
-
-        # Validate required field: content
-        if "content" not in response_data:
-            raise ValueError(f"Missing required 'content' field in {response_file}")
-
-        content = response_data["content"]
-        if not isinstance(content, str):
-            raise ValueError(
-                f"'content' must be string in {response_file}, got {type(content).__name__}"
-            )
-
-        if len(content.strip()) == 0:
-            raise ValueError(f"Empty 'content' in {response_file}")
-
-        # Validate optional fields if present
-        if "request_id" in response_data:
-            rid = response_data["request_id"]
-            if not isinstance(rid, int):
-                logger.warning(f"Response {request_id}: request_id should be int, got {type(rid)}")
-
-        if "tokens_used" in response_data:
-            tokens = response_data["tokens_used"]
-            if not isinstance(tokens, int):
-                logger.warning(f"Response {request_id}: tokens_used should be int")
-
-        return dict(response_data)
-
-    def _check_duplicate_response(self, request_id: int, response_file: Path) -> bool:
-        """Check if response file was updated (overwritten).
-
-        Args:
-            request_id: Request ID to check
-            response_file: Path to response file
-
-        Returns:
-            True if this is an update to existing response
-        """
-        try:
-            current_mtime = response_file.stat().st_mtime
-        except OSError:
-            return False
-
-        if request_id in self._response_mtimes:
-            previous_mtime = self._response_mtimes[request_id]
-            if current_mtime > previous_mtime:
-                self._response_mtimes[request_id] = current_mtime
-                return True  # File was overwritten
-
-        self._response_mtimes[request_id] = current_mtime
-        return False
-
-    def _format_elapsed(self, seconds: float) -> str:
-        """Format elapsed time as mm:ss or hh:mm:ss."""
-        mins, secs = divmod(int(seconds), 60)
-        hours, mins = divmod(mins, 60)
-        if hours > 0:
-            return f"{hours}:{mins:02d}:{secs:02d}"
-        return f"{mins}:{secs:02d}"
-
-    def collect_batch_responses(self, allow_partial: bool = True) -> dict[int, LLMResponse]:
+    def get_batch_responses(self, allow_partial: bool = True) -> dict[int, LLMResponse]:
         """Wait for batch responses with graceful degradation.
 
         Blocks until all response files are available, timeout, or minimum threshold met.
@@ -330,147 +276,18 @@ class AssistantLLMClient(LLMClient):
         Raises:
             TimeoutError: If <80% responses received and allow_partial=False
         """
-        if not self.pending_requests:
-            return {}
-
-        total = len(self.pending_requests)
-        timeout_mins = self.timeout // 60
-        min_required = int(total * self.min_response_threshold)
-
-        console.print(
-            f"\n[bold yellow]⏳ Claude thinking... (5-10min typical for {total} sections)"
-            f"[/bold yellow]"
+        responses = collect_batch_responses(
+            pending_requests=self.pending_requests,
+            response_dir=self.response_dir,
+            model=self.model,
+            timeout=self.timeout,
+            min_response_threshold=self.min_response_threshold,
+            allow_partial=allow_partial,
         )
-        console.print(f"[dim]Timeout: {timeout_mins}m | Min required: {min_required}/{total}[/dim]")
-        console.print(f"[dim]Response directory: {self.response_dir}[/dim]")
-
-        start_time = time.time()
-        last_status_time = start_time
-        responses: dict[int, LLMResponse] = {}
-        remaining_ids = set(self.pending_requests)
-        errors: dict[int, str] = {}  # request_id -> error message
-
-        while remaining_ids:
-            elapsed = time.time() - start_time
-            time_remaining = self.timeout - elapsed
-
-            # Check for new/updated response files
-            for request_id in list(remaining_ids):
-                response_file = self.response_dir / f"response_{request_id:04d}.json"
-                if response_file.exists():
-                    # Check for duplicate/updated responses
-                    is_update = self._check_duplicate_response(request_id, response_file)
-                    if is_update and request_id in responses:
-                        console.print(
-                            f"[bold cyan]↻ Response {request_id} updated (overwrite)[/bold cyan]"
-                        )
-
-                    try:
-                        response_data = self._validate_response(response_file, request_id)
-                        content = response_data["content"]
-                        responses[request_id] = LLMResponse(
-                            content=content,
-                            model=self.model,
-                            prompt_tokens=response_data.get("prompt_tokens", 0),
-                            completion_tokens=response_data.get(
-                                "completion_tokens", len(content) // 4
-                            ),
-                            finish_reason=response_data.get("finish_reason", "stop"),
-                        )
-                        remaining_ids.remove(request_id)
-                        elapsed_str = self._format_elapsed(elapsed)
-                        console.print(
-                            f"[bold green]✓ Response {request_id}/{total} received "
-                            f"[{elapsed_str} elapsed][/bold green]"
-                        )
-                    except ValueError as e:
-                        errors[request_id] = str(e)
-                        remaining_ids.remove(request_id)
-                        console.print(f"[bold red]✗ Response {request_id}: {e}[/bold red]")
-
-            # Show progress every 15 seconds
-            if time.time() - last_status_time >= 15:
-                last_status_time = time.time()
-                elapsed_str = self._format_elapsed(elapsed)
-                remaining_str = self._format_elapsed(time_remaining)
-                console.print(
-                    f"[dim]⏳ Waiting for {len(remaining_ids)}/{total} responses... "
-                    f"[{elapsed_str} elapsed, {remaining_str} remaining][/dim]"
-                )
-
-            # Check timeout
-            if elapsed > self.timeout:
-                break
-
-            if remaining_ids:
-                time.sleep(1)
-
-        # Handle timeout/partial completion
-        elapsed_str = self._format_elapsed(time.time() - start_time)
-        received_count = len(responses)
-        missing_ids = sorted(remaining_ids)
-
-        # Determine if we have enough responses
-        if missing_ids or errors:
-            if received_count >= min_required and allow_partial:
-                # Graceful degradation: add placeholders for missing responses
-                console.print(
-                    f"\n[bold yellow]⚠️  Partial batch: {received_count}/{total} responses "
-                    f"(≥{int(self.min_response_threshold * 100)}% threshold met)[/bold yellow]"
-                )
-
-                for request_id in missing_ids:
-                    placeholder = (
-                        f"⚠️ **[SECTION {request_id}]** Response missing - add content manually.\n\n"
-                        f"_Check `.bloginator/llm_requests/request_{request_id:04d}.json` "
-                        f"for the original prompt._"
-                    )
-                    responses[request_id] = LLMResponse(
-                        content=placeholder,
-                        model=self.model,
-                        prompt_tokens=0,
-                        completion_tokens=0,
-                        finish_reason="missing",
-                    )
-                    console.print(f"[yellow]  ⚠️ Section {request_id}: using placeholder[/yellow]")
-
-                for request_id, err in errors.items():
-                    placeholder = (
-                        f"⚠️ **[SECTION {request_id}]** Response error: {err}\n\n"
-                        f"_Fix and re-run, or add content manually._"
-                    )
-                    responses[request_id] = LLMResponse(
-                        content=placeholder,
-                        model=self.model,
-                        prompt_tokens=0,
-                        completion_tokens=0,
-                        finish_reason="error",
-                    )
-            else:
-                # Not enough responses - fail
-                error_msg = (
-                    f"Insufficient responses after {elapsed_str}.\n"
-                    f"Received: {received_count}/{total} (need ≥{min_required})\n"
-                    f"Missing: {missing_ids}\n"
-                )
-                if errors:
-                    error_msg += f"Errors: {list(errors.keys())}\n"
-                error_msg += (
-                    "\nTo resolve:\n"
-                    "1. Check .bloginator/llm_requests/ for pending requests\n"
-                    "2. Write responses to .bloginator/llm_responses/\n"
-                    "3. Re-run with --batch-timeout or lower threshold"
-                )
-                console.print(f"\n[bold red]❌ FAILED: {error_msg}[/bold red]")
-                logger.error(f"Batch failed: {error_msg}")
-                raise TimeoutError(error_msg)
-        else:
-            console.print(
-                f"\n[bold green]✅ All {received_count} batch responses received! "
-                f"[{elapsed_str}][/bold green]"
-            )
 
         # Clear pending requests
         self.pending_requests = []
-        self._response_mtimes = {}
         return responses
+
+    # Backwards compatibility alias
+    collect_batch_responses = get_batch_responses
