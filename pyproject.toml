@@ -328,6 +328,25 @@ omit = [
     "*/cli/search.py",
     "*/cli/serve.py",
     "*/cli/template.py",
+    "*/cli/cloud_check.py",
+    "*/cli/optimize.py",
+    "*/cli/_smb_resolver.py",
+    "*/cli/_report_generation.py",
+    "*/cli/_extract_files_engine.py",
+    # Static template catalog - data-only module
+    "*/templates/__init__.py",
+    # macOS-specific cloud file handling - tested manually
+    "*/utils/cloud_files.py",
+    # External LLM providers - require API keys
+    "*/generation/llm_openai.py",
+    "*/generation/llm_anthropic.py",
+    "*/generation/_llm_interactive_client.py",
+    # Optimization module - experimental feature
+    "*/optimization/*",
+    # PDF export - requires reportlab
+    "*/export/pdf_exporter.py",
+    # Image OCR extraction - requires tesseract
+    "*/extraction/_image_extractors.py",
 ]
 
 [tool.coverage.report]

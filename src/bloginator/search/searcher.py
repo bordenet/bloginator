@@ -1,20 +1,20 @@
 """Semantic search and retrieval for document corpus."""
 
 import logging
-from datetime import datetime
 from pathlib import Path
 from typing import Any, cast
 
 import chromadb
 
 from bloginator.search._embedding import _get_embedding_model
-from bloginator.search._search_helpers import (
-    build_where_filter,
-    calculate_quality_score,
-    calculate_recency_score,
-    matches_tags,
-)
+from bloginator.search._search_helpers import build_where_filter, convert_chromadb_results
 from bloginator.search._search_result import SearchResult
+from bloginator.search._weighted_search import (
+    apply_combined_weights,
+    apply_hybrid_scores,
+    apply_quality_weights,
+    apply_recency_weights,
+)
 from bloginator.search.bm25 import BM25Index
 
 
@@ -106,24 +106,7 @@ class CorpusSearcher:
         )
         results = cast("dict[str, Any]", raw_results)
 
-        # Convert to SearchResult objects
-        search_results = []
-        if results["ids"] and results["ids"][0]:
-            for i, chunk_id in enumerate(results["ids"][0]):
-                result = SearchResult(
-                    chunk_id=chunk_id,
-                    content=results["documents"][0][i],
-                    metadata=results["metadatas"][0][i],
-                    distance=results["distances"][0][i],
-                )
-
-                # Filter by tags if specified
-                if tags_filter and not matches_tags(result.metadata, tags_filter):
-                    continue
-
-                search_results.append(result)
-
-        return search_results[:n_results]
+        return convert_chromadb_results(results, 0, tags_filter, n_results)
 
     def batch_search(
         self,
@@ -173,27 +156,10 @@ class CorpusSearcher:
         results = cast("dict[str, Any]", raw_results)
 
         # Convert to SearchResult objects for each query
-        all_search_results = []
-        for query_idx in range(len(queries)):
-            search_results = []
-            if results["ids"] and query_idx < len(results["ids"]) and results["ids"][query_idx]:
-                for i, chunk_id in enumerate(results["ids"][query_idx]):
-                    result = SearchResult(
-                        chunk_id=chunk_id,
-                        content=results["documents"][query_idx][i],
-                        metadata=results["metadatas"][query_idx][i],
-                        distance=results["distances"][query_idx][i],
-                    )
-
-                    # Filter by tags if specified
-                    if tags_filter and not matches_tags(result.metadata, tags_filter):
-                        continue
-
-                    search_results.append(result)
-
-            all_search_results.append(search_results[:n_results])
-
-        return all_search_results
+        return [
+            convert_chromadb_results(results, idx, tags_filter, n_results)
+            for idx in range(len(queries))
+        ]
 
     def search_with_recency(
         self,
@@ -213,22 +179,8 @@ class CorpusSearcher:
         Returns:
             List of SearchResult objects sorted by combined score
         """
-        # Get more results than needed for re-ranking
         results = self.search(query, n_results=n_results * 3, **kwargs)
-
-        # Calculate recency scores
-        now = datetime.now()
-        for result in results:
-            result.recency_score = calculate_recency_score(result.metadata, now)
-
-            # Combined score: (1 - recency_weight) * similarity + recency_weight * recency
-            result.combined_score = (
-                1 - recency_weight
-            ) * result.similarity_score + recency_weight * result.recency_score
-
-        # Sort by combined score and return top n
-        results.sort(key=lambda r: r.combined_score, reverse=True)
-        return results[:n_results]
+        return apply_recency_weights(results, recency_weight, n_results)
 
     def search_with_quality(
         self,
@@ -248,21 +200,8 @@ class CorpusSearcher:
         Returns:
             List of SearchResult objects sorted by combined score
         """
-        # Get more results than needed for re-ranking
         results = self.search(query, n_results=n_results * 3, **kwargs)
-
-        # Calculate quality scores
-        for result in results:
-            result.quality_score = calculate_quality_score(result.metadata)
-
-            # Combined score: (1 - quality_weight) * similarity + quality_weight * quality
-            result.combined_score = (
-                1 - quality_weight
-            ) * result.similarity_score + quality_weight * result.quality_score
-
-        # Sort by combined score and return top n
-        results.sort(key=lambda r: r.combined_score, reverse=True)
-        return results[:n_results]
+        return apply_quality_weights(results, quality_weight, n_results)
 
     def search_with_weights(
         self,
@@ -288,27 +227,8 @@ class CorpusSearcher:
             Weights should sum to <= 1.0. Remaining weight goes to similarity.
             Example: recency=0.2, quality=0.1 means similarity gets 0.7 weight.
         """
-        # Get more results than needed for re-ranking
         results = self.search(query, n_results=n_results * 3, **kwargs)
-
-        now = datetime.now()
-
-        # Calculate all scores
-        for result in results:
-            result.recency_score = calculate_recency_score(result.metadata, now)
-            result.quality_score = calculate_quality_score(result.metadata)
-
-            # Combined score: normalize weights to sum to 1.0
-            similarity_weight = 1.0 - recency_weight - quality_weight
-            result.combined_score = (
-                similarity_weight * result.similarity_score
-                + recency_weight * result.recency_score
-                + quality_weight * result.quality_score
-            )
-
-        # Sort by combined score and return top n
-        results.sort(key=lambda r: r.combined_score, reverse=True)
-        return results[:n_results]
+        return apply_combined_weights(results, recency_weight, quality_weight, n_results)
 
     def build_bm25_index(self) -> None:
         """Build BM25 index from ChromaDB collection for hybrid search.
@@ -360,7 +280,6 @@ class CorpusSearcher:
             If BM25 index is not built, falls back to semantic-only search.
             Call build_bm25_index() first for best hybrid performance.
         """
-        # Get semantic search results
         semantic_results = self.search(query, n_results=n_results * 3, **kwargs)
 
         # If no BM25 index, fall back to semantic only
@@ -370,29 +289,28 @@ class CorpusSearcher:
                 result.hybrid_score = result.similarity_score
             return semantic_results[:n_results]
 
-        # Get BM25 results
+        # Get BM25 results and normalize scores
         bm25_results = self._bm25_index.search(query, n_results=n_results * 3)
+        bm25_scores = self._normalize_bm25_scores(bm25_results)
 
-        # Create lookup for BM25 scores by chunk_id
-        bm25_scores: dict[str, float] = {}
-        max_bm25_score = 1.0
-        if bm25_results:
-            max_bm25_score = max(r["score"] for r in bm25_results) or 1.0
-            for r in bm25_results:
-                # Normalize BM25 score to 0-1 range
-                bm25_scores[r["id"]] = r["score"] / max_bm25_score
+        return apply_hybrid_scores(
+            semantic_results, bm25_scores, semantic_weight, bm25_weight, n_results
+        )
 
-        # Combine scores
-        for result in semantic_results:
-            bm25_score = bm25_scores.get(result.chunk_id, 0.0)
-            result.bm25_score = bm25_score
-            result.hybrid_score = (
-                semantic_weight * result.similarity_score + bm25_weight * bm25_score
-            )
+    def _normalize_bm25_scores(self, bm25_results: list[dict[str, Any]]) -> dict[str, float]:
+        """Normalize BM25 scores to 0-1 range.
 
-        # Sort by hybrid score
-        semantic_results.sort(key=lambda r: r.hybrid_score, reverse=True)
-        return semantic_results[:n_results]
+        Args:
+            bm25_results: Raw BM25 search results
+
+        Returns:
+            Dictionary of chunk_id -> normalized score
+        """
+        if not bm25_results:
+            return {}
+
+        max_score = max(r["score"] for r in bm25_results) or 1.0
+        return {r["id"]: r["score"] / max_score for r in bm25_results}
 
     def get_stats(self) -> dict[str, Any]:
         """Get search index statistics.
