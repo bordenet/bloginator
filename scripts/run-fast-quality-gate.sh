@@ -1,5 +1,40 @@
 #!/bin/bash
+################################################################################
+# Fast Quality Gate for Bloginator
+################################################################################
+# PURPOSE: Quick validation checks for code quality
+#   - Code formatting (black)
+#   - Linting (ruff)
+#   - Type checking (mypy) on key modules
+#   - Import sorting (isort)
+#   - Fast unit tests (excluding slow tests)
+#
+# USAGE:
+#   ./scripts/run-fast-quality-gate.sh [OPTIONS]
+#   ./scripts/run-fast-quality-gate.sh --help
+#
+# OPTIONS:
+#   -h, --help      Display help message
+#
+# EXAMPLES:
+#   ./scripts/run-fast-quality-gate.sh      # Run all fast quality checks
+#
+# NOTES:
+#   - Used by pre-commit hooks for fast validation
+#   - For comprehensive validation, use validate-monorepo.sh
+################################################################################
+
 set -e
+
+# Parse arguments
+for arg in "$@"; do
+    case $arg in
+        -h|--help)
+            sed -n '3,23p' "${BASH_SOURCE[0]}" | sed 's/^# //' | sed 's/^#$//'
+            exit 0
+            ;;
+    esac
+done
 
 # Timer state
 SCRIPT_START_TIME=$(date +%s)
