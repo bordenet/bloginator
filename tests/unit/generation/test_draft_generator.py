@@ -4,6 +4,7 @@ from unittest.mock import Mock
 
 import pytest
 
+from bloginator.generation._section_refiner import build_source_context
 from bloginator.generation.draft_generator import DraftGenerator
 from bloginator.models.draft import DraftSection
 from bloginator.models.outline import Outline, OutlineSection
@@ -50,7 +51,7 @@ class TestDraftGenerator:
 
     def test_build_source_context_empty(self, generator):
         """Test building context with no results."""
-        context = generator._build_source_context([])
+        context = build_source_context([])
 
         assert "No source material found" in context
 
@@ -71,7 +72,7 @@ class TestDraftGenerator:
             ),
         ]
 
-        context = generator._build_source_context(results)
+        context = build_source_context(results)
 
         assert "[Source 1]" in context
         assert "First result content" in context

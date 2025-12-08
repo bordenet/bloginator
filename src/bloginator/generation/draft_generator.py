@@ -5,6 +5,11 @@ import time
 from collections.abc import Callable
 
 from bloginator.config import Config
+from bloginator.generation._section_refiner import (
+    build_source_context,
+    get_voice_samples,
+    refine_section,
+)
 from bloginator.generation.llm_client import LLMClient
 from bloginator.models.draft import Citation, Draft, DraftSection
 from bloginator.models.outline import Outline, OutlineSection
@@ -186,7 +191,8 @@ class DraftGenerator:
 
             # Search corpus for relevant content
             query = (
-                f"{outline_section.title} {outline_section.description} {' '.join(keywords[:2])}"
+                f"{outline_section.title} {outline_section.description} "
+                f"{' '.join(keywords[:2])}"
             )
 
             search_results = self.searcher.search(
@@ -210,7 +216,7 @@ class DraftGenerator:
             )
 
         # Build context from filtered search results
-        source_context = self._build_source_context(filtered_results)
+        source_context = build_source_context(filtered_results)
 
         # Load prompt template from external YAML file
         prompt_template = self.prompt_loader.load("draft/base.yaml")
@@ -225,7 +231,7 @@ class DraftGenerator:
         audience_context = audience_contexts.get(audience, "general professional audience")
 
         # Fetch voice samples from corpus to help LLM emulate author's style
-        voice_samples = self._get_voice_samples(keywords)
+        voice_samples = get_voice_samples(self.searcher, keywords)
 
         # Render system prompt with context, voice samples, and company branding
         system_prompt = prompt_template.render_system_prompt(
@@ -264,12 +270,61 @@ class DraftGenerator:
         ]
 
         # Generate subsections recursively
+        subsections = self._generate_subsections(
+            outline_section=outline_section,
+            keywords=keywords,
+            classification=classification,
+            audience=audience,
+            temperature=temperature,
+            max_words=max_words,
+            progress_callback=progress_callback,
+            current_section=current_section,
+            total_sections=total_sections,
+            search_cache=search_cache,
+        )
+
+        return DraftSection(
+            title=outline_section.title,
+            content=response.content.strip(),
+            citations=citations,
+            subsections=subsections,
+        )
+
+    def _generate_subsections(
+        self,
+        outline_section: OutlineSection,
+        keywords: list[str],
+        classification: str,
+        audience: str,
+        temperature: float,
+        max_words: int,
+        progress_callback: Callable[[str, int, int], None] | None,
+        current_section: int,
+        total_sections: int,
+        search_cache: dict[int, list[SearchResult]] | None,
+    ) -> list[DraftSection]:
+        """Generate subsections recursively.
+
+        Args:
+            outline_section: Parent section from outline
+            keywords: Document keywords for context
+            classification: Content classification for tone
+            audience: Target audience
+            temperature: LLM temperature
+            max_words: Target word count for parent
+            progress_callback: Optional callback for progress updates
+            current_section: Current section number (0-based)
+            total_sections: Total number of sections
+            search_cache: Optional pre-fetched search results cache
+
+        Returns:
+            List of generated DraftSection objects for subsections
+        """
         subsections = []
-        subsection_offset = (
-            current_section + 1
-        )  # Current section is done, start counting subsections
+        subsection_offset = current_section + 1
+
         for i, outline_subsection in enumerate(outline_section.subsections):
-            # Calculate offset for this subsection (includes all previous subsections and their children)
+            # Calculate offset for this subsection
             subsection_current = subsection_offset + sum(
                 len(outline_section.subsections[j].get_all_sections()) for j in range(i)
             )
@@ -287,89 +342,7 @@ class DraftGenerator:
             )
             subsections.append(draft_subsection)
 
-        return DraftSection(
-            title=outline_section.title,
-            content=response.content.strip(),
-            citations=citations,
-            subsections=subsections,
-        )
-
-    def _build_source_context(self, results: list[SearchResult]) -> str:
-        """Build context string from search results.
-
-        Args:
-            results: Search results to use as sources
-
-        Returns:
-            Formatted source context for LLM
-        """
-        if not results:
-            return "No source material found. Please write general content on this topic."
-
-        context_parts = []
-        for i, result in enumerate(results, 1):
-            context_parts.append(f"[Source {i}]")
-            context_parts.append(result.content)
-            context_parts.append("")  # Blank line
-
-        return "\n".join(context_parts)
-
-    def _get_voice_samples(self, keywords: list[str], num_samples: int = 5) -> str:
-        """Fetch diverse voice samples from corpus to help LLM emulate author's style.
-
-        Args:
-            keywords: Keywords to use for sampling context
-            num_samples: Number of diverse samples to fetch
-
-        Returns:
-            Formatted voice samples string for inclusion in prompt
-        """
-        try:
-            # Get a diverse sample by using different query strategies
-            samples = []
-
-            # Sample 1: Use first keyword
-            if keywords:
-                results = self.searcher.search(keywords[0], n_results=2)
-                samples.extend(results)
-
-            # Sample 2: Use a general writing query to get different content
-            general_results = self.searcher.search("writing style examples", n_results=2)
-            samples.extend(general_results)
-
-            # Sample 3: If we have more keywords, use another
-            if len(keywords) > 1:
-                results = self.searcher.search(keywords[1], n_results=1)
-                samples.extend(results)
-
-            # Deduplicate by chunk_id and limit
-            seen_ids = set()
-            unique_samples = []
-            for sample in samples:
-                if sample.chunk_id not in seen_ids:
-                    seen_ids.add(sample.chunk_id)
-                    unique_samples.append(sample)
-                    if len(unique_samples) >= num_samples:
-                        break
-
-            if not unique_samples:
-                return ""
-
-            # Format samples for the prompt
-            sample_parts = []
-            for i, sample in enumerate(unique_samples, 1):
-                # Truncate long samples to ~200 words
-                content = sample.content
-                words = content.split()
-                if len(words) > 200:
-                    content = " ".join(words[:200]) + "..."
-                sample_parts.append(f"[Sample {i}]\n{content}\n")
-
-            return "\n".join(sample_parts)
-
-        except Exception as e:
-            logger.warning(f"Failed to fetch voice samples: {e}")
-            return ""
+        return subsections
 
     def refine_section(
         self,
@@ -396,62 +369,12 @@ class DraftGenerator:
             ...     keywords
             ... )
         """
-        # Search for additional content based on feedback
-        query = f"{section.title} {feedback} {' '.join(keywords[:2])}"
-
-        search_results = self.searcher.search(
-            query=query,
-            n_results=self.sources_per_section,
-        )
-
-        # Validate and filter search results
-        filtered_results, validation_warnings = validate_search_results(
-            search_results, expected_keywords=keywords
-        )
-        for warning in validation_warnings:
-            logger.warning(f"Draft refinement validation warning: {warning}")
-
-        source_context = self._build_source_context(filtered_results)
-
-        # Refine with LLM
-        system_prompt = """You are refining content based on feedback.
-Keep the core message but incorporate the requested changes.
-Use only information from the provided sources."""
-
-        user_prompt = f"""Original content:
-{section.content}
-
-Feedback: {feedback}
-
-Additional source material:
-{source_context}
-
-Revise the content to address the feedback while maintaining coherence."""
-
-        response = self.llm_client.generate(
-            prompt=user_prompt,
-            system_prompt=system_prompt,
+        return refine_section(
+            section=section,
+            feedback=feedback,
+            keywords=keywords,
+            llm_client=self.llm_client,
+            searcher=self.searcher,
+            sources_per_section=self.sources_per_section,
             temperature=temperature,
-            max_tokens=len(section.content.split()) * 2,
-        )
-
-        # Update citations
-        new_citations = section.citations.copy()
-        for result in filtered_results[:3]:  # Use filtered results for citations
-            citation = Citation(
-                chunk_id=result.chunk_id,
-                document_id=result.metadata.get("document_id", "unknown"),
-                filename=result.metadata.get("filename", "unknown"),
-                content_preview=result.content[:100],
-                similarity_score=result.similarity_score,
-            )
-            # Avoid duplicates
-            if not any(c.chunk_id == citation.chunk_id for c in new_citations):
-                new_citations.append(citation)
-
-        return DraftSection(
-            title=section.title,
-            content=response.content.strip(),
-            citations=new_citations,
-            subsections=section.subsections,  # Keep original subsections
         )
