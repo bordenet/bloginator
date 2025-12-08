@@ -20,6 +20,16 @@ from bloginator.generation.llm_client import (
 from bloginator.timeout_config import timeout_config
 
 
+# Optional OpenAI client (requires openai package)
+try:
+    from bloginator.generation.llm_openai import OpenAIClient
+
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OpenAIClient = None  # type: ignore[misc, assignment]
+    OPENAI_AVAILABLE = False
+
+
 def create_llm_from_config(
     verbose: bool = False, batch_mode: bool = False, batch_timeout: int = 1800
 ) -> LLMClient:
@@ -102,6 +112,16 @@ def create_llm_from_config(
         if config.LLM_API_KEY:
             kwargs["api_key"] = config.LLM_API_KEY
         return AnthropicClient(**kwargs)
+
+    elif provider == LLMProvider.OPENAI:
+        if not OPENAI_AVAILABLE or OpenAIClient is None:
+            raise ImportError(
+                "OpenAI provider requires openai package. "
+                "Install with: pip install bloginator[cloud]"
+            )
+        if config.LLM_API_KEY:
+            kwargs["api_key"] = config.LLM_API_KEY
+        return OpenAIClient(**kwargs)
 
     elif provider == LLMProvider.MOCK:
         # Mock provider for testing - no additional config needed
