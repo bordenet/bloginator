@@ -37,12 +37,13 @@ python3 script.py > /tmp/output.txt 2>&1
 - If terminal capture fails, dispose and recreate the terminal
 - Consider `terminal.integrated.enablePersistentSessions: false` in VS Code settings
 
-## ⛔ CRITICAL: NEVER BYPASS THE CORPUS ⛔
+## ⛔⛔⛔ CRITICAL: NEVER BYPASS THE CORPUS ⛔⛔⛔
 
 **THIS IS THE MOST IMPORTANT RULE IN THIS DOCUMENT.**
+**VIOLATION OF THIS RULE IS A COMPLETE AND UTTER FAILURE LEADING TO UNTRUSTWORTHY AI SLOP.**
 
 When generating blog content, you MUST use the bloginator pipeline with corpus search.
-NEVER write blog content directly from your training data.
+NEVER write blog content directly from your training data. The entire purpose of this project is to generate from corpus in the author's voice.
 
 ### Why This Matters
 
@@ -57,6 +58,20 @@ Content generated from your training data is USELESS because:
 - It doesn't match the user's voice
 - It's generic "industry standard" content
 - It defeats the entire purpose of this project
+
+### ⛔ NEVER CREATE HARDCODED RESPONSE SCRIPTS ⛔
+
+**DO NOT create scripts like `tmp/batch_responses.py` with hardcoded content.**
+
+This is the WORST possible failure mode because:
+1. It looks like it works (files get created, drafts get generated)
+2. But the content is FABRICATED from training data, not corpus
+3. The user cannot distinguish fake content from real corpus synthesis
+4. It defeats the ENTIRE PURPOSE of this project
+
+**If you find yourself writing a script with hardcoded response content, STOP.**
+That content should come from READING THE REQUEST FILES and SYNTHESIZING FROM THE
+CORPUS CONTENT inside them.
 
 ### How to Generate Blog Content Correctly
 
@@ -78,6 +93,29 @@ Content generated from your training data is USELESS because:
    # Write responses to .bloginator/llm_responses/
    # Responses MUST be based on corpus search results in the request
    ```
+
+### How to Act as the LLM Backend (Option C - The Correct Way)
+
+When using assistant mode, Claude must:
+
+1. **Read each request file** in `.bloginator/llm_requests/request_NNNN.json`
+2. **Extract the source material** from the `prompt` field (look for `[Source 1]`, `[Source 2]`, etc.)
+3. **Synthesize content** from ONLY those sources using `prompts/corpus-synthesis-llm.md` guidelines
+4. **Write response files** to `.bloginator/llm_responses/response_NNNN.json`
+
+**Response file format:**
+```json
+{
+  "content": "The synthesized prose from corpus sources...",
+  "prompt_tokens": 1500,
+  "completion_tokens": 300,
+  "finish_reason": "stop"
+}
+```
+
+**CRITICAL: The `content` field must contain prose synthesized from the [Source N] sections
+in the request's prompt. If you write content that doesn't trace to those sources,
+you have failed.**
 
 **NEVER do this:**
 - Write markdown files directly with `save-file` for blog content
