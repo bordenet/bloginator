@@ -1,21 +1,8 @@
-"""Cloud file detection for OneDrive Files-On-Demand.
+"""Cloud file detection for OneDrive/iCloud Files-On-Demand on macOS.
 
-This module handles detection of cloud-only placeholder files on macOS.
-
-OneDrive Files-On-Demand on macOS creates placeholder files that appear in
-Finder but aren't actually downloaded. These files:
-- Have st_size > 0 (reported size from cloud)
-- Have st_blocks == 0 (no local disk blocks allocated)
-- Block indefinitely when read with Python's open()
-
-Detection uses the st_blocks == 0 heuristic which is reliable on macOS.
-
-IMPORTANT: OneDrive Personal does NOT support programmatic hydration.
-Microsoft only exposes the `/pin` CLI for OneDrive for Business (Intune).
-For Personal OneDrive, users must manually right-click in Finder and select
-"Always Keep on This Device". The attempt_hydration() function is provided
-for completeness but will return False for OneDrive Personal files.
-See: https://learn.microsoft.com/en-us/sharepoint/files-on-demand-mac
+Detects cloud-only placeholder files using the st_blocks == 0 heuristic.
+Note: OneDrive Personal does NOT support programmatic hydration; users must
+manually select "Always Keep on This Device" in Finder.
 """
 
 from __future__ import annotations
