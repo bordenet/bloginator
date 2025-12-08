@@ -15,6 +15,7 @@ from bloginator.search._search_helpers import (
     matches_tags,
 )
 from bloginator.search._search_result import SearchResult
+from bloginator.search.bm25 import BM25Index
 
 
 logger = logging.getLogger(__name__)
@@ -67,6 +68,9 @@ class CorpusSearcher:
 
         # Initialize embedding model (uses cache to avoid reloading)
         self.embedding_model = _get_embedding_model(embedding_model_name)
+
+        # BM25 index for hybrid search (built lazily)
+        self._bm25_index: BM25Index | None = None
 
     def search(
         self,
@@ -306,14 +310,101 @@ class CorpusSearcher:
         results.sort(key=lambda r: r.combined_score, reverse=True)
         return results[:n_results]
 
+    def build_bm25_index(self) -> None:
+        """Build BM25 index from ChromaDB collection for hybrid search.
+
+        This loads all documents from ChromaDB and builds a BM25 lexical index.
+        Call this once before using hybrid_search for best performance.
+        """
+        # Get all documents from collection
+        all_data = self.collection.get()
+
+        documents = []
+        if all_data["ids"]:
+            for i, chunk_id in enumerate(all_data["ids"]):
+                documents.append(
+                    {
+                        "id": chunk_id,
+                        "content": all_data["documents"][i] if all_data["documents"] else "",
+                    }
+                )
+
+        self._bm25_index = BM25Index()
+        self._bm25_index.build(documents)
+        logger.info(f"Built BM25 index with {len(documents)} documents")
+
+    def hybrid_search(
+        self,
+        query: str,
+        n_results: int = 10,
+        semantic_weight: float = 0.7,
+        bm25_weight: float = 0.3,
+        **kwargs: Any,
+    ) -> list[SearchResult]:
+        """Search using hybrid of semantic similarity and BM25 keyword matching.
+
+        Combines dense vector similarity with sparse lexical matching for
+        improved retrieval on keyword-specific queries.
+
+        Args:
+            query: Natural language search query
+            n_results: Number of results to return
+            semantic_weight: Weight for semantic similarity (0.0-1.0)
+            bm25_weight: Weight for BM25 lexical score (0.0-1.0)
+            **kwargs: Additional arguments passed to search()
+
+        Returns:
+            List of SearchResult objects sorted by hybrid score
+
+        Note:
+            If BM25 index is not built, falls back to semantic-only search.
+            Call build_bm25_index() first for best hybrid performance.
+        """
+        # Get semantic search results
+        semantic_results = self.search(query, n_results=n_results * 3, **kwargs)
+
+        # If no BM25 index, fall back to semantic only
+        if self._bm25_index is None:
+            logger.debug("No BM25 index available, using semantic search only")
+            for result in semantic_results:
+                result.hybrid_score = result.similarity_score
+            return semantic_results[:n_results]
+
+        # Get BM25 results
+        bm25_results = self._bm25_index.search(query, n_results=n_results * 3)
+
+        # Create lookup for BM25 scores by chunk_id
+        bm25_scores: dict[str, float] = {}
+        max_bm25_score = 1.0
+        if bm25_results:
+            max_bm25_score = max(r["score"] for r in bm25_results) or 1.0
+            for r in bm25_results:
+                # Normalize BM25 score to 0-1 range
+                bm25_scores[r["id"]] = r["score"] / max_bm25_score
+
+        # Combine scores
+        for result in semantic_results:
+            bm25_score = bm25_scores.get(result.chunk_id, 0.0)
+            result.bm25_score = bm25_score
+            result.hybrid_score = (
+                semantic_weight * result.similarity_score + bm25_weight * bm25_score
+            )
+
+        # Sort by hybrid score
+        semantic_results.sort(key=lambda r: r.hybrid_score, reverse=True)
+        return semantic_results[:n_results]
+
     def get_stats(self) -> dict[str, Any]:
         """Get search index statistics.
 
         Returns:
             Dictionary with index statistics
         """
-        return {
+        stats = {
             "collection_name": self.collection_name,
             "total_chunks": self.collection.count(),
             "index_dir": str(self.index_dir),
         }
+        if self._bm25_index is not None:
+            stats["bm25_document_count"] = self._bm25_index.document_count
+        return stats

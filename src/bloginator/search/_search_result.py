@@ -43,6 +43,8 @@ class SearchResult:
         self.recency_score: float = 0.5
         self.quality_score: float = 0.5
         self.combined_score: float = self.similarity_score
+        self.bm25_score: float = 0.0
+        self.hybrid_score: float = self.similarity_score
 
     def __repr__(self) -> str:
         """String representation."""
