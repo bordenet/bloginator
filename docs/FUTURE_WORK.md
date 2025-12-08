@@ -1,60 +1,55 @@
 # Bloginator: Future Work & Extensibility
 
-This document outlines potential enhancements, additional use cases, and extensibility plans for Bloginator.
+This document outlines potential enhancements and extensibility plans for Bloginator.
 
 ---
 
-## Short-Term Improvements (1-3 months)
+## Short-Term Improvements
 
-### 1. Test Coverage & Quality
+### 1. Export CLI Command
 **Priority**: HIGH
-**Effort**: 1-2 weeks
+**Effort**: 1 day
+
+Export functionality exists (`src/bloginator/export/`) but lacks a CLI command.
 
 **Tasks**:
-- Configure pytest-cov to measure and enforce coverage >80%
-- Add missing unit tests for edge cases
-- Expand integration test coverage
-- Add performance benchmarks for extraction, indexing, search
-- Document test strategy and patterns
+- Add `bloginator export` command to CLI
+- Support: `bloginator export draft.md --format pdf -o output.pdf`
+- Add export options to Streamlit UI (if applicable)
 
-**Value**: Ensures reliability and catches regressions
+**Value**: Users can export without writing Python code
 
 ---
 
-### 2. Multi-Format Export
+### 2. Hybrid Search (BM25 + Semantic)
+
 **Priority**: MEDIUM
 **Effort**: 1 week
 
-**Tasks**:
-- Implement PDF export (using reportlab or weasyprint)
-- Implement DOCX export (using python-docx)
-- Implement HTML export (with CSS styling)
-- Add export command to CLI: `bloginator export draft.md --format pdf -o output.pdf`
-- Add export options to Streamlit UI
-- Support export with custom templates
+Current search uses semantic similarity only. Adding BM25 would improve keyword matching.
 
-**Value**: Users can publish in multiple formats without manual conversion
+**Tasks**:
+- Implement BM25 scoring alongside semantic search
+- Add hybrid ranking (weighted combination)
+- Query expansion and synonym matching
+- Faceted search (filter by type, topic, etc.)
+
+**Value**: Better retrieval for keyword-specific queries
 
 ---
 
-### 3. Batch Processing & Automation
-**Priority**: MEDIUM
-**Effort**: 2 weeks
+### 3. OpenAI Native Client
+**Priority**: LOW
+**Effort**: 2 days
+
+OpenAI is marked as future work in `llm_base.py`. The Custom client supports OpenAI-compatible APIs but a native client would be cleaner.
 
 **Tasks**:
-- Add `bloginator batch` command for processing multiple documents
-- Support input from CSV/JSON manifests
-- Add scheduling support (cron-compatible)
-- Implement progress tracking and resumability
-- Add failure recovery and retry logic
-- Generate batch summary reports
+- Implement `llm_openai.py` with native OpenAI SDK
+- Add cost tracking and token usage logging
+- Support GPT-4, GPT-4-turbo, GPT-3.5-turbo
 
-**Use Cases**:
-- Generate monthly blog posts from recurring themes
-- Bulk update documentation
-- Scheduled corpus re-indexing
-
-**Value**: Enables production workflows and automation
+**Value**: First-class OpenAI support without custom endpoint configuration
 
 ---
 
@@ -67,7 +62,6 @@ This document outlines potential enhancements, additional use cases, and extensi
 - Writing style evolution over time
 - Vocabulary growth and diversity metrics
 - Readability scores (Flesch-Kincaid, etc.)
-- Sentiment analysis trends
 - Keyword extraction and trending topics
 
 **Use Cases**:
@@ -79,25 +73,9 @@ This document outlines potential enhancements, additional use cases, and extensi
 
 ---
 
-### 5. Enhanced Voice Preservation
-**Priority**: MEDIUM
-**Effort**: 2-3 weeks
-
-**Tasks**:
-- Train custom sentence embedding model on user's corpus
-- Implement style transfer techniques
-- Add "voice intensity" slider (more/less RAG influence)
-- Compare generated content to corpus for style matching
-- Provide style feedback during generation
-- Support multiple voice profiles (technical vs. casual, etc.)
-
-**Value**: Better quality, more authentic output
-
----
-
 ## Medium-Term Enhancements (3-6 months)
 
-### 6. Plugin Architecture
+### 5. Plugin Architecture
 **Priority**: HIGH
 **Effort**: 3-4 weeks
 
@@ -135,7 +113,7 @@ class NotionPlugin(BloginatorPlugin):
 
 ---
 
-### 7. Collaborative Features
+### 6. Collaborative Features
 **Priority**: MEDIUM
 **Effort**: 4-6 weeks
 
@@ -157,42 +135,7 @@ class NotionPlugin(BloginatorPlugin):
 
 ---
 
-### 8. Cloud Provider Support
-**Priority**: MEDIUM
-**Effort**: 2-3 weeks
-
-**Tasks**:
-- Native OpenAI client (GPT-4, GPT-3.5)
-- Native Anthropic client (Claude 3 Opus/Sonnet/Haiku)
-- Google VertexAI support (Gemini, PaLM)
-- Azure OpenAI support
-- Cohere support
-- Cost tracking and budget limits
-- Provider failover and fallback
-- A/B testing between providers
-
-**Value**: More LLM options, better quality control
-
----
-
-### 9. Advanced Search & Retrieval
-**Priority**: MEDIUM
-**Effort**: 3 weeks
-
-**Tasks**:
-- Hybrid search (semantic + keyword BM25)
-- Re-ranking with cross-encoders
-- Query expansion and synonym matching
-- Metadata filtering (date ranges, tags, authors)
-- Saved searches and alerts
-- Search history and suggestions
-- Faceted search (filter by type, topic, etc.)
-
-**Value**: Better retrieval = better generation quality
-
----
-
-### 10. Incremental Learning
+### 7. Incremental Learning
 **Priority**: MEDIUM
 **Effort**: 3-4 weeks
 
@@ -210,7 +153,7 @@ class NotionPlugin(BloginatorPlugin):
 
 ## Long-Term Vision (6-12+ months)
 
-### 11. Multi-Modal Support
+### 8. Multi-Modal Support
 **Priority**: LOW
 **Effort**: 2-3 months
 
@@ -231,7 +174,7 @@ class NotionPlugin(BloginatorPlugin):
 
 ---
 
-### 12. Domain-Specific Fine-Tuning
+### 9. Domain-Specific Fine-Tuning
 **Priority**: LOW
 **Effort**: 3-4 months
 
@@ -247,7 +190,7 @@ class NotionPlugin(BloginatorPlugin):
 
 ---
 
-### 13. Advanced Templates & Workflows
+### 10. Advanced Templates & Workflows
 **Priority**: MEDIUM
 **Effort**: 2-3 months
 
@@ -268,7 +211,7 @@ class NotionPlugin(BloginatorPlugin):
 
 ---
 
-### 14. API & Integrations
+### 11. API & Integrations
 **Priority**: MEDIUM
 **Effort**: 4-6 weeks
 
@@ -286,115 +229,12 @@ class NotionPlugin(BloginatorPlugin):
 
 ---
 
-### 15. Mobile & Desktop Apps
-**Priority**: LOW
-**Effort**: 3-6 months
-
-**Tasks**:
-- React Native mobile app (iOS/Android)
-- Electron desktop app (Windows/Mac/Linux)
-- Offline-first architecture with sync
-- Mobile-optimized UI/UX
-- Push notifications for async generation
-- Voice input for on-the-go content creation
-
-**Value**: Access anywhere, anytime
-
----
-
-## Additional Use Cases to Consider
-
-### Academic Research
-- Index research papers, notes, and literature reviews
-- Generate paper outlines and introductions
-- Maintain consistent academic voice across publications
-- Track citation and reference management
-
-**Requirements**:
-- BibTeX integration
-- LaTeX export
-- Academic citation styles
-- Plagiarism checking
-
----
-
-### Technical Documentation
-- Index API docs, design docs, runbooks
-- Generate consistent documentation from code
-- Maintain style guides and terminology
-- Version documentation alongside code
-
-**Requirements**:
-- Code block extraction and syntax highlighting
-- Markdown/AsciiDoc/reStructuredText support
-- Diagram generation (sequence, architecture)
-- API reference generation
-
----
-
-### Personal Knowledge Management (PKM)
-- Index personal notes (Obsidian, Roam, Logseq)
-- Generate summaries of reading notes
-- Create MOCs (Maps of Content)
-- Build Zettelkasten from corpus
-
-**Requirements**:
-- Bi-directional links
-- Graph visualization
-- Tag management
-- Daily notes support
-
----
-
-### Content Marketing
-- Index blog posts, social media, newsletters
-- Generate content calendars
-- Maintain brand voice across channels
-- A/B test messaging
-
-**Requirements**:
-- SEO optimization
-- Readability scoring
-- Social media formatting
-- Analytics integration
-
----
-
-### Legal & Compliance
-- Index contracts, policies, precedents
-- Generate contract templates
-- Maintain consistent legal language
-- Track regulatory changes
-
-**Requirements**:
-- Redaction and anonymization
-- Version control and audit trails
-- Compliance checking
-- E-signature integration
-
----
-
-### Creative Writing
-- Index novels, short stories, character notes
-- Generate plot outlines and character arcs
-- Maintain consistent voice per character
-- Track continuity and worldbuilding
-
-**Requirements**:
-- Character/location databases
-- Timeline management
-- Style analysis per character
-- Genre-specific templates
-
----
-
 ## Technical Debt & Refactoring
 
 ### Code Quality
-- Reduce files >400 lines (2 remaining: extract_config.py, draft.py)
+- Reduce files >400 lines (extract_config.py, draft.py)
 - Increase type hint coverage to 100%
 - Improve error messages and logging
-- Add docstring coverage enforcement
 
 ### Performance
 - Profile and optimize slow operations
@@ -419,28 +259,6 @@ class NotionPlugin(BloginatorPlugin):
 
 ---
 
-## Metrics & Success Criteria
-
-### Quality Metrics
-- **Voice Match**: >80% user satisfaction with generated voice
-- **Accuracy**: >90% factual accuracy (grounded in corpus)
-- **Completeness**: >80% of outlines fully drafted
-- **Usability**: <5 minutes time-to-first-draft for new users
-
-### Performance Metrics
-- **Extraction**: <30s per 100 pages
-- **Indexing**: <5 minutes per 500 documents
-- **Search**: <3s response time
-- **Generation**: <2 minutes per 1000-word draft
-
-### Adoption Metrics
-- **Daily Active Users**: Target 100+ by month 6
-- **Corpus Size**: Average 200+ documents per user
-- **Retention**: >50% monthly active users return
-- **Generation Volume**: 1000+ drafts generated/month
-
----
-
 ## Open Questions & Research Needed
 
 1. **Embedding Models**: Should we support multiple embedding models? Which ones?
@@ -453,36 +271,13 @@ class NotionPlugin(BloginatorPlugin):
 
 ---
 
-## Community & Ecosystem
-
-### Open Source Contributions
-- Accept external PRs for new extractors
-- Community-contributed templates
-- Plugin marketplace
-- Translation contributions
-
-### Documentation
-- Video tutorials and walkthroughs
-- Blog post case studies
-- API reference docs
-- Architecture deep dives
-- Performance tuning guides
-
-### Support
-- Community forum (Discourse/GitHub Discussions)
-- Discord/Slack community
-- Office hours for contributors
-- Bounty program for features/bugs
-
----
-
 ## Conclusion
 
-Bloginator has a solid foundation and many opportunities for growth. Priority should be:
+Bloginator has a solid foundation. Priority should be:
 
-1. **Quality & Reliability**: Test coverage, performance, security
-2. **User Value**: Export, batch processing, advanced search
+1. **Quick Wins**: Export CLI, OpenAI client
+2. **User Value**: Hybrid search, analytics
 3. **Extensibility**: Plugin architecture, API, integrations
-4. **Scale**: Team/org features, cloud providers, fine-tuning
+4. **Scale**: Team/org features, fine-tuning
 
-Focus on what users actually need, not what seems technically interesting. Validate with real users before building.
+Focus on what users actually need, not what seems technically interesting.

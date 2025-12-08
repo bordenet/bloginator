@@ -1,4 +1,39 @@
 #!/usr/bin/env bash
+#
+# Bloginator Cleanup Script
+#
+# Removes generated content, indexes, and temporary files to reset the
+# bloginator environment to a clean state.
+#
+# Usage:
+#   purge-corpus-and-outputs.sh [options]
+#
+# Options:
+#   -y, --yes              Auto-confirm all prompts (use with caution)
+#   -v, --verbose          Show detailed output
+#   -n, --what-if          Preview what would be deleted without deleting
+#   --wipe-shadow-copies   Also delete shadow copies (dangerous - requires
+#                          network access to restore)
+#   -h, --help             Show this help message
+#
+# What gets deleted:
+#   - Extracted documents (.bloginator/output/extracted)
+#   - Generated content (.bloginator/output/generated)
+#   - ChromaDB index (.bloginator/chroma)
+#   - LLM request/response files (.bloginator/llm_requests, llm_responses)
+#   - Generation history (.bloginator/history)
+#   - Legacy chroma_db directory (if present)
+#
+# Examples:
+#   # Preview what would be deleted
+#   ./scripts/purge-corpus-and-outputs.sh --what-if
+#
+#   # Delete everything with confirmation prompts
+#   ./scripts/purge-corpus-and-outputs.sh
+#
+#   # Delete everything without prompts (CI/automation)
+#   ./scripts/purge-corpus-and-outputs.sh --yes
+#
 
 set -euo pipefail
 
@@ -45,8 +80,8 @@ SHADOW_COPY_DIR="/tmp/bloginator/corpus_shadow"
 ################################################################################
 
 show_help() {
-    # Extract and display the header documentation (lines 2-63)
-    sed -n '2,63p' "${BASH_SOURCE[0]}" | sed 's/^# \?//'
+    # Extract and display the header documentation (lines 3-35)
+    sed -n '3,35p' "${BASH_SOURCE[0]}" | sed 's/^# //' | sed 's/^#$//'
     exit 0
 }
 
@@ -150,7 +185,16 @@ process_cleanup_queue() {
     done
 
     local total_size_human
-    total_size_human=$(echo "$total_size_bytes" | numfmt --to=iec-i --suffix=B --format="%.1f")
+    # Convert bytes to human-readable (macOS compatible - no numfmt)
+    if [[ $total_size_bytes -ge 1073741824 ]]; then
+        total_size_human=$(awk "BEGIN {printf \"%.1fGiB\", $total_size_bytes/1073741824}")
+    elif [[ $total_size_bytes -ge 1048576 ]]; then
+        total_size_human=$(awk "BEGIN {printf \"%.1fMiB\", $total_size_bytes/1048576}")
+    elif [[ $total_size_bytes -ge 1024 ]]; then
+        total_size_human=$(awk "BEGIN {printf \"%.1fKiB\", $total_size_bytes/1024}")
+    else
+        total_size_human="${total_size_bytes}B"
+    fi
     echo "--------------------------------------------------------------------------------"
     printf "  TOTAL: %d files, %s\n\n" "$total_files" "$total_size_human"
 
