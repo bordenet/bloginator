@@ -831,5 +831,3 @@ See API documentation at `http://localhost:8000/api/docs` when server is running
 - Read [Developer Guide](DEVELOPER_GUIDE.md) for architecture and system design details
 - Check [Custom LLM Guide](CUSTOM_LLM_GUIDE.md) for advanced LLM configuration
 - Review [Future Work](FUTURE_WORK.md) for planned features and enhancements
-
-**Happy writing with Bloginator!**
