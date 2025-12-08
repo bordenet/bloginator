@@ -71,6 +71,13 @@ system_prompt: |
   - Match the voice and tone of the source material
   - Be direct and specific, not vague or generic
 
+  DEDUPLICATION RULES:
+  - State each concept exactly ONCE within your response
+  - If multiple sources say the same thing, consolidate into ONE stronger statement
+  - Do NOT pad word count with restatements or variations of the same point
+  - If a concept was introduced in the section description, don't repeat it verbatim
+  - Prefer concrete details over redundant emphasis
+
   COMPANY BRANDING:
   {% if company_name and company_name != "our company" %}
   - Use "{{company_name}}" as the company name throughout

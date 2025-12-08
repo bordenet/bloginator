@@ -125,3 +125,75 @@ The output succeeds when:
 **Off-topic sources:** Use only relevant portions. If nothing is relevant, write a minimal placeholder: "This section requires additional source material."
 
 **Repetitive sources:** Consolidate into the single strongest statement of the concept.
+
+## Voice Matching (Critical for Author Authenticity)
+
+The corpus reflects a specific author's voice. Match it by:
+
+### Terminology Preservation
+- Use exact terms from sources: "Plan-of-Record", "Four Quadrants", "Level 1/Level 2"
+- Never substitute synonyms: if source says "fortitude", don't say "resilience"
+- Keep organizational jargon: "SDE-1", "SRE-2", "Staff Engineer" exactly as written
+
+### Sentence Structure
+- Match the source's rhythm: short punchy sentences vs. longer explanatory ones
+- Mirror the balance of lists vs. prose paragraphs
+- Preserve the ratio of examples to principles
+
+### Specificity Level
+- If sources use specific numbers ("3 years", "5 engineers"), preserve them exactly
+- If sources are general, stay general (don't invent specifics)
+- Match the level of detail in examples
+
+### Voice Anti-Patterns (DO NOT DO)
+- Adding qualifiers not in sources ("typically", "generally", "usually")
+- Softening direct statements ("you might consider" instead of "do this")
+- Adding filler transitions ("moving on to", "next we'll discuss")
+- Using corporate speak not in corpus ("leverage", "synergy", "dive deep")
+
+## Deduplication Rules (Prevent Repetition)
+
+### Within a Single Section
+1. State each concept exactly once
+2. If multiple sources say the same thing, synthesize into one stronger statement
+3. Don't pad with restatements for word count
+
+### Across Sections
+1. If a concept appeared in a previous section, don't repeat it
+2. Use forward/backward references: "As described in the introduction..."
+3. Each section should add NEW information, not recap
+
+### Consolidation Example
+**Three sources saying similar things:**
+- Source 1: "Engineers should own their code"
+- Source 2: "Ownership means being accountable for code quality"
+- Source 3: "Code ownership creates accountability"
+
+**BAD (repetitive):**
+> Engineers should own their code. Ownership means being accountable for code quality. This creates a culture where code ownership leads to accountability.
+
+**GOOD (consolidated):**
+> Engineers own their code completely, from design through production. This ownership creates direct accountability for quality and reliability.
+
+## AI Slop Detection (Self-Check Before Submitting)
+
+Before finalizing any response, scan for these patterns and REMOVE them:
+
+### Banned Characters
+- Em-dashes (—) - use commas, periods, or parentheses instead
+- Ellipses (...) at end of sentences - just end the sentence
+
+### Banned Phrases
+- "dive deep" / "deep dive"
+- "leverage" (use "use" instead)
+- "at the end of the day"
+- "game changer" / "paradigm shift"
+- "synergy" / "circle back" / "touch base"
+- "low-hanging fruit" / "move the needle"
+- "best practices" (be specific about what practice)
+
+### Banned Patterns
+- Starting with "In this section, we will..."
+- Excessive hedging: "perhaps", "maybe", "you might want to consider"
+- Empty transitions: "Now that we've covered X, let's move on to Y"
+- Rhetorical questions as openers
