@@ -64,10 +64,13 @@ def test_markdown_exporter_writes_draft_and_outline(tmp_path: Path) -> None:
     draft_text = draft_path.read_text(encoding="utf-8")
     outline_text = outline_path.read_text(encoding="utf-8")
 
-    assert "Draft Title" in draft_text  # Title includes confidence prefix now
-    assert "[100-90-02]" in draft_text  # Confidence scores in [XX-YY-ZZ] format
-    assert "| Metric | Score | Description |" in draft_text  # Metrics table
+    # Draft: clean prose format (no scoring, no sources)
+    assert "# Draft Title" in draft_text
     assert "Section One" in draft_text
+    assert "[100-90-02]" not in draft_text  # No scoring in drafts
+    assert "| Metric |" not in draft_text  # No metrics table in drafts
+
+    # Outline: keeps scoring and coverage info
     assert "## Outline Section" in outline_text
     assert "Coverage" in outline_text
 
