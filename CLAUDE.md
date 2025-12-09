@@ -220,7 +220,7 @@ All Python code MUST comply with `docs/PYTHON_STYLE_GUIDE.md`. Key requirements:
 - **Function length**: Target ≤50 lines, maximum 100 lines
 - **Parameters**: ≤5 per function, use dataclass/dict for more
 - **Import order**: stdlib → third-party → local (enforced by isort)
-- **Max file length**: 300 lines maximum. Strive for ~250 lines
+- **Max file length**: 350 lines maximum. Strive for ~250 lines
 
 ## Mandatory Quality Gates
 
@@ -242,13 +242,13 @@ mypy src/bloginator/models src/bloginator/extraction src/bloginator/search \
 pydocstyle src/bloginator
 
 # Tests with coverage
-pytest --cov=src/bloginator --cov-fail-under=70
+pytest --cov=src/bloginator --cov-fail-under=85
 ```
 
 ### CI Workflow Requirements
 
 1. **Lint and type check** - Must pass Ruff, pydocstyle, and mypy
-2. **Tests** - Must pass on Python 3.10, 3.11, and 3.12 with ≥70% coverage
+2. **Tests** - Must pass on Python 3.10, 3.11, and 3.12 with ≥85% coverage
 3. **Security scanning** - Bandit, pip-audit, and Safety checks run (non-blocking)
 4. **Codecov** - Coverage reports uploaded to Codecov
 
@@ -263,7 +263,7 @@ pytest --cov=src/bloginator --cov-fail-under=70
 ### Before Every Push
 
 1. Run full test suite: `pytest --cov=src/bloginator`
-2. Verify coverage meets threshold (≥70%)
+2. Verify coverage meets threshold (≥85%)
 3. Ensure CI will pass by running all quality checks locally
 
 ## Code Patterns
@@ -355,11 +355,11 @@ pytest --cov=src/bloginator --cov-report=term-missing
 
 ## Coverage Requirements
 
-- **Minimum overall**: 70% (enforced in CI)
-- **Target for new code**: 80%+
-- **Critical paths**: 90%+ recommended
+- **Minimum overall**: 85% (enforced in CI)
+- **Target for new code**: 90%+
+- **Critical paths**: 95%+ recommended
 
-Current coverage: ~71% (as of 2025-12-07)
+Current coverage: ~75% (as of 2025-12-08)
 
 ## ⚠️ BATCH MODE BLOG GENERATION ⚠️
 

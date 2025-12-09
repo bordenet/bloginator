@@ -30,8 +30,8 @@ mypy src/bloginator --ignore-missing-imports
 # Docstring checking (must pass)
 pydocstyle src/bloginator --convention=google
 
-# Tests (must pass with >= 70% coverage)
-pytest tests/ --cov=src --cov-fail-under=70
+# Tests (must pass with >= 85% coverage)
+pytest tests/ --cov=src --cov-fail-under=85
 ```
 
 ## Project Structure
@@ -276,15 +276,15 @@ def sample_repo(tmp_path: Path) -> Path:
 ```
 
 ### Coverage
-- Target: **≥70%** overall (enforced in CI)
-- Critical modules: **≥80%** coverage
+- Target: **≥85%** overall (enforced in CI)
+- Critical modules: **≥90%** coverage
 - Use `# pragma: no cover` sparingly and with justification
 
 ## File Organization
 
 ### File Length
 - Target: **~250 lines** per file
-- Maximum: **400 lines** (refactor if approaching)
+- Maximum: **350 lines** (refactor if approaching)
 
 ### Import Order (isort)
 1. Standard library

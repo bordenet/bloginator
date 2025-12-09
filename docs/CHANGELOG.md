@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### In Progress
 
 - Streamlit UI refactor (pages → _pages, removed non-functional nav links)
-- Test coverage at ~76% (CI enforces 70% minimum)
+- Test coverage at ~76% (CI enforces 85% minimum)
 - Voice preservation improvements
 - Performance optimization for large corpora
 - GitHub Actions CI/CD pipeline
