@@ -31,8 +31,10 @@ def format_elapsed(seconds: float) -> str:
     return f"{mins}:{secs:02d}"
 
 
-def validate_response(response_file: Path, request_id: int) -> dict[str, Any]:
-    """Validate response JSON schema and required fields.
+def validate_response(
+    response_file: Path, request_id: int, request_dir: Path | None = None
+) -> dict[str, Any]:
+    """Validate response JSON schema, required fields, and timestamp.
 
     Schema:
       REQUIRED: content (str) - the synthesized content
@@ -42,12 +44,13 @@ def validate_response(response_file: Path, request_id: int) -> dict[str, Any]:
     Args:
         response_file: Path to response JSON file
         request_id: Expected request ID
+        request_dir: Optional path to request directory for timestamp validation
 
     Returns:
         Validated response data dict
 
     Raises:
-        ValueError: If response is invalid (missing required fields or bad types)
+        ValueError: If response is invalid (missing required fields, bad types, or stale)
     """
     try:
         with response_file.open() as f:
@@ -73,6 +76,18 @@ def validate_response(response_file: Path, request_id: int) -> dict[str, Any]:
     if len(content.strip()) == 0:
         raise ValueError(f"Empty 'content' in {response_file}")
 
+    # Validate timestamp: response must be newer than request
+    if request_dir is not None:
+        request_file = request_dir / f"request_{request_id:04d}.json"
+        if request_file.exists():
+            request_mtime = request_file.stat().st_mtime
+            response_mtime = response_file.stat().st_mtime
+            if response_mtime < request_mtime:
+                raise ValueError(
+                    f"Stale response: {response_file.name} is older than {request_file.name}. "
+                    f"Delete stale responses and regenerate."
+                )
+
     # Validate optional fields if present
     if "request_id" in response_data:
         rid = response_data["request_id"]
@@ -94,6 +109,7 @@ def collect_batch_responses(
     timeout: int,
     min_response_threshold: float,
     allow_partial: bool = True,
+    request_dir: Path | None = None,
 ) -> dict[int, LLMResponse]:
     """Wait for batch responses with graceful degradation.
 
@@ -107,6 +123,7 @@ def collect_batch_responses(
         timeout: Maximum seconds to wait
         min_response_threshold: Minimum percentage of responses required (0.0-1.0)
         allow_partial: If True, return placeholders for missing responses if threshold met
+        request_dir: Optional path to request directory for timestamp validation
 
     Returns:
         Dictionary mapping request_id to LLMResponse (including placeholders)
@@ -151,7 +168,7 @@ def collect_batch_responses(
                     )
 
                 try:
-                    response_data = validate_response(response_file, request_id)
+                    response_data = validate_response(response_file, request_id, request_dir)
                     content = response_data["content"]
                     responses[request_id] = LLMResponse(
                         content=content,

@@ -98,7 +98,7 @@ def save_draft_output(
     try:
         if output_format in ["markdown", "both"]:
             md_path = output_file.with_suffix(".md") if output_format == "both" else output_file
-            md_path.write_text(draft.to_markdown(include_citations=True))
+            md_path.write_text(draft.to_markdown())
             logger.info(f"Saved markdown to {md_path}")
             console.print(f"[green]✓[/green] Saved markdown to {md_path}")
 

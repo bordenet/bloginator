@@ -22,7 +22,7 @@ class PlainTextExporter(Exporter):
             output_path: Path where text file should be saved
         """
         # Get markdown then strip formatting
-        markdown = draft.to_markdown(include_citations=False)
+        markdown = draft.to_markdown()
         plain_text = self._strip_markdown(markdown)
 
         output_path.parent.mkdir(parents=True, exist_ok=True)

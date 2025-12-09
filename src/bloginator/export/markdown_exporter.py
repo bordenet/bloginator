@@ -20,7 +20,7 @@ class MarkdownExporter(Exporter):
             draft: Draft document to export
             output_path: Path where markdown file should be saved
         """
-        markdown_content = draft.to_markdown(include_citations=True)
+        markdown_content = draft.to_markdown()
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(markdown_content, encoding="utf-8")
 

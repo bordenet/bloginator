@@ -304,7 +304,7 @@ class TestDraft:
         assert "Sub" in titles
 
     def test_to_markdown_basic(self):
-        """Test markdown generation."""
+        """Test markdown generation produces clean prose format."""
         section = DraftSection(
             title="Introduction",
             content="This is the introduction.",
@@ -319,18 +319,20 @@ class TestDraft:
 
         markdown = draft.to_markdown()
 
-        # Title includes confidence scores prefix [XX-YY-ZZ]
-        assert "Test Document" in markdown
-        assert "[00-00-00]" in markdown  # No citations, no content
+        # Clean title without scoring prefixes
+        assert "# Test Document" in markdown
+        assert "[00-00-00]" not in markdown  # No scoring in drafts
         assert "*Main thesis*" in markdown
         assert "## Introduction" in markdown
         assert "This is the introduction." in markdown
 
-        # Metrics table at top
-        assert "| Metric | Score | Description |" in markdown
-        assert "| **Citation Coverage** |" in markdown
-        assert "| **Citation Quality** |" in markdown
-        assert "| **Content Completeness** |" in markdown
+        # No metrics table - that belongs in outlines
+        assert "| Metric | Score | Description |" not in markdown
+
+        # Minimal metadata in comment
+        assert "<!--" in markdown
+        assert "Generated:" in markdown
+        assert "-->" in markdown
 
     def test_to_markdown_nested(self):
         """Test markdown with nested sections."""
@@ -357,8 +359,8 @@ class TestDraft:
         assert "### Subsection" in markdown
         assert "Subsection content" in markdown
 
-    def test_to_markdown_with_citations(self):
-        """Test markdown includes citations."""
+    def test_to_markdown_clean_format(self):
+        """Test markdown produces clean output without citations or scoring."""
         citation = Citation(
             chunk_id="c1",
             document_id="d1",
@@ -378,39 +380,20 @@ class TestDraft:
             keywords=["test"],
             sections=[section],
         )
+        draft.calculate_stats()
 
-        markdown = draft.to_markdown(include_citations=True)
+        markdown = draft.to_markdown()
 
-        assert "source.md" in markdown
-        assert "Preview text" in markdown
-
-    def test_to_markdown_without_citations(self):
-        """Test markdown excludes citations when flag is False."""
-        citation = Citation(
-            chunk_id="c1",
-            document_id="d1",
-            filename="source.md",
-        )
-
-        section = DraftSection(
-            title="Section",
-            content="Content",
-            citations=[citation],
-        )
-
-        draft = Draft(
-            title="Test",
-            keywords=["test"],
-            sections=[section],
-        )
-
-        markdown = draft.to_markdown(include_citations=False)
-
+        # Clean output - no citation markers or sources appendix
         assert "## Section" in markdown
         assert "Content" in markdown
-        # Check that citations section is not included (word "Citations" appears in metadata)
-        assert "### Citations" not in markdown
         assert "source.md" not in markdown
+        assert "*[1 sources]*" not in markdown
+        assert "## Sources" not in markdown
+
+        # The include_citations param is deprecated and ignored
+        markdown_with_flag = draft.to_markdown(include_citations=True)
+        assert markdown == markdown_with_flag
 
     def test_blocklist_violations(self):
         """Test blocklist violations tracking."""
