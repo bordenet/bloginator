@@ -26,7 +26,7 @@ Bloginator follows a comprehensive testing strategy:
 - **End-to-End Tests**: Full workflow validation
 - **Performance Tests**: Benchmark critical operations
 
-**Coverage Target**: 70% minimum (CI enforced), 80%+ aspirational
+**Coverage Target**: 85% minimum (CI enforced), 90%+ aspirational
 
 ---
 
@@ -330,12 +330,12 @@ def test_quality_weighting(quality, expected_weight):
 
 | Component | Line Coverage | Branch Coverage |
 |-----------|--------------|-----------------|
-| Models | 90%+ | 85%+ |
-| Core Logic | 85%+ | 80%+ |
-| CLI Commands | 75%+ | 70%+ |
-| API Endpoints | 75%+ | 70%+ |
-| UI Components | 70%+ | 65%+ |
-| **Overall** | **70%** | **70%** |
+| Models | 95%+ | 90%+ |
+| Core Logic | 90%+ | 85%+ |
+| CLI Commands | 85%+ | 80%+ |
+| API Endpoints | 85%+ | 80%+ |
+| UI Components | 80%+ | 75%+ |
+| **Overall** | **85%** | **85%** |
 
 ### Measuring Coverage
 
@@ -473,15 +473,15 @@ jobs:
           pytest --cov=src/bloginator \
                  --cov-branch \
                  --cov-report=term \
-                 --cov-fail-under=70
+                 --cov-fail-under=85
 ```
 
 ### Coverage Enforcement
 
-CI fails if coverage drops below 70%:
+CI fails if coverage drops below 85%:
 
 ```bash
-pytest --cov=src/bloginator --cov-fail-under=70
+pytest --cov=src/bloginator --cov-fail-under=85
 ```
 
 ---

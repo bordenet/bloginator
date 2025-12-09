@@ -11,7 +11,7 @@
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| **Tests** | ✅ | 541 tests passing, ~76% coverage (CI enforces 70% minimum) |
+| **Tests** | ✅ | 541 tests passing, ~76% coverage (CI enforces 85% minimum) |
 | **Linting** | ✅ | Black, Ruff, MyPy all passing |
 | **Type Safety** | ✅ | Full type hints with strict MyPy validation |
 | **CI/CD** | ✅ | GitHub Actions green |

@@ -5,8 +5,8 @@ Current priorities and active work items.
 ## Test Coverage Enhancement
 
 **Priority**: HIGH
-**Current**: ~67% coverage (CI enforces 70% minimum)
-**Target**: 70%+
+**Current**: ~76% coverage (CI enforces 85% minimum)
+**Target**: 85%+
 
 ### Missing Coverage
 - CLI commands: `draft.py`, `extract_config.py`, `outline.py`, `search.py`
