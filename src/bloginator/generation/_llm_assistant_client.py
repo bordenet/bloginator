@@ -78,9 +78,24 @@ class AssistantLLMClient(LLMClient):
         self.request_dir.mkdir(parents=True, exist_ok=True)
         self.response_dir.mkdir(parents=True, exist_ok=True)
 
+        # In batch mode, clear stale files to prevent interference from previous runs
+        if batch_mode:
+            self._clear_stale_files()
+
         # Request counter and pending requests for batch mode
         self.request_counter = 0
         self.pending_requests: list[int] = []
+
+    def _clear_stale_files(self) -> None:
+        """Clear request and response directories to prevent stale file interference.
+
+        This ensures each batch run starts fresh without leftover files from
+        previous runs that could cause request/response mismatches.
+        """
+        for directory in [self.request_dir, self.response_dir]:
+            for file in directory.glob("*.json"):
+                file.unlink()
+        console.print("[dim]Cleared stale request/response files for fresh batch run[/dim]")
 
     def generate(
         self,
@@ -283,6 +298,7 @@ class AssistantLLMClient(LLMClient):
             timeout=self.timeout,
             min_response_threshold=self.min_response_threshold,
             allow_partial=allow_partial,
+            request_dir=self.request_dir,
         )
 
         # Clear pending requests

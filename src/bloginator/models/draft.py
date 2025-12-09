@@ -184,107 +184,50 @@ class Draft(BaseModel):
             all_sections.extend(section.get_all_sections())
         return all_sections
 
-    def to_markdown(self, include_citations: bool = True) -> str:
+    def to_markdown(self, include_citations: bool = False) -> str:
         """Convert draft to Markdown format.
 
+        Standard format: Clean prose without scoring or source annotations.
+        Scoring belongs in the outline; the draft is the final synthesized content.
+
         Args:
-            include_citations: Whether to include citation annotations
+            include_citations: Deprecated, ignored. Citations are never included
+                              in markdown output. Use model_dump_json() for full data.
 
         Returns:
-            Markdown-formatted draft
+            Markdown-formatted draft (clean prose)
         """
         lines = []
 
-        # Confidence metrics table at the TOP
-        lines.append("| Metric | Score | Description |")
-        lines.append("|--------|-------|-------------|")
-        lines.append(
-            f"| **Citation Coverage** | {self.citation_coverage_score}% "
-            f"| % of sections with ≥1 citation |"
-        )
-        lines.append(
-            f"| **Citation Quality** | {self.citation_quality_score}% "
-            f"| Average similarity score of citations |"
-        )
-        lines.append(
-            f"| **Content Completeness** | {self.content_completeness_score}% "
-            f"| Content density (target: 150 words/section) |"
-        )
-        lines.append(f"| **Total Words** | {self.total_words} | |")
-        lines.append(f"| **Total Citations** | {self.total_citations} | |")
-        if self.has_blocklist_violations:
-            lines.append("| ⚠️ **Blocklist Violations** | YES | Review required |")
-        lines.append("")
-
-        # Title with confidence scores: [XX-YY-ZZ] Title
-        confidence_prefix = (
-            f"[{self.citation_coverage_score:02d}-"
-            f"{self.citation_quality_score:02d}-"
-            f"{self.content_completeness_score:02d}]"
-        )
-        lines.append(f"# {confidence_prefix} {self.title}")
+        # Title (clean, no scoring prefixes)
+        lines.append(f"# {self.title}")
         lines.append("")
 
         if self.thesis:
             lines.append(f"*{self.thesis}*")
             lines.append("")
 
-        # Metadata in hidden comment (only include meaningful metrics)
+        # Minimal metadata in hidden comment
         lines.append("<!--")
         lines.append(f"Generated: {self.created_date.strftime('%Y-%m-%d %H:%M')}")
         lines.append(f"Classification: {self.classification}")
         lines.append(f"Audience: {self.audience}")
-        if self.generation_time_seconds > 0:
-            lines.append(f"Generation Time: {self.generation_time_seconds:.1f}s")
-        # Only include Voice Score if it was actually calculated (non-zero)
-        if self.voice_score > 0:
-            lines.append(f"Voice Score: {self.voice_score:.2f}")
+        lines.append(f"Words: {self.total_words}")
         lines.append("-->")
         lines.append("")
 
-        # Sections
+        # Sections (clean content, no citation markers)
         for section in self.sections:
-            lines.extend(
-                self._section_to_markdown(section, level=2, include_citations=include_citations)
-            )
-
-        # Citations appendix (if requested)
-        if include_citations:
-            all_citations = []
-            for section in self.get_all_sections():
-                all_citations.extend(section.citations)
-
-            if all_citations:
-                lines.append("")
-                lines.append("---")
-                lines.append("")
-                lines.append("## Sources")
-                lines.append("")
-
-                # Unique citations by chunk_id
-                unique_citations = {}
-                for citation in all_citations:
-                    if citation.chunk_id not in unique_citations:
-                        unique_citations[citation.chunk_id] = citation
-
-                for i, citation in enumerate(
-                    sorted(unique_citations.values(), key=lambda c: c.filename), 1
-                ):
-                    lines.append(f"{i}. {citation.filename}")
-                    if citation.content_preview:
-                        lines.append(f'   *"{citation.content_preview}..."*')
+            lines.extend(self._section_to_markdown(section, level=2))
 
         return "\n".join(lines)
 
-    def _section_to_markdown(
-        self, section: DraftSection, level: int = 2, include_citations: bool = True
-    ) -> list[str]:
+    def _section_to_markdown(self, section: DraftSection, level: int = 2) -> list[str]:
         """Convert section to markdown lines.
 
         Args:
             section: Section to convert
-            level: Heading level
-            include_citations: Whether to include citation markers
+            level: Heading level (2-6)
 
         Returns:
             List of markdown lines
@@ -296,19 +239,13 @@ class Draft(BaseModel):
         lines.append(f"{heading} {section.title}")
         lines.append("")
 
-        # Content
+        # Content (clean prose, no annotations)
         if section.content:
-            content = section.content
-
-            # Add citation markers if requested
-            if include_citations and section.citations:
-                content += f" *[{len(section.citations)} sources]*"
-
-            lines.append(content)
+            lines.append(section.content)
             lines.append("")
 
         # Subsections
         for subsection in section.subsections:
-            lines.extend(self._section_to_markdown(subsection, level + 1, include_citations))
+            lines.extend(self._section_to_markdown(subsection, level + 1))
 
         return lines
