@@ -257,18 +257,11 @@ module = "bloginator.generation.llm_mock"
 disallow_untyped_defs = false
 
 [[tool.mypy.overrides]]
-module = "bloginator.utils.parallel"
-disallow_untyped_defs = false
-
-[[tool.mypy.overrides]]
 module = "bloginator.cli.extract_utils"
 disallow_untyped_defs = false
 
 [[tool.mypy.overrides]]
-module = [
-    "bloginator.generation.llm_custom",
-    "bloginator.generation.llm_ollama",
-]
+module = "bloginator.generation.llm_ollama"
 disallow_untyped_calls = false
 disallow_incomplete_defs = false
 disallow_untyped_defs = false
