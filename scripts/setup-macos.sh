@@ -365,6 +365,14 @@ is_venv_broken() {
     return 1  # Not broken
 }
 
+are_dev_deps_installed() {
+    # Check if critical dev dependencies are actually installed
+    # This is more thorough than just checking pip
+    "$VENV_DIR/bin/python" -c \
+        "import black, ruff, mypy, pytest" 2>/dev/null
+    return $?
+}
+
 setup_virtualenv() {
     task_start "Setting up Python virtual environment"
 
@@ -416,7 +424,7 @@ setup_dependencies() {
     # shellcheck source=/dev/null
     source "$VENV_DIR/bin/activate"
 
-    if is_cached "python-deps" && ! is_install_broken; then
+    if is_cached "python-deps" && ! is_install_broken && are_dev_deps_installed; then
         task_skip "Python dependencies (cached)"
         return 0
     fi
@@ -501,27 +509,37 @@ validate_runtime() {
     # shellcheck source=/dev/null
     source "$VENV_DIR/bin/activate"
 
+    local failed=false
+
     # Test 1: Python is functional
     verbose "Testing Python..."
     if ! python -c "import sys; sys.exit(0)" 2>/dev/null; then
         task_fail "Python not functional"
-        exit 1
+        return 1
     fi
 
     # Test 2: Development tools are operational
     verbose "Testing development tools..."
     for tool in black ruff mypy pytest; do
         if ! python -m "$tool" --version > /dev/null 2>&1; then
-            task_fail "Development tool '$tool' not operational"
-            exit 1
+            verbose "Development tool '$tool' missing - reinstalling dependencies..."
+            failed=true
+            break
         fi
     done
+
+    if [[ "$failed" == "true" ]]; then
+        # Reset cache and force reinstall
+        rm -f "$CACHE_DIR/python-deps"
+        return 1
+    fi
 
     # Test 3: Core pip packages are installed
     verbose "Verifying pip packages..."
     if ! python -m pip show bloginator pytest black ruff mypy > /dev/null 2>&1; then
-        task_fail "Required packages not installed"
-        exit 1
+        verbose "Some required packages missing - reinstalling..."
+        rm -f "$CACHE_DIR/python-deps"
+        return 1
     fi
 
     task_ok "Runtime environment validated"
@@ -588,9 +606,31 @@ main() {
     setup_dev_tools
     setup_python > /dev/null
     setup_virtualenv
-    setup_dependencies
-    setup_precommit_hooks
-    validate_runtime
+    
+    # Retry dependency installation if validation fails
+    local max_retries=3
+    local retry_count=0
+    while [[ $retry_count -lt $max_retries ]]; do
+        setup_dependencies
+        setup_precommit_hooks
+        
+        if validate_runtime; then
+            # Validation passed, break out of retry loop
+            break
+        else
+            retry_count=$((retry_count + 1))
+            if [[ $retry_count -lt $max_retries ]]; then
+                echo ""
+                verbose "Retrying dependency installation (attempt $((retry_count + 1))/$max_retries)..."
+            fi
+        fi
+    done
+
+    if [[ $retry_count -ge $max_retries ]]; then
+        task_fail "Failed to install dependencies after $max_retries attempts"
+        exit 1
+    fi
+
     setup_sample_corpus
 
     echo ""
