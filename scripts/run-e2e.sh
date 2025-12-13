@@ -230,6 +230,11 @@ confirm() {
 }
 
 run_bloginator() {
+    # Export LLM_MOCK if set (for assistant mode fallback)
+    if [[ -n "${BLOGINATOR_LLM_MOCK:-}" ]]; then
+        export BLOGINATOR_LLM_MOCK
+    fi
+    
     if [[ "$VERBOSE" -eq 1 ]]; then
         bloginator "$@"
     else
@@ -287,10 +292,12 @@ step_check_ollama() {
     verbose "Ollama host: $OLLAMA_HOST"
 
     if ! check_ollama_service "$OLLAMA_HOST" 2>/dev/null; then
-        task_fail "Ollama not reachable at $OLLAMA_HOST"
+        task_warn "Ollama not reachable at $OLLAMA_HOST"
         echo ""
-        echo "Start Ollama with: ollama serve"
-        exit 1
+        echo "Falling back to assistant mode (Claude will generate responses)..."
+        export BLOGINATOR_LLM_MOCK="assistant"
+        task_ok "Switched to assistant mode"
+        return 0
     fi
 
     verbose "Ollama is running"
@@ -300,10 +307,12 @@ step_check_ollama() {
     available_models=$(list_ollama_models "$OLLAMA_HOST")
 
     if [ -z "$available_models" ]; then
-        task_fail "No models available in Ollama."
+        task_warn "No models available in Ollama."
         echo ""
-        echo "Pull a model with: ollama pull <model-name>"
-        exit 1
+        echo "Falling back to assistant mode (Claude will generate responses)..."
+        export BLOGINATOR_LLM_MOCK="assistant"
+        task_ok "Switched to assistant mode"
+        return 0
     fi
 
     if echo "$available_models" | grep -q -w "$OLLAMA_MODEL"; then
@@ -315,19 +324,9 @@ step_check_ollama() {
         echo "Available models:"
         echo "$available_models" | awk '{print "  - " $1}'
         echo ""
-
-        local first_model
-        first_model=$(echo "$available_models" | head -n 1)
-
-        if confirm "Do you want to use the first available model ('$first_model') instead?"; then
-            OLLAMA_MODEL="$first_model"
-            export OLLAMA_MODEL
-            verbose "Using model $OLLAMA_MODEL"
-            task_ok "Ollama service verified (using fallback model)"
-        else
-            task_fail "Aborting. Please pull the desired model or specify an available one."
-            exit 1
-        fi
+        echo "Falling back to assistant mode (Claude will generate responses)..."
+        export BLOGINATOR_LLM_MOCK="assistant"
+        task_ok "Switched to assistant mode (first available model will be tried, or Claude backend)"
     fi
 }
 
