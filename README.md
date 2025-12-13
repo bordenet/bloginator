@@ -128,10 +128,12 @@ This methodology ensures high-quality output by detecting poor results and autom
 
 ## Documentation
 
+- **[Quick Start Guide](docs/QUICK_START_GUIDE.md)** ← Start here
 - [Installation](docs/INSTALLATION.md)
 - [User Guide](docs/USER_GUIDE.md)
-- [Developer Guide](docs/DEVELOPER_GUIDE.md)
+- [Claude API Guide](docs/CLAUDE_API_GUIDE.md) (free, no API key needed)
 - [Custom LLM Guide](docs/CUSTOM_LLM_GUIDE.md)
+- [Developer Guide](docs/DEVELOPER_GUIDE.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security](SECURITY.md)
 
