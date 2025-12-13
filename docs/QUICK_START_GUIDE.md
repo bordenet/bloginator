@@ -2,11 +2,35 @@
 
 Get started with Bloginator in 5 minutes.
 
+## TL;DR - Using Claude (Free, No API Key)
+
+If you have all-you-can-eat Claude access, use **assistant mode**:
+
+```bash
+# Set environment variable
+export BLOGINATOR_LLM_MOCK=assistant
+
+# Generate outline (writes request files)
+bloginator outline --index .bloginator/chroma --title "Your Topic" -o outline.json
+
+# Claude (you) responds to requests in .bloginator/llm_requests/
+# → Read request → Write response to .bloginator/llm_responses/
+
+# Generate draft (same request/response pattern)
+bloginator draft --outline outline.json -o draft.md
+```
+
+**Cost**: $0 (uses your included Claude access)  
+**Setup**: 10 seconds  
+See [CLAUDE_API_GUIDE.md](CLAUDE_API_GUIDE.md) → "Complete Working Example" section
+
+---
+
 ## Prerequisites
 
 - Python 3.10+
 - An indexed corpus (see [INSTALLATION.md](INSTALLATION.md))
-- An LLM provider configured (Ollama, OpenAI, Anthropic, or custom)
+- An LLM provider configured (Claude assistant mode, Ollama, OpenAI, Anthropic, or custom)
 
 ## 5-Minute Workflow
 
