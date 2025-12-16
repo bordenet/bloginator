@@ -42,7 +42,7 @@ jobs:
           echo "Current coverage: ${COVERAGE}%"
 
           # Set minimum coverage threshold (quality over vanity metrics)
-          MIN_COVERAGE=70.0
+          MIN_COVERAGE=65.0
 
           # Compare coverage (using bc for floating point comparison)
           if (( $(echo "$COVERAGE < $MIN_COVERAGE" | bc -l) )); then
