@@ -1,21 +1,16 @@
 """ChromaDB indexer for document corpus."""
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, TypeAlias, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import chromadb
-from chromadb.api.types import IncludeEnum
 from sentence_transformers import SentenceTransformer
 
 from bloginator.models import Chunk, Document
 
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
-
-
-# ChromaDB metadata value types (None not allowed in actual metadata dicts)
-MetadataValue: TypeAlias = str | int | float | bool
+    from chromadb.api.types import Metadatas
 
 
 class CorpusIndexer:
@@ -72,7 +67,7 @@ class CorpusIndexer:
         results = self.collection.get(
             where={"document_id": document_id},
             limit=1,
-            include=[IncludeEnum.metadatas],
+            include=["metadatas"],
         )
 
         if results and results["metadatas"]:
@@ -113,9 +108,9 @@ class CorpusIndexer:
         embeddings = self.embedding_model.encode(contents, show_progress_bar=False)
 
         # Prepare metadata for each chunk
-        metadatas: list[Mapping[str, MetadataValue]] = []
+        metadatas: list[dict[str, Any]] = []
         for chunk in chunks:
-            metadata: dict[str, MetadataValue] = {
+            metadata: dict[str, Any] = {
                 "document_id": chunk.document_id,
                 "chunk_index": chunk.chunk_index,
                 "section_heading": chunk.section_heading or "",
@@ -151,7 +146,7 @@ class CorpusIndexer:
             ids=[chunk.id for chunk in chunks],
             embeddings=embeddings.tolist(),
             documents=contents,
-            metadatas=metadatas,
+            metadatas=cast("Metadatas", metadatas),
         )
 
     def get_total_chunks(self) -> int:
