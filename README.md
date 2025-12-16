@@ -2,6 +2,8 @@
 
 [![Tests](https://github.com/bordenet/bloginator/actions/workflows/tests.yml/badge.svg)](https://github.com/bordenet/bloginator/actions/workflows/tests.yml)
 [![Lint and type check](https://github.com/bordenet/bloginator/actions/workflows/lint.yml/badge.svg)](https://github.com/bordenet/bloginator/actions/workflows/lint.yml)
+[![Security](https://github.com/bordenet/bloginator/actions/workflows/security.yml/badge.svg)](https://github.com/bordenet/bloginator/actions/workflows/security.yml)
+[![Dependabot Status](https://img.shields.io/badge/dependabot-enabled-brightgreen?logo=dependabot)](https://github.com/bordenet/bloginator/security/dependabot)
 ![Coverage](https://img.shields.io/badge/coverage-67%25-yellow)
 ![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
