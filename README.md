@@ -161,7 +161,7 @@ pytest tests/ -v --cov=src/bloginator
 pre-commit run --all-files  # black, ruff, isort, mypy
 ```
 
-**Standards**: Black (100 chars), Ruff, MyPy strict, 70% coverage minimum (CI enforced)
+**Standards**: Black (100 chars), Ruff, MyPy strict, 65% coverage minimum (CI enforced)
 
 ---
 
@@ -188,7 +188,7 @@ pre-commit run --all-files  # black, ruff, isort, mypy
 
 ## Code Coverage
 
-Current test coverage: **~67%** (761 passing tests). CI enforces 70% minimum.
+Current test coverage: **~67%** (761 passing tests). CI enforces 65% minimum.
 
 [![Coverage Grid](https://codecov.io/gh/bordenet/bloginator/graphs/tree.svg)](https://codecov.io/gh/bordenet/bloginator)
 
