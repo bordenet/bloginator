@@ -6,7 +6,9 @@
 ![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-Content generation from your historical writing using RAG and local/cloud LLMs.
+**Generate customized renditions of your existing content, free of AI slop.**
+
+Bloginator synthesizes new articles from your historical writing using RAG and local/cloud LLMs. Every generated sentence traces back to your corpus—your voice, your examples, your terminology. No generic filler, no hallucinated facts.
 
 **Version**: 1.0.0
 **Python**: 3.10+
@@ -57,10 +59,12 @@ bloginator serve --port 8000
 ### Performance Expectations
 
 **First-time setup:**
+
 - `bloginator init`: 10-60 seconds (downloads embedding model)
 - Without `init`, first command will download models automatically
 
 **Typical command times:**
+
 - `extract`: 1-10 seconds per document (depends on size/format)
 - `index`: 5-30 seconds (depends on corpus size)
 - `search`: <1 second (after first run)
@@ -99,23 +103,27 @@ See [CUSTOM_LLM_GUIDE.md](docs/CUSTOM_LLM_GUIDE.md) for configuration.
 Bloginator includes an iterative, generational quality assurance system:
 
 **Automated Slop Detection:**
+
 - Pattern matching for AI slop (em-dashes, corporate jargon, hedging words, vague language)
 - Violation categorization (critical, high, medium, low)
 - Configurable severity thresholds
 
 **AI-Based Evaluation:**
+
 - LLM-driven content assessment using meta-prompts
 - Multi-dimensional scoring: clarity, depth, nuance, specificity
 - Voice authenticity analysis against corpus
 - Floating-point scores (0-5 scale) with detailed justifications
 
 **Retry Orchestration:**
+
 - Automatic retry with alternate prompts when quality is below threshold
 - Escalating prompt variants (default → strict_no_slop → minimal)
 - Configurable retry limits (default: 3 attempts)
 - Full attempt history tracking
 
 **Evolutionary Prompt Optimization:**
+
 - Scientific experimentation framework with controlled mutations
 - AI-driven evaluation of generated content
 - Round-by-round tracking of quality metrics and convergence
@@ -131,7 +139,7 @@ This methodology ensures high-quality output by detecting poor results and autom
 - **[Quick Start Guide](docs/QUICK_START_GUIDE.md)** ← Start here
 - [Installation](docs/INSTALLATION.md)
 - [User Guide](docs/USER_GUIDE.md)
-- [Claude API Guide](docs/CLAUDE_API_GUIDE.md) (free, no API key needed)
+- [Claude API Guide](docs/CLAUDE_API_GUIDE.md) (requires Anthropic API key)
 - [Custom LLM Guide](docs/CUSTOM_LLM_GUIDE.md)
 - [Developer Guide](docs/DEVELOPER_GUIDE.md)
 - [Contributing](CONTRIBUTING.md)
@@ -185,6 +193,7 @@ Current test coverage: **~67%** (761 passing tests). CI enforces 70% minimum.
 [![Coverage Grid](https://codecov.io/gh/bordenet/bloginator/graphs/tree.svg)](https://codecov.io/gh/bordenet/bloginator)
 
 Color coding:
+
 - **Green**: >80% coverage
 - **Yellow**: 60-80% coverage
 - **Red**: <60% coverage (needs improvement)
@@ -211,6 +220,7 @@ bloginator metrics --format prometheus --output metrics.prom
 ```
 
 **Features:**
+
 - Operation counts and success/failure rates
 - Performance metrics (duration, throughput)
 - System resource usage (CPU, memory)
