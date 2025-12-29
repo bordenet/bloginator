@@ -212,6 +212,7 @@ Split outline and quality review into focused multi-call workflows for better qu
 - Prompt: "Fix these specific issues: [list]"
 - Output: Revised content
 - Targeted fixes based on analysis
+- **Recommendation**: Use Claude Opus for review (highest quality analysis)
 
 **Benefits**:
 - Better compliance (focused on specific issues)

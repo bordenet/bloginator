@@ -349,10 +349,12 @@ def draft(
             score_draft_voice(draft_obj, searcher, progress, console)
 
         # Quality review step (FINAL - applies to all modes)
+        # NOTE: For best results, use Claude Opus for quality review (higher quality analysis)
         if not skip_quality_review:
             from bloginator.generation.quality_reviewer import QualityReviewer
 
             task = progress.add_task("Running final quality review...", total=None)
+            # TODO: Consider creating separate Opus client for review instead of using same llm_client
             reviewer = QualityReviewer(llm_client=llm_client)
             revised_content = reviewer.review_and_revise(draft_obj, temperature=0.3)
             progress.update(task, completed=True)
