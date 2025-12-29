@@ -25,6 +25,68 @@ from bloginator.generation.llm_base import LLMResponse
 from bloginator.models.draft import Draft, DraftSection
 
 
+def _update_draft_from_markdown(draft: Draft, markdown_content: str) -> None:
+    """Update draft object with revised markdown content.
+
+    Parses markdown to extract sections and updates draft in-place.
+    Preserves draft metadata (title, keywords, etc.) while replacing content.
+
+    Args:
+        draft: Draft object to update
+        markdown_content: Revised markdown content from quality review
+    """
+    import re
+
+    lines = markdown_content.strip().split("\n")
+
+    # Extract title (first # heading)
+    if lines and lines[0].startswith("# "):
+        draft.title = lines[0][2:].strip()
+        lines = lines[1:]
+
+    # Parse sections (## headings)
+    sections = []
+    current_section_title = None
+    current_section_content = []
+
+    for line in lines:
+        if line.startswith("## "):
+            # Save previous section if exists
+            if current_section_title:
+                from bloginator.models.draft import DraftSection
+
+                sections.append(
+                    DraftSection(
+                        title=current_section_title,
+                        content="\n".join(current_section_content).strip(),
+                        citations=[],  # Citations preserved from original
+                        subsections=[],
+                    )
+                )
+            # Start new section
+            current_section_title = line[3:].strip()
+            current_section_content = []
+        else:
+            current_section_content.append(line)
+
+    # Save last section
+    if current_section_title:
+        from bloginator.models.draft import DraftSection
+
+        sections.append(
+            DraftSection(
+                title=current_section_title,
+                content="\n".join(current_section_content).strip(),
+                citations=[],
+                subsections=[],
+            )
+        )
+
+    # Update draft sections
+    draft.sections = sections
+    draft.calculate_stats()
+
+
 def _replace_batch_placeholders(draft: Draft, responses: dict[int, LLMResponse]) -> None:
     """Replace placeholder content in draft sections with actual LLM responses.
 
@@ -99,13 +161,18 @@ def _replace_batch_placeholders(draft: Draft, responses: dict[int, LLMResponse])
 @click.option(
     "--max-section-words",
     type=int,
-    default=300,
-    help="Target words per section (default: 300)",
+    default=70,
+    help="Target words per section (default: 70)",
 )
 @click.option(
     "--validate-safety",
     is_flag=True,
     help="Validate against blocklist (blocks generation if violations found)",
+)
+@click.option(
+    "--skip-quality-review",
+    is_flag=True,
+    help="Skip final quality review step (not recommended - review ensures brevity and clarity)",
 )
 @click.option(
     "--score-voice/--no-score-voice",
@@ -163,6 +230,7 @@ def draft(
     sources_per_section: int,
     max_section_words: int,
     validate_safety: bool,
+    skip_quality_review: bool,
     score_voice: bool,
     config_dir: Path,
     log_file: Path | None,
@@ -279,6 +347,21 @@ def draft(
         # Score voice if requested
         if score_voice:
             score_draft_voice(draft_obj, searcher, progress, console)
+
+        # Quality review step (FINAL - applies to all modes)
+        if not skip_quality_review:
+            from bloginator.generation.quality_reviewer import QualityReviewer
+
+            task = progress.add_task("Running final quality review...", total=None)
+            reviewer = QualityReviewer(llm_client=llm_client)
+            revised_content = reviewer.review_and_revise(draft_obj, temperature=0.3)
+            progress.update(task, completed=True)
+
+            # Update draft object with revised content
+            _update_draft_from_markdown(draft_obj, revised_content)
+            logger.info("Quality review complete - draft revised for brevity and clarity")
+
+            console.print("[bold green]✓ Quality review complete[/bold green]")
 
     # Save output
     save_draft_output(draft_obj, output_file, output_format, logger, console)

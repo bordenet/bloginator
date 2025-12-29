@@ -53,11 +53,10 @@ def build_search_queries(
 
 
 def build_corpus_context(results: list[SearchResult]) -> str:
-    """Build rich corpus context with metadata and longer previews.
+    """Build focused corpus context for topic validation.
 
-    Provides LLM with sufficient context to understand corpus content
-    and validate topic relevance. Includes similarity scores and source
-    metadata to help LLM assess result quality.
+    Provides LLM with sufficient context to validate topic relevance
+    without overwhelming with excessive detail. Uses top results only.
 
     Args:
         results: Search results from corpus searcher
@@ -70,12 +69,12 @@ def build_corpus_context(results: list[SearchResult]) -> str:
 
     context_parts = ["CORPUS SEARCH RESULTS (validate topic match!):\n"]
 
-    # Increase from 5 to 8 results for better coverage
-    for i, result in enumerate(results[:8], 1):
-        # Increase from 200 to 500 characters for better context
-        preview = result.content[:500].replace("\n", " ").strip()
+    # Reduced from 8 to 3 results - focus on highest quality matches
+    for i, result in enumerate(results[:3], 1):
+        # Reduced from 500 to 200 characters - just enough to validate topic
+        preview = result.content[:200].replace("\n", " ").strip()
 
-        # Add rich metadata
+        # Add metadata for quality assessment
         similarity = f"{result.similarity_score:.3f}" if result.similarity_score else "N/A"
         source = result.metadata.get("filename", "unknown")
 
@@ -140,7 +139,6 @@ class OutlinePromptBuilder:
         thesis: str = "",
         classification: str = "guidance",
         audience: str = "all-disciplines",
-        num_sections: int = 5,
         corpus_context: str = "",
         custom_template: str | None = None,
     ) -> str:
@@ -152,23 +150,24 @@ class OutlinePromptBuilder:
             thesis: Optional thesis statement
             classification: Content classification
             audience: Target audience
-            num_sections: Target number of sections
             corpus_context: Corpus search context
             custom_template: Optional custom prompt template
 
         Returns:
             Rendered user prompt string
+
+        Note:
+            num_sections parameter removed - always uses 5-7 sections per prompt
         """
         prompt_template = self.prompt_loader.load("outline/base.yaml")
 
-        # Render base prompt
+        # Render base prompt (num_sections removed from template)
         base_prompt = prompt_template.render_user_prompt(
             title=title,
             classification=classification.replace("-", " ").title(),
             audience=audience.replace("-", " ").title(),
             keywords=", ".join(keywords),
             thesis=thesis if thesis else "",
-            num_sections=num_sections,
             corpus_context=corpus_context,
         )
 

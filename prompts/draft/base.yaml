@@ -52,12 +52,14 @@ system_prompt: |
      Cannot generate content without relevant sources."
   - Only proceed if sources clearly relate to the section topic.
 
-  CORPUS PHILOSOPHY:
-  The section description is a HINT, not a strict filter. Your job is to:
-  1. DEFAULT TO THE SOURCES - If the source material has rich content, use ALL of it
-  2. DON'T BE LOSSY - Include valuable details from sources even if not in the description
-  3. BIAS FOR SOURCE MATERIAL - The sources are the truth; the description is a guide
-  4. CAPTURE, DON'T SUMMARIZE - Extract the full value from sources, not just highlights
+  WIKI-STYLE BREVITY (ABSOLUTE PRIORITY):
+  "Wiki" means QUICK. Humans stop reading bloated content immediately.
+
+  1. ONE CONCEPT PER SECTION - If sources cover 10 things, pick the MOST important one
+  2. NO ELABORATION - State the insight once, then STOP. Do not explain, expand, or rephrase
+  3. ASSUME INTELLIGENT READER - They don't need hand-holding or verbose transitions
+  4. CUT EVERYTHING UNNECESSARY - If deleting a sentence doesn't lose meaning, DELETE IT
+  5. ZERO TOLERANCE FOR REDUNDANCY - Saying the same thing twice is complete failure
 
   {{classification_guidance}}.
   Write for {{audience_context}}.
@@ -68,15 +70,28 @@ system_prompt: |
   - NO em-dashes (—) - use commas, periods, or parentheses instead
   - NO flowery language or clichés ("dive deep", "leverage", "at the end of the day")
   - NO hedging words unless present in sources ("perhaps", "maybe", "possibly")
+  - NO POWERPOINT BULLETS - write complete sentences or use tables
+  - NO "Key Takeaways" sections - integrate insights into prose
   - Match the voice and tone of the source material
   - Be direct and specific, not vague or generic
 
-  DEDUPLICATION RULES:
-  - State each concept exactly ONCE within your response
-  - If multiple sources say the same thing, consolidate into ONE stronger statement
-  - Do NOT pad word count with restatements or variations of the same point
-  - If a concept was introduced in the section description, don't repeat it verbatim
-  - Prefer concrete details over redundant emphasis
+  ZERO-TOLERANCE REDUNDANCY POLICY:
+  If you say the same thing twice in ANY form, you have FAILED completely.
+
+  WITHIN THIS SECTION:
+  - One concept = one statement. Period. No rephrasing, no elaboration, no examples "for clarity"
+  - If sources repeat the same point, write it ONCE and move on
+  - Section description already told the reader the topic - don't repeat it
+  - Do NOT pad to reach word count - SHORT is GOOD
+
+  ACROSS ALL SECTIONS:
+  - Assume every prior section covered its topic completely
+  - NEVER re-explain anything from earlier sections
+  - If you must reference prior content: "See [Section Name]" (2 words, not 20)
+  - Each section adds ONE new insight, not a recap + new insight
+
+  REDUNDANCY TEST: Read your output. Delete every sentence that restates prior information.
+  If you deleted anything, you failed.
 
   COMPANY BRANDING:
   {% if company_name and company_name != "our company" %}
@@ -98,17 +113,44 @@ user_prompt_template: |
 
   Title: {{title}}
   Description: {{description}}
-  Target length: {{max_words}} words
 
   Source Material:
   {{source_context}}
 
-  Write clear, cohesive content that synthesizes the source material.
-  Focus on the key insights and examples from the sources.
+  EXTREME BREVITY REQUIREMENTS (NON-NEGOTIABLE):
+  - Target 60-80 words TOTAL
+  - 1-2 paragraphs MAXIMUM per section
+  - Each paragraph = 2-4 sentences (no more)
+  - Zero fluff, zero transitions, zero throat-clearing
+  - FAIL THRESHOLD: If you write more than 100 words, you have FAILED
 
-  IMPORTANT: The description is a HINT, not a filter. If the source material
-  contains valuable content beyond the description, INCLUDE it. Capture the
-  full richness of the sources rather than narrowly filtering to the description.
+  Extract the SINGLE most important insight from sources. State it clearly. STOP.
+
+  QUALITY TEST: Could you cut this in half and retain all meaning? If yes, DO IT.
+
+  TABLE USAGE (when appropriate):
+  Use tables to convey structure and comparisons - they beat long narratives.
+
+  WHEN TO USE TABLES:
+  - Comparing 3+ options/approaches/levels with consistent attributes
+  - Showing progression (Junior → Senior → Staff expectations)
+  - Listing metrics, thresholds, or numeric data
+  - Presenting decision criteria or tradeoff matrices
+
+  TABLE REQUIREMENTS:
+  - Keep complete - don't sacrifice critical details for brevity
+  - 3-5 columns max (more = unreadable)
+  - Cells must be dense with info, not sparse placeholders
+  - Include all relevant data from sources
+  - Prefer tables over 3+ bullet points covering same attributes
+
+  ANTI-POWERPOINT RULES (CRITICAL):
+  - NEVER use bullet points as a substitute for prose
+  - NEVER create slides-style "Key Takeaways" sections
+  - NEVER write in sentence fragments or incomplete thoughts
+  - NEVER use bullets for lists with only 1-2 items
+  - Tables are for DATA, not for avoiding writing complete sentences
+  - If you're tempted to make a bulleted list, write a table or a paragraph instead
 
   CRITICAL FORMAT RULES:
   - Do NOT include the section title/heading in your response
@@ -221,18 +263,47 @@ ai_slop_patterns:
 # Examples of good vs bad content
 examples:
   good:
-    - content: "Code reviews catch bugs early. In our team, we found 60% of production issues during review."
-      why: "Direct, specific, grounded in experience"
+    - content: "Code reviews catch bugs early. Our team found 60% of production issues during review."
+      why: "14 words. Direct, specific, stops immediately."
+      word_count: 14
 
-    - content: "Use feature flags for gradual rollouts. Start with 5% of users, monitor metrics, then expand."
-      why: "Concrete guidance with specific numbers"
+    - content: "Use feature flags for gradual rollouts. Start at 5%, monitor metrics, then expand."
+      why: "14 words. Actionable, no fluff."
+      word_count: 14
+
+    - content: |
+        | Level | Experience | Scope | Accountability |
+        |-------|-----------|-------|----------------|
+        | SDE-1 | 0-2 years | Tasks | Delivers assigned work |
+        | SDE-2 | 2-5 years | Features | Owns feature quality |
+        | Senior | 5-8 years | Systems | Mentors team, designs systems |
+      why: "Table conveys progression clearly. Dense with data. Complete."
+      format: "table"
 
   bad:
     - content: "Code reviews are a game-changer—they can really move the needle on quality."
       why: "Em-dash, flowery language ('game-changer', 'move the needle')"
 
-    - content: "You might want to perhaps consider using feature flags for deployments."
-      why: "Excessive hedging, not direct"
+    - content: "Code reviews are an important practice in software development. They help teams catch bugs before they reach production. When done well, code reviews can significantly improve code quality and team knowledge sharing. Many teams have found that implementing a robust code review process leads to fewer production incidents."
+      why: "TOO LONG (52 words). Repeats the same point 4 times. Should be 1 sentence."
+      word_count: 52
 
     - content: "There are various approaches to testing with numerous benefits."
       why: "Vague, not specific"
+
+    - content: |
+        Key Takeaways:
+        • Code reviews improve quality
+        • Catch bugs early
+        • Share knowledge across team
+        • Reduce production incidents
+      why: "POWERPOINT STYLE - bullet fragments instead of prose. Reads like slides."
+      format: "bullets"
+
+    - content: |
+        Engineers have different responsibilities:
+        • Junior: Learn and deliver tasks
+        • Mid: Own features
+        • Senior: Mentor and architect
+      why: "Bullets hiding tabular data. Should be a table with columns for Level/Scope/Focus."
+      format: "bullets"

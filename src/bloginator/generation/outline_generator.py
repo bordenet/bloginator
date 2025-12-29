@@ -138,14 +138,13 @@ class OutlineGenerator:
         # Build corpus context from results
         corpus_context = build_corpus_context(filtered_results)
 
-        # Render user prompt with variables
+        # Render user prompt with variables (num_sections removed - always 5-7 per prompt)
         user_prompt = self.prompt_builder.build_user_prompt(
             title=title,
             keywords=keywords,
             thesis=thesis,
             classification=classification,
             audience=audience,
-            num_sections=num_sections,
             corpus_context=corpus_context,
             custom_template=custom_prompt_template,
         )
