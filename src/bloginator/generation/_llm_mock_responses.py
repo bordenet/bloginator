@@ -39,6 +39,26 @@ def detect_draft_request(prompt: str) -> bool:
     return any(keyword in prompt.lower() for keyword in draft_keywords)
 
 
+def detect_quality_review_request(prompt: str) -> bool:
+    """Check if prompt is requesting quality review.
+
+    Args:
+        prompt: User prompt
+
+    Returns:
+        True if quality review request detected
+    """
+    review_keywords = [
+        "review this blog",
+        "quality review",
+        "revise",
+        "ruthless",
+        "senior editor",
+        "original draft",
+    ]
+    return any(keyword in prompt.lower() for keyword in review_keywords)
+
+
 def generate_mock_outline(prompt: str) -> str:
     """Generate mock outline response.
 
@@ -135,6 +155,47 @@ These principles, when applied consistently and thoughtfully, form the foundatio
 sustainable success in this domain. The specific implementation details will vary based
 on team context, organizational culture, and technical constraints, but the underlying
 concepts remain broadly applicable across different environments and scenarios.
+"""
+
+
+def generate_mock_quality_review(prompt: str) -> str:
+    """Generate mock quality-reviewed blog content.
+
+    Simulates the output of a senior editor who has ruthlessly cut verbosity.
+
+    Args:
+        prompt: Quality review prompt containing original draft
+
+    Returns:
+        Revised, concise blog content
+    """
+    return """# Engineering Leadership Best Practices
+
+## What Makes Effective Technical Leaders
+
+Technical leaders balance hands-on work with team enablement. They write code 30-40% of the time while dedicating the rest to architecture decisions, code reviews, and mentoring. This ratio maintains credibility while scaling impact through others.
+
+## Setting Technical Direction
+
+| Artifact | Audience | Update Frequency |
+|----------|----------|------------------|
+| Tech vision | Executives | Quarterly |
+| Architecture docs | Engineers | Per major change |
+| Decision records | Team | Per significant choice |
+
+Leaders document decisions in ADRs (Architecture Decision Records) that capture context, options considered, and rationale. This prevents rehashing settled questions.
+
+## Code Review as Leadership Tool
+
+Effective leaders review code for patterns, not syntax. They flag architectural concerns, suggest abstractions, and teach through questions rather than directives. Reviews should take 10-15 minutes and focus on one key improvement.
+
+## Mentoring Without Micromanaging
+
+Give engineers problems, not solutions. Frame challenges with context and constraints, then let them propose approaches. Intervene only when they're stuck or heading toward costly mistakes. This builds judgment faster than prescriptive guidance.
+
+## Making Technical Decisions Stick
+
+Decisions need three elements: clear owner, written rationale, and rollback criteria. Document in ADRs, communicate in team meetings, and reference in code reviews. When teams deviate, point to the ADR rather than relitigating.
 """
 
 

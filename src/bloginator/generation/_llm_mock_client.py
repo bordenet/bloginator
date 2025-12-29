@@ -3,9 +3,11 @@
 from bloginator.generation._llm_mock_responses import (
     detect_draft_request,
     detect_outline_request,
+    detect_quality_review_request,
     generate_generic_response,
     generate_mock_draft,
     generate_mock_outline,
+    generate_mock_quality_review,
 )
 from bloginator.generation.llm_base import LLMClient, LLMResponse
 
@@ -56,7 +58,9 @@ class MockLLMClient(LLMClient):
             LLMResponse with mock content
         """
         # Detect request type from prompt
-        if detect_outline_request(prompt):
+        if detect_quality_review_request(prompt):
+            content = generate_mock_quality_review(prompt)
+        elif detect_outline_request(prompt):
             content = generate_mock_outline(prompt)
         elif detect_draft_request(prompt):
             content = generate_mock_draft(prompt)

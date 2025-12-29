@@ -1,0 +1,130 @@
+# Shared Brevity and Quality Rules
+# Version: 1.0.0
+# Referenced by: outline/base.yaml, draft/base.yaml, review/base.yaml
+
+name: "brevity-rules"
+version: "1.0.0"
+description: "Common brevity and quality rules shared across all prompt templates"
+
+# Wiki-style brevity philosophy (used in system prompts)
+wiki_brevity_philosophy: |
+  WIKI-STYLE BREVITY (ABSOLUTE PRIORITY):
+  "Wiki" means QUICK. Humans stop reading bloated content immediately.
+
+  1. ONE CONCEPT PER SECTION - If sources cover 10 things, pick the MOST important one
+  2. NO ELABORATION - State the insight once, then STOP. Do not explain, expand, or rephrase
+  3. ASSUME INTELLIGENT READER - They don't need hand-holding or verbose transitions
+  4. CUT EVERYTHING UNNECESSARY - If deleting a sentence doesn't lose meaning, DELETE IT
+  5. ZERO TOLERANCE FOR REDUNDANCY - Saying the same thing twice is complete failure
+
+# Redundancy policy (used in draft and review prompts)
+redundancy_policy: |
+  ZERO-TOLERANCE REDUNDANCY POLICY:
+  If you say the same thing twice in ANY form, you have FAILED completely.
+
+  WITHIN THIS SECTION:
+  - One concept = one statement. Period. No rephrasing, no elaboration, no examples "for clarity"
+  - If sources repeat the same point, write it ONCE and move on
+  - Section description already told the reader the topic - don't repeat it
+  - Do NOT pad to reach word count - SHORT is GOOD
+
+  ACROSS ALL SECTIONS:
+  - Assume every prior section covered its topic completely
+  - NEVER re-explain anything from earlier sections
+  - If you must reference prior content: "See [Section Name]" (2 words, not 20)
+  - Each section adds ONE new insight, not a recap + new insight
+
+# AI slop detection (used in all prompts)
+ai_slop_rules: |
+  CRITICAL RULES - NO AI SLOP:
+  - NO em-dashes (—) - use commas, periods, or parentheses instead
+  - NO flowery language or clichés ("dive deep", "leverage", "at the end of the day")
+  - NO hedging words unless present in sources ("perhaps", "maybe", "possibly")
+  - NO POWERPOINT BULLETS - write complete sentences or use tables
+  - NO "Key Takeaways" sections - integrate insights into prose
+  - Match the voice and tone of the source material
+  - Be direct and specific, not vague or generic
+
+# Anti-PowerPoint rules (used in draft and review prompts)
+anti_powerpoint_rules: |
+  ANTI-POWERPOINT RULES (CRITICAL):
+  - NEVER use bullet points as a substitute for prose
+  - NEVER create slides-style "Key Takeaways" sections
+  - NEVER write in sentence fragments or incomplete thoughts
+  - NEVER use bullets for lists with only 1-2 items
+  - Tables are for DATA, not for avoiding writing complete sentences
+  - If you're tempted to make a bulleted list, write a table or a paragraph instead
+
+# Table usage guidelines (used in draft and review prompts)
+table_usage_rules: |
+  TABLE USAGE (when appropriate):
+  Use tables to convey structure and comparisons - they beat long narratives.
+
+  WHEN TO USE TABLES:
+  - Comparing 3+ options/approaches/levels with consistent attributes
+  - Showing progression (Junior → Senior → Staff expectations)
+  - Listing metrics, thresholds, or numeric data
+  - Presenting decision criteria or tradeoff matrices
+
+  TABLE REQUIREMENTS:
+  - Keep complete - don't sacrifice critical details for brevity
+  - 3-5 columns max (more = unreadable)
+  - Cells must be dense with info, not sparse placeholders
+  - Include all relevant data from sources
+  - Prefer tables over 3+ bullet points covering same attributes
+
+# Banned phrases (for quality scoring)
+banned_phrases:
+  em_dashes:
+    pattern: "—"
+    severity: "critical"
+    message: "Em-dashes detected - use commas, periods, or parentheses instead"
+
+  flowery_corporate_speak:
+    patterns:
+      - "dive deep"
+      - "deep dive"
+      - "leverage"
+      - "at the end of the day"
+      - "game changer"
+      - "paradigm shift"
+      - "synergy"
+      - "circle back"
+      - "touch base"
+      - "low-hanging fruit"
+      - "move the needle"
+      - "boil the ocean"
+    severity: "high"
+    message: "Flowery corporate jargon detected"
+
+  hedging_words:
+    patterns:
+      - "perhaps"
+      - "maybe"
+      - "possibly"
+      - "might want to consider"
+      - "you may wish to"
+    severity: "medium"
+    message: "Excessive hedging detected - be more direct"
+
+  vague_quantifiers:
+    patterns:
+      - "various"
+      - "several"
+      - "numerous"
+      - "many"
+      - "some"
+    severity: "low"
+    message: "Vague quantifiers - be specific when possible"
+
+# Quality criteria (for evaluation)
+quality_criteria:
+  - "Grounded in provided sources (no hallucination)"
+  - "Matches voice and tone of source material"
+  - "Natural flow without explicit citations"
+  - "Within target word count"
+  - "No em-dashes (—)"
+  - "No AI slop (flowery language, clichés, hedging)"
+  - "Direct and specific, not vague"
+  - "No PowerPoint-style bullets"
+  - "Uses tables for structured comparisons"

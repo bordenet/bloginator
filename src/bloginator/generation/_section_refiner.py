@@ -54,13 +54,15 @@ def create_citations(results: list[SearchResult], max_citations: int = 5) -> lis
     ]
 
 
-def get_voice_samples(searcher: CorpusSearcher, keywords: list[str], num_samples: int = 5) -> str:
-    """Fetch diverse voice samples from corpus to help LLM emulate author's style.
+def get_voice_samples(searcher: CorpusSearcher, keywords: list[str], num_samples: int = 3) -> str:
+    """Fetch focused voice samples from corpus to help LLM emulate author's style.
+
+    Reduced from 5 to 3 samples, each limited to 150 words to avoid context bloat.
 
     Args:
         searcher: Corpus searcher to use
         keywords: Keywords to use for sampling context
-        num_samples: Number of diverse samples to fetch
+        num_samples: Number of diverse samples to fetch (default: 3)
 
     Returns:
         Formatted voice samples string for inclusion in prompt
@@ -71,11 +73,11 @@ def get_voice_samples(searcher: CorpusSearcher, keywords: list[str], num_samples
 
         # Sample 1: Use first keyword
         if keywords:
-            results = searcher.search(keywords[0], n_results=2)
+            results = searcher.search(keywords[0], n_results=1)
             samples.extend(results)
 
         # Sample 2: Use a general writing query to get different content
-        general_results = searcher.search("writing style examples", n_results=2)
+        general_results = searcher.search("writing style examples", n_results=1)
         samples.extend(general_results)
 
         # Sample 3: If we have more keywords, use another
@@ -99,11 +101,11 @@ def get_voice_samples(searcher: CorpusSearcher, keywords: list[str], num_samples
         # Format samples for the prompt
         sample_parts = []
         for i, sample in enumerate(unique_samples, 1):
-            # Truncate long samples to ~200 words
+            # Reduced from 200 to 150 words for brevity
             content = sample.content
             words = content.split()
-            if len(words) > 200:
-                content = " ".join(words[:200]) + "..."
+            if len(words) > 150:
+                content = " ".join(words[:150]) + "..."
             sample_parts.append(f"[Sample {i}]\n{content}\n")
 
         return "\n".join(sample_parts)
