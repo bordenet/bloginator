@@ -53,6 +53,51 @@ class OutlineGenerator:
         self.min_coverage_sources = min_coverage_sources
         self.prompt_builder = OutlinePromptBuilder()
 
+    def _validate_topic(
+        self,
+        title: str,
+        keywords: list[str],
+        corpus_context: str,
+        num_results: int,
+    ) -> str:
+        """Validate that corpus context matches requested topic.
+
+        This is a lightweight pre-check that prevents wasted work when
+        corpus search returns off-topic results.
+
+        Args:
+            title: Requested blog title
+            keywords: Requested keywords
+            corpus_context: Formatted corpus search results
+            num_results: Number of search results
+
+        Returns:
+            "VALID" if corpus matches topic, or "ERROR: <reason>" if not
+        """
+        # Load topic validation prompt
+        validation_template = self.prompt_builder.prompt_loader.load(
+            "outline/topic-validation.yaml"
+        )
+
+        # Render validation prompt
+        system_prompt = validation_template.render_system_prompt()
+        user_prompt = validation_template.render_user_prompt(
+            title=title,
+            keywords=", ".join(keywords),
+            corpus_context=corpus_context,
+            num_results=num_results,
+        )
+
+        # Call LLM for validation (fast, low token count)
+        response = self.llm_client.generate(
+            prompt=user_prompt,
+            system_prompt=system_prompt,
+            temperature=0.0,  # Deterministic validation
+            max_tokens=150,  # Small response expected
+        )
+
+        return response.content.strip()
+
     def generate(
         self,
         title: str,
@@ -138,7 +183,29 @@ class OutlineGenerator:
         # Build corpus context from results
         corpus_context = build_corpus_context(filtered_results)
 
-        # Render user prompt with variables (num_sections removed - always 5-7 per prompt)
+        # CALL 1: Topic validation (fail fast if corpus doesn't match topic)
+        validation_result = self._validate_topic(
+            title=title,
+            keywords=keywords,
+            corpus_context=corpus_context,
+            num_results=len(filtered_results),
+        )
+
+        # If validation failed, return outline with validation error
+        if not validation_result.startswith("VALID"):
+            outline = Outline(
+                title=title,
+                thesis=thesis,
+                classification=classification,
+                audience=audience,
+                keywords=keywords,
+                sections=[],
+                validation_notes=validation_result,
+            )
+            outline.calculate_stats()
+            return outline
+
+        # CALL 2: Render user prompt with variables (num_sections removed - always 5-7 per prompt)
         user_prompt = self.prompt_builder.build_user_prompt(
             title=title,
             keywords=keywords,
