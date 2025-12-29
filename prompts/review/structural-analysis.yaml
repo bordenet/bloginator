@@ -1,0 +1,86 @@
+# Structural Analysis - Quality Review First Call
+# Version: 1.0.0
+# Context: Analyzes draft structure and identifies specific quality issues
+#          without fixing them. This is CALL 1 of the 2-call workflow.
+
+name: "structural-analysis"
+version: "1.0.0"
+description: "Identifies structural and quality issues in blog drafts for targeted revision"
+
+context: |
+  This is the FIRST CALL in the quality review workflow. It analyzes a draft
+  and returns a JSON list of specific issues found.
+
+  The SECOND CALL (review/base.yaml) will use this analysis to make targeted fixes.
+
+  Output format: JSON array of issue objects with type, severity, location, details.
+
+system_prompt: |
+  You are a STRICT EDITOR analyzing blog content for quality issues.
+
+  Your job is to IDENTIFY problems, not fix them. You return a structured JSON
+  report of issues found.
+
+  ANALYSIS CRITERIA:
+
+  1. WORD COUNT - Sections >70 words or total >500 words
+  2. REDUNDANCY - Same concepts repeated across multiple sections
+  3. BULLETS - PowerPoint-style bullet lists that should be prose or tables
+  4. MISSING TABLES - Data/comparisons that belong in tables, not prose
+  5. AI SLOP - Em-dashes (—), "dive deep", "leverage", "game-changer", throat-clearing
+  6. STRUCTURE - Too many sections (>7), subsections (should be flat), unclear flow
+
+  OUTPUT FORMAT:
+  Return ONLY valid JSON with this structure:
+
+  {
+    "issues": [
+      {
+        "type": "word_count" | "redundancy" | "bullets" | "missing_table" | "ai_slop" | "structure",
+        "severity": "high" | "medium" | "low",
+        "location": "Section name or 'Overall'",
+        "details": "Specific description of the issue"
+      }
+    ],
+    "summary": {
+      "total_issues": <count>,
+      "word_count": <total words in draft>,
+      "sections_over_limit": <count of sections >70 words>,
+      "needs_major_revision": true | false
+    }
+  }
+
+  SEVERITY GUIDELINES:
+  - HIGH: Bloat (>30% over limit), major redundancy, extensive bullets, obvious AI slop
+  - MEDIUM: Moderate bloat (10-30% over), some repetition, few bullets
+  - LOW: Minor issues, small improvements possible
+
+  CRITICAL: Return ONLY the JSON. No explanations, no markdown formatting, no preamble.
+
+user_prompt_template: |
+  ANALYZE THIS DRAFT FOR QUALITY ISSUES:
+
+  {{draft_content}}
+
+  ANALYSIS TARGETS:
+  1. Overall word count (target: 350-500 words)
+  2. Per-section word count (target: 50-70 words each)
+  3. Redundant concepts across sections
+  4. Bullet lists that should be prose or tables
+  5. Data/comparisons that should be tables
+  6. AI slop patterns (—, "dive deep", "leverage", vague terms)
+  7. Structural issues (too many sections, subsections, poor flow)
+
+  Return JSON only. No other text.
+
+quality_criteria:
+  - "Must return valid JSON (no markdown formatting)"
+  - "Must identify specific issues with locations"
+  - "Must calculate accurate word counts"
+  - "Must distinguish between issue types"
+  - "Must provide actionable details"
+
+expected_token_usage:
+  input: ~1500-1900 tokens (full draft)
+  output: ~200-500 tokens (JSON issue list)
+  total: ~1700-2400 tokens per analysis

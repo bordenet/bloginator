@@ -5,8 +5,8 @@ to validate prompt quality, constraint compliance, and output characteristics.
 """
 
 import os
+from collections.abc import Generator
 from pathlib import Path
-from typing import Generator
 
 import pytest
 from anthropic import Anthropic
@@ -79,7 +79,9 @@ class ClaudeSonnet45Client(LLMClient):
 
         if self.verbose:
             print(f"\nRESPONSE:\n{content[:500]}...")
-            print(f"\nTOKENS: input={response.usage.input_tokens}, output={response.usage.output_tokens}")
+            print(
+                f"\nTOKENS: input={response.usage.input_tokens}, output={response.usage.output_tokens}"
+            )
 
         return LLMResponse(
             content=content,
@@ -142,48 +144,106 @@ def test_corpus_searcher(tmp_path: Path) -> Generator[CorpusSearcher, None, None
     corpus_dir = tmp_path / "test_corpus"
     corpus_dir.mkdir()
 
-    # Sample documents
-    (corpus_dir / "engineering_leadership.md").write_text(
-        """# Engineering Leadership Principles
+    # Sample documents content
+    content1 = """# Engineering Leadership Principles
 
-        Technical leaders balance hands-on work with team enablement. They write code
-        30-40% of the time while dedicating the rest to architecture decisions, code
-        reviews, and mentoring.
+Technical leaders balance hands-on work with team enablement. They write code
+30-40% of the time while dedicating the rest to architecture decisions, code
+reviews, and mentoring.
 
-        ## Decision Making
+## Decision Making
 
-        Leaders document decisions in ADRs (Architecture Decision Records) that capture
-        context, options considered, and rationale. This prevents rehashing settled questions.
+Leaders document decisions in ADRs (Architecture Decision Records) that capture
+context, options considered, and rationale. This prevents rehashing settled questions.
 
-        ## Code Review
+## Code Review
 
-        Effective leaders review code for patterns, not syntax. They flag architectural
-        concerns, suggest abstractions, and teach through questions rather than directives.
-        """
-    )
+Effective leaders review code for patterns, not syntax. They flag architectural
+concerns, suggest abstractions, and teach through questions rather than directives.
+"""
 
-    (corpus_dir / "career_ladders.md").write_text(
-        """# Software Engineering Career Ladders
+    content2 = """# Software Engineering Career Ladders
 
-        | Level | Experience | Scope | Key Differentiator |
-        |-------|------------|-------|-------------------|
-        | SDE-1 | 0-2 years | Task | Learning the codebase |
-        | SDE-2 | 2-5 years | Feature | Independent delivery |
-        | Senior | 5-8 years | Team | Technical leadership |
-        | Staff | 8+ years | Org | Architectural direction |
+| Level | Experience | Scope | Key Differentiator |
+|-------|------------|-------|-------------------|
+| SDE-1 | 0-2 years | Task | Learning the codebase |
+| SDE-2 | 2-5 years | Feature | Independent delivery |
+| Senior | 5-8 years | Team | Technical leadership |
+| Staff | 8+ years | Org | Architectural direction |
 
-        The first year as an SDE-1 centers on mastering the codebase while establishing
-        trust through consistent delivery. New engineers tackle well-defined tasks
-        independently while pairing with senior colleagues on complex work.
-        """
-    )
+The first year as an SDE-1 centers on mastering the codebase while establishing
+trust through consistent delivery. New engineers tackle well-defined tasks
+independently while pairing with senior colleagues on complex work.
+"""
+
+    # Write to files (for compatibility)
+    (corpus_dir / "engineering_leadership.md").write_text(content1)
+    (corpus_dir / "career_ladders.md").write_text(content2)
 
     # Create and index corpus
+    from datetime import datetime
+
     from bloginator.indexing.indexer import CorpusIndexer
+    from bloginator.models import Chunk, Document, QualityRating
 
     index_dir = tmp_path / "test_index"
-    indexer = CorpusIndexer(index_dir=index_dir)
-    indexer.index_directory(corpus_dir)
+    indexer = CorpusIndexer(output_dir=index_dir)
+
+    # Create test documents and chunks manually
+    doc1 = Document(
+        id="doc_1",
+        filename="engineering_leadership.md",
+        source_path=corpus_dir / "engineering_leadership.md",
+        format="markdown",
+        created_date=datetime.now(),
+        modified_date=datetime.now(),
+        quality_rating=QualityRating.PREFERRED,
+        tags=["engineering", "leadership"],
+        word_count=100,
+    )
+
+    doc2 = Document(
+        id="doc_2",
+        filename="career_ladders.md",
+        source_path=corpus_dir / "career_ladders.md",
+        format="markdown",
+        created_date=datetime.now(),
+        modified_date=datetime.now(),
+        quality_rating=QualityRating.PREFERRED,
+        tags=["career", "ladder"],
+        word_count=100,
+    )
+
+    # Index documents with their content as chunks
+    indexer.index_document(
+        doc1,
+        [
+            Chunk(
+                id="chunk_1",
+                document_id=doc1.id,
+                content=content1,
+                chunk_index=0,
+                section_heading="Engineering Leadership",
+                char_start=0,
+                char_end=len(content1),
+            )
+        ],
+    )
+
+    indexer.index_document(
+        doc2,
+        [
+            Chunk(
+                id="chunk_2",
+                document_id=doc2.id,
+                content=content2,
+                chunk_index=0,
+                section_heading="Career Ladders",
+                char_start=0,
+                char_end=len(content2),
+            )
+        ],
+    )
 
     # Create searcher
     searcher = CorpusSearcher(index_dir=index_dir)

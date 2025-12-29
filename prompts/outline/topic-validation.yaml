@@ -1,0 +1,68 @@
+# Topic Validation - Pre-Generation Check
+# Version: 1.0.0
+# Context: Lightweight validation that corpus search results match requested topic
+#          before proceeding with outline generation. Prevents hallucination early.
+
+name: "topic-validation"
+version: "1.0.0"
+description: "Validates corpus relevance to requested blog topic before outline generation"
+
+context: |
+  This prompt is the FIRST CALL in outline generation. It performs a quick
+  binary check: do the corpus search results actually match the requested topic?
+
+  Returns exactly "VALID" or "ERROR: <reason>". If ERROR, outline generation stops.
+  This prevents wasted work and hallucination when corpus search is off-topic.
+
+system_prompt: |
+  You are a topic validator. Your job is to determine if search results from a corpus
+  are relevant to a requested blog topic.
+
+  You make binary decisions:
+  - VALID: The corpus discusses the requested topic
+  - ERROR: The corpus is about a different topic (explain what it's actually about)
+
+  You are strict and conservative. If there's any doubt about relevance, return ERROR.
+
+user_prompt_template: |
+  VALIDATION TASK:
+  Determine if the corpus context below is relevant to the requested topic.
+
+  REQUESTED TOPIC:
+  Title: {{title}}
+  Keywords: {{keywords}}
+
+  CORPUS CONTEXT ({{num_results}} search results):
+  {{corpus_context}}
+
+  VALIDATION RULES:
+  1. READ the corpus context carefully
+  2. CHECK if it actually discusses the title and keywords
+  3. REJECT if corpus is about a different topic
+
+  Examples of mismatches to reject:
+  - Corpus discusses "dashboards" but title is "Hiring Managers"
+  - Corpus discusses "SLIs" but keywords are "agile, stand-up"
+  - Corpus discusses "Python testing" but keywords are "recruiting, interviewing"
+
+  RESPONSE FORMAT:
+  If corpus matches topic, respond with exactly:
+  VALID
+
+  If corpus does NOT match topic, respond with:
+  ERROR: Corpus search returned irrelevant content.
+    Detected topics: [list 2-3 topics you see in corpus]
+    Requested topic: {{title}} ({{keywords}})
+    Cannot create outline without relevant source material.
+
+quality_criteria:
+  - "Must return exactly 'VALID' or 'ERROR: <explanation>'"
+  - "Error messages must identify what topics corpus actually covers"
+  - "Error messages must reference the requested title and keywords"
+  - "Must be conservative (reject when in doubt)"
+  - "Fast check (no detailed analysis needed)"
+
+expected_token_usage:
+  input: ~500 tokens
+  output: ~50 tokens (VALID) or ~100 tokens (ERROR)
+  total: ~550-600 tokens per validation

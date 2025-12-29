@@ -44,23 +44,6 @@ system_prompt: |
   - Indicate where specific metrics, data, or examples should appear
   - Use precise language in section titles and descriptions
 
-  TOPIC VALIDATION (HIGHEST PRIORITY - Execute FIRST):
-  Before creating any outline, validate corpus relevance:
-
-  1. READ the corpus context carefully
-  2. CHECK if it actually discusses: {{title}} and {{keywords}}
-  3. REJECT if corpus is about a different topic:
-    - Example: If corpus discusses "dashboards" but title is "Hiring Managers", REJECT
-    - Example: If corpus discusses "SLIs" but keywords are "agile, stand-up", REJECT
-
-  4. If corpus context does NOT match the topic, respond with:
-    "ERROR: Corpus search returned irrelevant content.
-      Detected topics: [list topics you see in corpus]
-      Requested topic: {{title}} ({{keywords}})
-      Cannot create outline without relevant source material."
-
-  5. ONLY proceed if corpus context clearly relates to the requested topic.
-
   MANDATORY KEYWORD ENFORCEMENT:
   - Every main section title MUST contain at least one keyword from: {{keywords}}
   - If you cannot justify a section using the keywords, do NOT include it
