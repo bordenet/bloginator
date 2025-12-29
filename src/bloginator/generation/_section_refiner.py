@@ -55,58 +55,106 @@ def create_citations(results: list[SearchResult], max_citations: int = 5) -> lis
 
 
 def get_voice_samples(searcher: CorpusSearcher, keywords: list[str], num_samples: int = 3) -> str:
-    """Fetch focused voice samples from corpus to help LLM emulate author's style.
+    """Fetch author-written voice samples from corpus to help LLM emulate style.
 
-    Reduced from 5 to 3 samples, each limited to 150 words to avoid context bloat.
+    Prioritizes documents that represent the author's authentic voice:
+    - Essays, guides, and analysis docs (not interview transcripts)
+    - Documents with clear narrative structure (not templates or specs)
+    - Content with distinct writing style (not third-party or academic text)
 
     Args:
         searcher: Corpus searcher to use
-        keywords: Keywords to use for sampling context
+        keywords: Keywords for topical context
         num_samples: Number of diverse samples to fetch (default: 3)
 
     Returns:
         Formatted voice samples string for inclusion in prompt
     """
     try:
-        # Get a diverse sample by using different query strategies
-        samples = []
+        # Search for author-written content using voice-indicative queries
+        voice_queries = [
+            "my experience leading teams",  # Personal narrative
+            "lessons learned from",  # Reflective writing
+            "how we approach",  # Organizational voice
+            "why this matters",  # Opinion/analysis
+            "what I've observed",  # Direct observation
+        ]
 
-        # Sample 1: Use first keyword
+        # Also include one topically relevant query for context
         if keywords:
-            results = searcher.search(keywords[0], n_results=1)
-            samples.extend(results)
+            voice_queries.insert(0, f"{keywords[0]} best practices")
 
-        # Sample 2: Use a general writing query to get different content
-        general_results = searcher.search("writing style examples", n_results=1)
-        samples.extend(general_results)
-
-        # Sample 3: If we have more keywords, use another
-        if len(keywords) > 1:
-            results = searcher.search(keywords[1], n_results=1)
-            samples.extend(results)
-
-        # Deduplicate by chunk_id and limit
+        samples = []
         seen_ids = set()
-        unique_samples = []
-        for sample in samples:
-            if sample.chunk_id not in seen_ids:
-                seen_ids.add(sample.chunk_id)
-                unique_samples.append(sample)
-                if len(unique_samples) >= num_samples:
+
+        for query in voice_queries:
+            results = searcher.search(query, n_results=2)
+            for result in results:
+                # Filter out templates, transcripts, and third-party content
+                filename = result.metadata.get("filename", "").lower()
+
+                # Skip these document types (not authentic voice)
+                skip_patterns = [
+                    "template",
+                    "transcript",
+                    "interview",
+                    "questions",
+                    "jd",  # Job descriptions
+                    "sample",
+                    "_po_",  # Product owner templates
+                    "_sre_",  # SRE templates
+                    "contractor",
+                ]
+
+                if any(pattern in filename for pattern in skip_patterns):
+                    continue
+
+                # Skip if chunk is too short (likely metadata/headers)
+                if len(result.content.split()) < 50:
+                    continue
+
+                # Skip if already seen
+                if result.chunk_id in seen_ids:
+                    continue
+
+                seen_ids.add(result.chunk_id)
+                samples.append(result)
+
+                if len(samples) >= num_samples:
                     break
 
-        if not unique_samples:
+            if len(samples) >= num_samples:
+                break
+
+        if not samples:
+            logger.warning("No high-quality voice samples found - falling back to keyword search")
+            # Fallback: use keyword search but still filter templates
+            if keywords:
+                results = searcher.search(keywords[0], n_results=num_samples * 2)
+                for result in results:
+                    filename = result.metadata.get("filename", "").lower()
+                    if not any(
+                        p in filename for p in ["template", "transcript", "interview", "questions"]
+                    ):
+                        samples.append(result)
+                        if len(samples) >= num_samples:
+                            break
+
+        if not samples:
             return ""
 
         # Format samples for the prompt
         sample_parts = []
-        for i, sample in enumerate(unique_samples, 1):
-            # Reduced from 200 to 150 words for brevity
+        for i, sample in enumerate(samples[:num_samples], 1):
+            # Limit to 150 words for brevity
             content = sample.content
             words = content.split()
             if len(words) > 150:
                 content = " ".join(words[:150]) + "..."
-            sample_parts.append(f"[Sample {i}]\n{content}\n")
+
+            # Include filename for transparency
+            filename = sample.metadata.get("filename", "unknown")
+            sample_parts.append(f"[Sample {i} - from {filename}]\n{content}\n")
 
         return "\n".join(sample_parts)
 
