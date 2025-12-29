@@ -100,7 +100,9 @@
       "Bash(src/bloginator/generation/_section_refiner.py )",
       "Bash(src/bloginator/generation/draft_generator.py )",
       "Bash(tests/unit/generation/test_draft_generator.py)",
-      "Bash(./scripts/run-fast-quality-gate.sh:*)"
+      "Bash(./scripts/run-fast-quality-gate.sh:*)",
+      "Bash(. .venv/bin/activate)",
+      "Bash(python3.13 -m black:*)"
     ],
     "deny": [],
     "ask": []

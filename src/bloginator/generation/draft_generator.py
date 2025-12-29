@@ -31,14 +31,14 @@ class DraftGenerator:
     Attributes:
         llm_client: LLM client for text generation
         searcher: Corpus searcher for RAG
-        sources_per_section: Number of sources to retrieve per section
+        sources_per_section: Number of sources to retrieve per section (reduced to 3 for brevity)
     """
 
     def __init__(
         self,
         llm_client: LLMClient,
         searcher: CorpusSearcher,
-        sources_per_section: int = 5,
+        sources_per_section: int = 3,
         prompt_loader: PromptLoader | None = None,
     ):
         """Initialize draft generator.
@@ -46,7 +46,7 @@ class DraftGenerator:
         Args:
             llm_client: LLM client for generation
             searcher: Corpus searcher for RAG
-            sources_per_section: Sources to retrieve per section
+            sources_per_section: Sources to retrieve per section (default: 3, reduced from 5)
             prompt_loader: Prompt loader (creates default if None)
         """
         self.llm_client = llm_client
@@ -58,7 +58,7 @@ class DraftGenerator:
         self,
         outline: Outline,
         temperature: float = 0.7,
-        max_section_words: int = 300,
+        max_section_words: int = 70,
         progress_callback: Callable[[str, int, int], None] | None = None,
     ) -> Draft:
         """Generate draft from outline.

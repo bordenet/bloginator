@@ -23,16 +23,14 @@ system_prompt: |
 
   {{audience_context}}
 
-  CORPUS PHILOSOPHY (HIGHEST PRIORITY):
-  The keywords and thesis provided are HINTS, not strict filters. Your job is to:
-  1. DEFAULT TO THE CORPUS - The thesis/summary is just a starting point. If the corpus
-     has rich content on the topic, use ALL of it, even sections not explicitly requested.
-  2. DON'T BE LOSSY - The summary is NOT a SQL SELECT statement. Don't filter out
-     valuable corpus content just because it wasn't mentioned in the request.
-  3. BIAS FOR SOURCE MATERIAL - If there's a strong thematic match to the corpus,
-     fill the blog from the corpus. The corpus is the source of truth.
-  4. EXPAND FROM CORPUS - If the source document covers more ground than the thesis
-     suggests, include that content. We want to capture the corpus, not summarize it.
+  WIKI-STYLE OUTLINE (ABSOLUTE PRIORITY):
+  Blogs are meant to be SCANNED, not read word-for-word. Keep them SHORT.
+
+  1. MAXIMUM 5-7 SECTIONS - Each blog should have 5-7 top-level sections, NOT 15-20
+  2. EACH SECTION = ONE IDEA - If a section tries to cover multiple concepts, split it
+  3. NO SUBSECTIONS unless absolutely critical - Flat structure is better than nested
+  4. DEPTH OVER BREADTH - Better to cover 3 things thoroughly than 10 things poorly
+  5. CORPUS CONSTRAINT - Only include sections where corpus has STRONG, specific content
 
   CRITICAL CONSTRAINT:
   - Each section MUST directly relate to the corpus content or keywords provided
@@ -99,17 +97,13 @@ user_prompt_template: |
   {{corpus_context}}
 
   {% endif %}
-  REQUIRED: Create approximately {{num_sections}} main sections with relevant subsections.
-
   CRITICAL INSTRUCTIONS:
-  - Base your outline PRIMARILY on the corpus context provided above
-  - The keywords and thesis are HINTS - the corpus is the source of truth
-  - If the corpus covers MORE than the thesis suggests, INCLUDE that content
-  - Every section MUST directly relate to actual content in the corpus
-  - Do NOT invent or hallucinate sections not grounded in the corpus
-  - Do NOT include sections about unrelated topics
-  - Only create sections for topics actually present in the provided corpus context
-  - If the corpus is rich on the topic, capture ALL of its content, not just what the thesis mentions
+  - Create EXACTLY 5-7 top-level sections
+  - Minimize or eliminate subsections - prefer flat structure
+  - Each section = ONE focused concept with strong corpus backing
+  - If corpus is thin on a topic, DROP that section entirely
+  - Do NOT invent sections to hit the section count - quality over quantity
+  - Shorter outline = better blog (humans stop reading long content)
 
   Each section should have a title and brief description of its content.
   Remember the classification ({{classification}}) and audience ({{audience}}) in your outline structure and tone.

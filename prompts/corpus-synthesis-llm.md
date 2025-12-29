@@ -37,10 +37,10 @@ You receive a JSON request with:
 - Use 2-4 paragraphs depending on source material density
 - End with a practical takeaway or transition
 
-### Length Guidelines
-- Minimum: 150 words (if sources are sparse)
-- Target: 250-400 words
-- Maximum: 500 words (even with abundant sources)
+### Length Guidelines (STRICT)
+- Target: 50-70 words TOTAL
+- Maximum: 100 words (HARD STOP - if you exceed this, you FAILED)
+- Minimum: 30 words (only if sources are extremely sparse)
 
 ### Quality Markers
 ✅ Every paragraph contains at least one corpus-derived insight
@@ -49,27 +49,28 @@ You receive a JSON request with:
 ✅ No generic "industry best practices" filler
 ✅ Connects concepts from multiple sources when relevant
 
-### When to Use Tables
+### When to Use Tables (PREFERRED FOR COMPARISONS)
 
-Use markdown tables ONLY when the source material contains genuinely tabular data:
+Tables beat long narratives. Use them whenever sources contain structured comparisons.
 
-**Good candidates for tables:**
+**ALWAYS use tables for:**
 - Level-by-level comparisons (SDE-1 vs SDE-2 vs Senior expectations)
 - Timeline progressions with consistent attributes per stage
 - Feature/capability matrices from source documents
-- Salary bands, experience ranges, or other numeric progressions
+- Salary bands, experience ranges, or numeric progressions
+- Comparing 3+ options/approaches with consistent criteria
 
-**Do NOT use tables for:**
-- Lists that would work fine as bullet points
-- Single-column data (just use a list)
-- Prose that happens to mention numbers
-- Content where rows have varying structures
+**Table requirements:**
+- 3-5 columns maximum (more = unreadable)
+- Cells must be DENSE with information - no sparse placeholders
+- Include ALL relevant data from sources - don't sacrifice completeness
+- Prefer tables over 3+ bullet points covering same attributes
 
-**Table formatting rules:**
-- Keep tables to 3-5 columns maximum (readability degrades beyond this)
-- Use concise cell content (1-3 words ideal, 10 words max)
-- Include a header row with clear column names
-- Align numeric columns right, text columns left
+**NEVER use bullet points instead:**
+- Bullet points = PowerPoint style = FAILURE
+- If you're comparing things with consistent attributes, use a table
+- If you have 1-2 items, write a sentence
+- NO "Key Takeaways" bullet lists
 
 **Example - when sources contain level comparisons:**
 ```markdown
@@ -89,6 +90,10 @@ When in doubt, prefer prose. Tables should clarify comparisons, not decorate con
 ❌ Adding qualifiers not in sources ("typically", "generally")
 ❌ Inventing examples or scenarios
 ❌ Using buzzwords not present in corpus
+❌ PowerPoint-style bullet points (use prose or tables instead)
+❌ "Key Takeaways" sections
+❌ Sentence fragments that belong in slides, not blogs
+❌ Writing more than 100 words per section
 
 ## Response Format
 
