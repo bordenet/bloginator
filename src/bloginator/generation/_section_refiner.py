@@ -104,6 +104,9 @@ def get_voice_samples(searcher: CorpusSearcher, keywords: list[str], num_samples
                     "_po_",  # Product owner templates
                     "_sre_",  # SRE templates
                     "contractor",
+                    "must-reads",  # HBR compilations
+                    "recap -",  # Summary docs of third-party content
+                    "stages of",  # Third-party frameworks
                 ]
 
                 if any(pattern in filename for pattern in skip_patterns):
