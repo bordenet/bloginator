@@ -7,7 +7,6 @@ This module tests extraction functionality including edge cases:
 - Large files
 """
 
-
 from bloginator.extraction._doc_extractors import extract_confluence_export, html_to_text
 
 

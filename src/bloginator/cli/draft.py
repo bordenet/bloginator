@@ -35,7 +35,6 @@ def _update_draft_from_markdown(draft: Draft, markdown_content: str) -> None:
         draft: Draft object to update
         markdown_content: Revised markdown content from quality review
     """
-    import re
 
     lines = markdown_content.strip().split("\n")
 

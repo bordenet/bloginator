@@ -10,9 +10,9 @@ Tests validate that the draft prompt produces:
 """
 
 import pytest
+from tests.llm_prompts.conftest import ClaudeSonnet45Client
 
 from bloginator.prompts.loader import PromptLoader
-from tests.llm_prompts.conftest import ClaudeSonnet45Client
 
 
 class TestDraftPromptBrevity:
@@ -214,8 +214,7 @@ class TestDraftPromptSourceGrounding:
 
         # Should contain ERROR about mismatched sources
         assert "ERROR" in response.content or "topic" in response.content.lower(), (
-            "Draft should detect off-topic sources. "
-            f"Response: {response.content}"
+            "Draft should detect off-topic sources. " f"Response: {response.content}"
         )
 
 
