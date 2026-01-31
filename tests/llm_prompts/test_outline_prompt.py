@@ -8,14 +8,14 @@ Tests validate that the outline prompt produces:
 5. No AI slop (em-dashes, flowery language)
 """
 
-from tests.llm_prompts.conftest import ClaudeSonnet45Client
-
 from bloginator.generation._outline_parser import parse_outline_response
 from bloginator.generation._outline_prompt_builder import (
     OutlinePromptBuilder,
     build_corpus_context,
     build_search_queries,
 )
+
+from tests.llm_prompts.conftest import ClaudeSonnet45Client
 
 
 class TestOutlinePromptStructure:

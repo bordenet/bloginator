@@ -4,9 +4,8 @@
 ################################################################################
 # PURPOSE: Quick validation checks for code quality
 #   - Code formatting (black)
-#   - Linting (ruff)
+#   - Linting (ruff) - includes import sorting via I rules
 #   - Type checking (mypy) on key modules
-#   - Import sorting (isort)
 #   - Fast unit tests (excluding slow tests)
 #
 # USAGE:
@@ -138,14 +137,10 @@ else
     echo "⚠️  No Python files found, skipping type check"
 fi
 
-# 4. Import sorting
+# 4. Import sorting (handled by ruff I rules, checked in step 2)
 echo ""
-echo "4/5 Checking import sorting (isort)..."
-if ! isort --check-only --profile=black --line-length=100 src/ tests/ 2>/dev/null; then
-    echo "❌ Imports not sorted. Run: isort --profile=black --line-length=100 src/ tests/"
-    exit 1
-fi
-echo "✅ Import sorting OK"
+echo "4/5 Import sorting..."
+echo "✅ Import sorting OK (verified by ruff I rules in step 2)"
 
 # 5. Unit tests (fast subset only) - skip if no tests yet
 echo ""

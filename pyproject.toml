@@ -203,6 +203,7 @@ ignore = [
 
 [tool.ruff.lint.isort]
 known-first-party = ["bloginator"]
+known-local-folder = ["tests"]
 force-single-line = false
 lines-after-imports = 2
 

@@ -15,6 +15,7 @@ fi
 ALLOWED_ROOT_FILES=(
     "README.md"
     "CLAUDE.md"
+    "Agents.md"
     "LICENSE"
     "CONTRIBUTING.md"
     "SECURITY.md"
@@ -81,9 +82,9 @@ if [ ${#VIOLATIONS[@]} -gt 0 ]; then
     echo "  • Temporary scripts → tmp/ (git-ignored)"
     echo "  • Blog outputs → blogs/ (git-ignored)"
     echo "  • Prompt experiments → prompts/experimentation/ (git-ignored)"
-    echo "  • Documentation → docs/ or specific docs like CLAUDE.md"
+    echo "  • Documentation → docs/ or specific docs like Agents.md"
     echo ""
-    echo "See CLAUDE.md for full repository cleanliness policy."
+    echo "See Agents.md for full repository cleanliness policy."
     echo ""
     exit 1
 fi

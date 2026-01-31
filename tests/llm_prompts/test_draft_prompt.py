@@ -10,9 +10,10 @@ Tests validate that the draft prompt produces:
 """
 
 import pytest
-from tests.llm_prompts.conftest import ClaudeSonnet45Client
 
 from bloginator.prompts.loader import PromptLoader
+
+from tests.llm_prompts.conftest import ClaudeSonnet45Client
 
 
 class TestDraftPromptBrevity:

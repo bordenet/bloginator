@@ -39,12 +39,7 @@ repos:
       - id: mixed-line-ending
         args: [--fix=lf]
 
-  # Import sorting
-  - repo: https://github.com/PyCQA/isort
-    rev: 5.13.2
-    hooks:
-      - id: isort
-        args: [--profile=black, --line-length=100]
+  # NOTE: Import sorting handled by ruff (I rules) - do not add standalone isort
 
   # Docstring validation
   - repo: https://github.com/PyCQA/pydocstyle

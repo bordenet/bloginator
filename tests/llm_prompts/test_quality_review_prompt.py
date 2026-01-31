@@ -7,9 +7,9 @@ Tests validate that the quality review workflow:
 4. Removes AI slop patterns
 """
 
-from tests.llm_prompts.conftest import ClaudeSonnet45Client
-
 from bloginator.prompts.loader import PromptLoader
+
+from tests.llm_prompts.conftest import ClaudeSonnet45Client
 
 
 class TestQualityReviewPromptReduction:

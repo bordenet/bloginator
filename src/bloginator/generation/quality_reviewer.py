@@ -6,6 +6,7 @@ brevity, clarity, and professionalism before content is delivered to users.
 
 import json
 import logging
+from typing import Any
 
 from bloginator.generation.llm_client import LLMClient
 from bloginator.models.draft import Draft
@@ -43,7 +44,7 @@ class QualityReviewer:
     def _analyze_structure(
         self,
         draft_content: str,
-    ) -> dict:
+    ) -> dict[str, Any]:
         """Analyze draft for structural and quality issues.
 
         This is the first call in the 2-call workflow. It identifies specific
@@ -74,7 +75,7 @@ class QualityReviewer:
 
         # Parse JSON response
         try:
-            analysis = json.loads(response.content.strip())
+            analysis: dict[str, Any] = json.loads(response.content.strip())
             logger.info(
                 "Analysis complete: %d issues found (word count: %d)",
                 analysis.get("summary", {}).get("total_issues", 0),
@@ -97,7 +98,7 @@ class QualityReviewer:
     def _revise_content(
         self,
         draft_content: str,
-        issues: list[dict],
+        issues: list[dict[str, Any]],
         temperature: float = 0.3,
     ) -> str:
         """Revise draft content based on identified issues.
