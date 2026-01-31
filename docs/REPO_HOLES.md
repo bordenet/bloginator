@@ -202,10 +202,10 @@ bloginator.cli.extract_utils (disabled)
 
 ## 📚 Documentation Gaps
 
-### 23. AGENTS.md Missing
+### 23. ~~AGENTS.md Missing~~ ✅ RESOLVED
 - **Issue**: No `AGENTS.md` file documented in CLAUDE.md standards
 - **Expected**: Standardized commands for this project
-- **Action**: Create if standardized commands exist
+- **Resolution**: Created root `Agents.md` with comprehensive AI guidance and command reference
 
 ### 24. No Runbook for Production Issues
 - **Issue**: PRODUCTION_READINESS_CHECKLIST exists but no runbook
@@ -301,8 +301,8 @@ test_create_default_provider            - Environment override
 3. Improve edge case coverage
 
 ### Phase 4: Documentation
-1. Create AGENTS.md
-2. Create RUNBOOK.md
+1. ✅ Create Agents.md (consolidated in root)
+2. ✅ Create RUNBOOK.md
 3. Complete configuration documentation
 
 ---

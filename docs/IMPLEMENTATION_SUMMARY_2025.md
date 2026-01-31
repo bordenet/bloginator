@@ -8,7 +8,7 @@
 
 ### Deliverables
 
-1. **AGENTS.md** (555 lines)
+1. **Agents.md** (root, consolidated from docs/AGENTS.md)
    - Standardized commands for CLI, git workflows, testing
    - Quick reference table for all common tasks
    - Troubleshooting workflows for common issues
@@ -156,7 +156,7 @@ Identified 8 modules exceeding 350-line limit (CLAUDE.md standard):
 - Updated pyproject.toml configuration
 
 ### Documentation Added
-- docs/AGENTS.md (555 lines)
+- Agents.md (root, 1000+ lines - consolidated AI guidance)
 - docs/RUNBOOK.md (480 lines)
 - docs/REPO_HOLES.md (400 lines)
 - docs/PHASE2_TYPING_ROADMAP.md
@@ -237,9 +237,9 @@ find src -name "*.py" -exec wc -l {} + | sort -rn | head -15
 
 ## References
 
-- **CLAUDE.md**: Overall coding standards
+- **Agents.md**: Comprehensive AI agent guidance and standardized commands
+- **CLAUDE.md**: Redirect to Agents.md
 - **docs/PYTHON_STYLE_GUIDE.md**: Python-specific style rules
-- **docs/AGENTS.md**: Standardized commands
 - **docs/RUNBOOK.md**: Production troubleshooting
 - **docs/REPO_HOLES.md**: Gap analysis
 - **docs/PHASE2_TYPING_ROADMAP.md**: Type checking plan
