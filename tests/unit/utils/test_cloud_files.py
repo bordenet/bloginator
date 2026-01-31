@@ -4,6 +4,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from bloginator.utils.cloud_files import (
+    _DEFAULT_HYDRATION_DIR,
     CloudFileStatus,
     cleanup_hydration_temp_dir,
     get_cloud_file_status,
@@ -140,3 +141,43 @@ class TestCleanupHydrationTempDir:
         count = cleanup_hydration_temp_dir(temp_dir=temp_dir)
 
         assert count == 0
+
+
+class TestDefaultHydrationDir:
+    """Tests for default hydration directory configuration."""
+
+    def test_default_hydration_dir_uses_tempdir(self) -> None:
+        """Default hydration dir should use system temp directory."""
+        import tempfile
+
+        # The default dir should be under the system temp directory
+        system_temp = Path(tempfile.gettempdir())
+        assert _DEFAULT_HYDRATION_DIR.parent == system_temp
+        assert _DEFAULT_HYDRATION_DIR.name == "bloginator_hydration"
+
+    def test_hydrate_via_copy_uses_default_dir_when_none(self, tmp_path: Path) -> None:
+        """hydrate_via_copy should use default temp dir when temp_dir is None."""
+        source_file = tmp_path / "source.txt"
+        source_file.write_text("test content")
+
+        # Mock the default dir to use our tmp_path to avoid polluting system temp
+        mock_default = tmp_path / "mock_hydration"
+        with patch("bloginator.utils.cloud_files._DEFAULT_HYDRATION_DIR", mock_default):
+            result = hydrate_via_copy(source_file, temp_dir=None, timeout_seconds=10.0)
+
+            assert result is not None
+            assert result.parent == mock_default
+            assert result.read_text() == "test content"
+
+    def test_cleanup_uses_default_dir_when_none(self, tmp_path: Path) -> None:
+        """cleanup_hydration_temp_dir should use default dir when temp_dir is None."""
+        # Create a mock default dir with files
+        mock_default = tmp_path / "mock_hydration"
+        mock_default.mkdir()
+        (mock_default / "file1.txt").write_text("content")
+
+        with patch("bloginator.utils.cloud_files._DEFAULT_HYDRATION_DIR", mock_default):
+            count = cleanup_hydration_temp_dir(temp_dir=None)
+
+            assert count == 1
+            assert not mock_default.exists()
