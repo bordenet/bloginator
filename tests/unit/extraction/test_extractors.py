@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from bloginator.extraction._markup_extractors import extract_text_from_xml
 from bloginator.extraction.extractors import (
     _extract_confluence_export,
     _html_to_text,
@@ -262,3 +263,60 @@ Content-Transfer-Encoding: quoted-printable
 
         assert "Test" in text
         assert "Content here" in text
+
+
+class TestExtractTextFromXml:
+    """Tests for XML text extraction using defusedxml."""
+
+    def test_extract_text_from_valid_xml(self, tmp_path: Path) -> None:
+        """Test extracting text from valid XML file."""
+        xml_file = tmp_path / "test.xml"
+        xml_file.write_text(
+            '<?xml version="1.0"?><root><title>Hello</title><body>World</body></root>'
+        )
+
+        text = extract_text_from_xml(xml_file)
+
+        assert "Hello" in text
+        assert "World" in text
+
+    def test_extract_text_from_nested_xml(self, tmp_path: Path) -> None:
+        """Test extracting text from nested XML elements."""
+        xml_file = tmp_path / "nested.xml"
+        xml_file.write_text(
+            '<?xml version="1.0"?>'
+            "<doc><section><para>First paragraph.</para>"
+            "<para>Second paragraph.</para></section></doc>"
+        )
+
+        text = extract_text_from_xml(xml_file)
+
+        assert "First paragraph" in text
+        assert "Second paragraph" in text
+
+    def test_extract_text_from_xml_with_tail_text(self, tmp_path: Path) -> None:
+        """Test extracting tail text after child elements."""
+        xml_file = tmp_path / "tail.xml"
+        xml_file.write_text('<?xml version="1.0"?><root>Before <em>emphasis</em> after</root>')
+
+        text = extract_text_from_xml(xml_file)
+
+        assert "Before" in text
+        assert "emphasis" in text
+        assert "after" in text
+
+    def test_extract_text_from_malformed_xml_returns_empty(self, tmp_path: Path) -> None:
+        """Test that malformed XML returns empty string (graceful degradation)."""
+        xml_file = tmp_path / "malformed.xml"
+        xml_file.write_text("<root><unclosed>")
+
+        text = extract_text_from_xml(xml_file)
+
+        assert text == ""
+
+    def test_extract_text_from_nonexistent_xml_raises(self, tmp_path: Path) -> None:
+        """Test that nonexistent XML file raises FileNotFoundError."""
+        xml_file = tmp_path / "nonexistent.xml"
+
+        with pytest.raises(FileNotFoundError):
+            extract_text_from_xml(xml_file)
