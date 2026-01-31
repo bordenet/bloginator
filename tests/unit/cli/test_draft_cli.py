@@ -7,6 +7,25 @@ import pytest
 from click.testing import CliRunner
 
 from bloginator.cli.draft import draft
+from bloginator.generation.llm_base import LLMResponse
+
+
+def create_mock_llm_response(content: str = "Mock content") -> LLMResponse:
+    """Create a properly mocked LLMResponse object.
+
+    Args:
+        content: The content to return in the response.
+
+    Returns:
+        LLMResponse with actual string values (not Mock objects).
+    """
+    return LLMResponse(
+        content=content,
+        model="mock-model",
+        prompt_tokens=100,
+        completion_tokens=50,
+        finish_reason="stop",
+    )
 
 
 @pytest.fixture
@@ -72,15 +91,24 @@ class TestDraftCLI:
         temp_output,
     ):
         """Test basic draft generation."""
-        # Setup mocks
+        # Setup mocks - searcher for corpus search
         mock_searcher = Mock()
+        mock_searcher.search.return_value = []  # Return empty search results
         mock_searcher_class.return_value = mock_searcher
 
-        mock_llm.return_value = Mock()
+        # Setup LLM client mock to return proper LLMResponse objects
+        mock_llm_client = Mock()
+        # Quality review returns JSON analysis with no issues (skips revision step)
+        mock_llm_client.generate.return_value = create_mock_llm_response(
+            '{"issues": [], "summary": {"total_issues": 0, "word_count": 100}}'
+        )
+        mock_llm.return_value = mock_llm_client
 
+        # Setup draft generator mock
         mock_generator = Mock()
         mock_draft = Mock()
         mock_draft.content = "# Test Document\n\nContent here."
+        mock_draft.title = "Test Document"
         mock_draft.total_words = 100
         mock_draft.total_citations = 5
         mock_draft.get_all_sections.return_value = []
@@ -215,14 +243,22 @@ class TestDraftCLI:
         temp_output,
     ):
         """Test draft generation with citations enabled."""
-        # Setup mocks
+        # Setup mocks - searcher for corpus search
         mock_searcher = Mock()
+        mock_searcher.search.return_value = []
         mock_searcher_class.return_value = mock_searcher
-        mock_llm.return_value = Mock()
+
+        # Setup LLM client mock to return proper LLMResponse objects
+        mock_llm_client = Mock()
+        mock_llm_client.generate.return_value = create_mock_llm_response(
+            '{"issues": [], "summary": {"total_issues": 0, "word_count": 100}}'
+        )
+        mock_llm.return_value = mock_llm_client
 
         mock_generator = Mock()
         mock_draft = Mock()
         mock_draft.content = "Content with citation[^1]."
+        mock_draft.title = "Test Document"
         mock_draft.total_words = 100
         mock_draft.total_citations = 5
         mock_draft.get_all_sections.return_value = []
@@ -261,14 +297,22 @@ class TestDraftCLI:
         temp_output,
     ):
         """Test draft with voice similarity threshold."""
-        # Setup mocks
+        # Setup mocks - searcher for corpus search
         mock_searcher = Mock()
+        mock_searcher.search.return_value = []
         mock_searcher_class.return_value = mock_searcher
-        mock_llm.return_value = Mock()
+
+        # Setup LLM client mock to return proper LLMResponse objects
+        mock_llm_client = Mock()
+        mock_llm_client.generate.return_value = create_mock_llm_response(
+            '{"issues": [], "summary": {"total_issues": 0, "word_count": 100}}'
+        )
+        mock_llm.return_value = mock_llm_client
 
         mock_generator = Mock()
         mock_draft = Mock()
         mock_draft.content = "Test content."
+        mock_draft.title = "Test Document"
         mock_draft.total_words = 100
         mock_draft.total_citations = 5
         mock_draft.get_all_sections.return_value = []

@@ -4,10 +4,12 @@ from bloginator.generation._llm_mock_responses import (
     detect_draft_request,
     detect_outline_request,
     detect_quality_review_request,
+    detect_topic_validation_request,
     generate_generic_response,
     generate_mock_draft,
     generate_mock_outline,
     generate_mock_quality_review,
+    generate_mock_topic_validation,
 )
 from bloginator.generation.llm_base import LLMClient, LLMResponse
 
@@ -58,7 +60,10 @@ class MockLLMClient(LLMClient):
             LLMResponse with mock content
         """
         # Detect request type from prompt
-        if detect_quality_review_request(prompt):
+        # Topic validation must be checked before outline (both contain "section" keyword)
+        if detect_topic_validation_request(prompt):
+            content = generate_mock_topic_validation(prompt)
+        elif detect_quality_review_request(prompt):
             content = generate_mock_quality_review(prompt)
         elif detect_outline_request(prompt):
             content = generate_mock_outline(prompt)

@@ -4,16 +4,26 @@ This module provides fixtures for testing prompts with a real LLM (Claude Sonnet
 to validate prompt quality, constraint compliance, and output characteristics.
 """
 
+from __future__ import annotations
+
 import os
-from collections.abc import Generator
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
-from anthropic import Anthropic
 
-from bloginator.generation.llm_base import LLMClient, LLMResponse
-from bloginator.prompts.loader import PromptLoader
-from bloginator.search import CorpusSearcher
+
+# Skip all tests in this module if anthropic package is not installed
+anthropic = pytest.importorskip("anthropic", reason="anthropic package not installed")
+Anthropic = anthropic.Anthropic
+
+from bloginator.generation.llm_base import LLMClient, LLMResponse  # noqa: E402
+from bloginator.prompts.loader import PromptLoader  # noqa: E402
+from bloginator.search import CorpusSearcher  # noqa: E402
+
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+    from pathlib import Path
 
 
 class ClaudeSonnet45Client(LLMClient):

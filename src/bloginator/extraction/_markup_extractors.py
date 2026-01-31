@@ -4,7 +4,9 @@ import re
 import shutil
 import subprocess
 from pathlib import Path
-from xml.etree import ElementTree
+from xml.etree.ElementTree import Element, ParseError
+
+import defusedxml.ElementTree as DefusedET
 
 
 def extract_text_from_xml(xml_path: Path) -> str:
@@ -12,6 +14,7 @@ def extract_text_from_xml(xml_path: Path) -> str:
 
     Recursively extracts all text content from XML elements.
     Returns empty string for malformed XML (graceful degradation).
+    Uses defusedxml to prevent XML bomb attacks.
 
     Args:
         xml_path: Path to XML file
@@ -26,11 +29,11 @@ def extract_text_from_xml(xml_path: Path) -> str:
         raise FileNotFoundError(f"XML file not found: {xml_path}")
 
     try:
-        tree = ElementTree.parse(xml_path)
+        tree = DefusedET.parse(xml_path)
         root = tree.getroot()
 
         # Recursively extract all text
-        def get_text(element: ElementTree.Element) -> str:
+        def get_text(element: Element) -> str:
             texts = []
             if element.text and element.text.strip():
                 texts.append(element.text.strip())
@@ -41,7 +44,7 @@ def extract_text_from_xml(xml_path: Path) -> str:
             return " ".join(texts)
 
         return get_text(root)
-    except ElementTree.ParseError:
+    except ParseError:
         # Malformed XML - return empty, will be skipped as empty_content
         return ""
     except Exception:

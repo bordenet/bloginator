@@ -64,6 +64,8 @@ class CorpusIndexer:
         Returns:
             Content checksum if document exists in index, None otherwise
         """
+        # ChromaDB's include parameter accepts string literals across versions.
+        # Using "metadatas" string for compatibility with chromadb 0.5.x and 1.x.
         results = self.collection.get(
             where={"document_id": document_id},
             limit=1,

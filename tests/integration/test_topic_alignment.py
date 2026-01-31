@@ -26,15 +26,28 @@ from bloginator.search import CorpusSearcher, SearchResult
 
 @pytest.fixture
 def mock_llm_client():
-    """Mock LLMClient for controlled responses."""
+    """Mock LLMClient for controlled responses.
+
+    OutlineGenerator now makes TWO calls:
+    1. Validation call (expects "VALID" or error)
+    2. Generation call (returns outline content)
+    """
     client = MagicMock()
-    # Default response for outline generation (can be overridden in tests)
-    client.generate.return_value.content = """
+
+    # Create response objects for validation and generation
+    validation_response = MagicMock()
+    validation_response.content = "VALID"
+
+    generation_response = MagicMock()
+    generation_response.content = """
     ## Introduction
     Brief overview of the topic.
     ### Background
     Setting the stage.
     """
+
+    # Default: first call returns validation, second returns outline
+    client.generate.side_effect = [validation_response, generation_response]
     return client
 
 
@@ -118,7 +131,11 @@ class TestCategoryAExactMatch:
             for i in range(10)
         ]
 
-        mock_llm_client.generate.return_value.content = """
+        # Reset side_effect for two calls: validation + generation
+        validation_response = MagicMock()
+        validation_response.content = "VALID"
+        generation_response = MagicMock()
+        generation_response.content = """
         ## The Purpose of Dashboards in Observability
         Understanding what dashboards excel at and where they fall short.
         ### At-a-Glance System Health
@@ -126,6 +143,7 @@ class TestCategoryAExactMatch:
         ### When Dashboards Are Not Enough
         Dashboards cannot replace alerting or automated remediation.
         """
+        mock_llm_client.generate.side_effect = [validation_response, generation_response]
 
         outline = outline_generator.generate(
             title="What Dashboards are Good For",
@@ -152,7 +170,11 @@ class TestCategoryAExactMatch:
             for i in range(10)
         ]
 
-        mock_llm_client.generate.return_value.content = """
+        # Reset side_effect for two calls: validation + generation
+        validation_response = MagicMock()
+        validation_response.content = "VALID"
+        generation_response = MagicMock()
+        generation_response.content = """
         ## Understanding the SLI to SLA Journey
         The path from indicators to agreements.
         ### Defining Service Level Indicators
@@ -160,6 +182,7 @@ class TestCategoryAExactMatch:
         ### Setting Realistic SLOs
         Objectives must be achievable and meaningful.
         """
+        mock_llm_client.generate.side_effect = [validation_response, generation_response]
 
         outline = outline_generator.generate(
             title="The Road to an SLA",
@@ -208,7 +231,11 @@ class TestCategoryBSimilarTopics:
             for i in range(6)
         ]
 
-        mock_llm_client.generate.return_value.content = """
+        # Reset side_effect for two calls: validation + generation
+        validation_response = MagicMock()
+        validation_response.content = "VALID"
+        generation_response = MagicMock()
+        generation_response.content = """
         ## Dashboards That Surface Actionable Insights
         Moving beyond vanity metrics to real observability.
         ### Selecting SLIs That Matter
@@ -216,6 +243,7 @@ class TestCategoryBSimilarTopics:
         ### Layout Principles for Quick Diagnosis
         Group related metrics and use consistent scales.
         """
+        mock_llm_client.generate.side_effect = [validation_response, generation_response]
 
         outline = outline_generator.generate(
             title="Building Dashboards That Drive Action",
@@ -383,7 +411,11 @@ class TestLegacyTopicAlignment:
             ),
         ]
 
-        mock_llm_client.generate.return_value.content = """
+        # Reset side_effect for two calls: validation + generation
+        validation_response = MagicMock()
+        validation_response.content = "VALID"
+        generation_response = MagicMock()
+        generation_response.content = """
         ## Recruiting Strategy for Hiring Managers
         Understanding the critical impact on team growth and success.
         ### Strategic Workforce Planning
@@ -393,6 +425,7 @@ class TestLegacyTopicAlignment:
         ### Calibrating Expectations
         Defining clear roles and success metrics.
         """
+        mock_llm_client.generate.side_effect = [validation_response, generation_response]
 
         outline = outline_generator.generate(
             title="What Great Hiring Managers Actually Do",
@@ -435,7 +468,11 @@ class TestSearchQueryBuilding:
         assert len(queries) == len(set(queries))
 
     def test_corpus_context_richness(self):
-        """Validate context includes similarity scores, source names, and 500-char previews."""
+        """Validate context includes similarity scores, source names, and previews.
+
+        Note: Current implementation uses 200-char previews and 3 results max
+        for faster LLM validation. Test verifies key content is present.
+        """
         results = [
             SearchResult(
                 chunk_id="chunk-1",
@@ -443,11 +480,7 @@ class TestSearchQueryBuilding:
                 "hiring and effective recruiting strategies. It goes into detail about "
                 "behavioral interviewing techniques, candidate assessment frameworks, "
                 "and the importance of diversity in the hiring process. This content "
-                "is meant to be truncated at 500 characters to show the improvement. "
-                "It also talks about the role of the hiring manager in setting clear "
-                "expectations for candidates and interviewers alike, ensuring a fair "
-                "and consistent process. The document emphasizes the legal aspects "
-                "of hiring and how to avoid unconscious bias.",
+                "is meant to be truncated at 200 characters to show the improvement.",
                 metadata={"filename": "hiring_strategy.md"},
                 distance=0.075,  # similarity_score = 0.925
             ),
@@ -456,10 +489,7 @@ class TestSearchQueryBuilding:
                 content="Another document covering agile rituals, specifically focusing "
                 "on daily stand-ups. It explains how to keep stand-ups efficient, "
                 "avoid common pitfalls like status updates, and foster a culture "
-                "of quick problem-solving. This content is also intentionally long "
-                "to demonstrate the 500-character preview. It touches upon different "
-                "facilitation techniques for remote teams and how to integrate "
-                "stand-ups with other agile ceremonies effectively.",
+                "of quick problem-solving. This content is also intentionally long.",
                 metadata={"filename": "agile_standups.md"},
                 distance=0.12,  # similarity_score = 0.880
             ),
@@ -467,11 +497,12 @@ class TestSearchQueryBuilding:
 
         context = build_corpus_context(results)
 
+        # Verify header and metadata formatting
         assert "CORPUS SEARCH RESULTS (validate topic match!):" in context
         assert "[1] Similarity: 0.925 | Source: hiring_strategy.md" in context
         assert "[2] Similarity: 0.880 | Source: agile_standups.md" in context
+        # Verify key content is present (first 200 chars)
         assert "hiring and effective recruiting strategies" in context
-        assert "behavioral interviewing techniques" in context
-        assert "agile rituals, specifically focusing on daily stand-ups" in context
-        assert "avoid common pitfalls like status updates" in context
-        assert len(context) > 1000
+        assert "agile rituals" in context
+        # Context should be meaningful length (200 chars * 2 results + metadata)
+        assert len(context) > 400

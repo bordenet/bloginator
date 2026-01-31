@@ -232,16 +232,20 @@ Third line too.
 
     def test_generate_basic(self, generator, mock_llm_client, mock_searcher):
         """Test basic outline generation."""
-        # Mock LLM response with sections that match keywords
-        llm_response = Mock()
-        llm_response.content = """
+        # Mock LLM responses for TWO calls: validation then generation
+        validation_response = Mock()
+        validation_response.content = "VALID"
+
+        generation_response = Mock()
+        generation_response.content = """
 ## Test Overview
 Introduction to testing best practices
 
 ## Document Management
 How to organize test documents
 """
-        mock_llm_client.generate.return_value = llm_response
+        # First call returns validation, second returns outline
+        mock_llm_client.generate.side_effect = [validation_response, generation_response]
 
         # Mock search results
         mock_searcher.search.return_value = [
@@ -260,11 +264,12 @@ How to organize test documents
             num_sections=2,
         )
 
-        # Verify LLM was called
-        mock_llm_client.generate.assert_called_once()
-        call_args = mock_llm_client.generate.call_args
+        # Verify LLM was called twice (validation + generation)
+        assert mock_llm_client.generate.call_count == 2
+        # Get the second call (generation) args
+        call_args = mock_llm_client.generate.call_args_list[1]
 
-        # Check prompt contains required elements
+        # Check prompt contains required elements (in generation call)
         user_prompt = call_args.kwargs["prompt"]
         assert "Test Document" in user_prompt
         assert "test, document" in user_prompt
@@ -279,10 +284,22 @@ How to organize test documents
 
     def test_generate_with_temperature(self, generator, mock_llm_client, mock_searcher):
         """Test generation with custom temperature."""
-        llm_response = Mock()
-        llm_response.content = "## Section\nDescription"
-        mock_llm_client.generate.return_value = llm_response
-        mock_searcher.search.return_value = []
+        # Mock TWO calls: validation (temp=0.0) then generation (custom temp)
+        validation_response = Mock()
+        validation_response.content = "VALID"
+
+        generation_response = Mock()
+        generation_response.content = "## Section\nDescription"
+
+        mock_llm_client.generate.side_effect = [validation_response, generation_response]
+        mock_searcher.search.return_value = [
+            SearchResult(
+                chunk_id="chunk1",
+                content="Test content about testing",
+                distance=0.2,
+                metadata={"document_id": "doc1"},
+            )
+        ]
 
         generator.generate(
             title="Test",
@@ -290,9 +307,12 @@ How to organize test documents
             temperature=0.5,
         )
 
-        # Verify temperature passed to LLM
-        call_args = mock_llm_client.generate.call_args
-        assert call_args.kwargs["temperature"] == 0.5
+        # Verify LLM called twice
+        assert mock_llm_client.generate.call_count == 2
+        # First call (validation) uses temperature=0.0
+        assert mock_llm_client.generate.call_args_list[0].kwargs["temperature"] == 0.0
+        # Second call (generation) uses custom temperature
+        assert mock_llm_client.generate.call_args_list[1].kwargs["temperature"] == 0.5
 
     def test_generate_error_handling(self, generator, mock_llm_client, mock_searcher):
         """Test error handling in generation."""
@@ -306,15 +326,19 @@ How to organize test documents
 
     def test_generate_calculates_stats(self, generator, mock_llm_client, mock_searcher):
         """Test that stats are calculated after generation."""
-        llm_response = Mock()
-        llm_response.content = """
+        # Mock TWO LLM calls: validation then generation
+        validation_response = Mock()
+        validation_response.content = "VALID"
+
+        generation_response = Mock()
+        generation_response.content = """
 ## Test Implementation
 How to implement testing
 
 ## Test Coverage
 Understanding test coverage
 """
-        mock_llm_client.generate.return_value = llm_response
+        mock_llm_client.generate.side_effect = [validation_response, generation_response]
 
         # Mock different coverage levels
         def search_side_effect(query, n_results):
@@ -322,19 +346,17 @@ Understanding test coverage
                 return [
                     SearchResult(
                         chunk_id="c1",
-                        content="Content about test implementation",
+                        content="Content about test implementation with test keywords",
                         distance=0.1,
                         metadata={"document_id": "doc1"},
                     )
                 ] * 10
             else:
-                # Use distance=0.85 (similarity=0.15) to get below 50% coverage
-                # Coverage calc: effective_sim=0.15, normalized=0.15/0.25=0.6,
-                # result_factor=0.5 (1 result), coverage=0.6*0.5*100=30%
+                # Return content that passes validation (must include keywords)
                 return [
                     SearchResult(
                         chunk_id="c2",
-                        content="Coverage information",
+                        content="Test coverage information with test keywords",
                         distance=0.85,
                         metadata={"document_id": "doc2"},
                     )
