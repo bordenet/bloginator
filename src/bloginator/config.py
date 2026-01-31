@@ -5,6 +5,7 @@ Uses python-dotenv to load .env file from project root.
 """
 
 import os
+import tempfile
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -118,8 +119,8 @@ class Config:
         os.getenv("CORPUS_MAINTAIN_SHADOW_COPIES", "false").lower() == "true"
     )
 
-    # Shadow copy root directory (not configurable via env, but exposed for testing)
-    SHADOW_COPY_ROOT: Path = Path("/tmp/bloginator/corpus_shadow")
+    # Shadow copy root directory (uses system temp dir, exposed for testing)
+    SHADOW_COPY_ROOT: Path = Path(tempfile.gettempdir()) / "bloginator" / "corpus_shadow"
 
     # Company Branding (for blog personalization)
     # These are injected into prompts for company-specific content

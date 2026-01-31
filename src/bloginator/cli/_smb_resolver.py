@@ -2,13 +2,14 @@
 
 import platform
 import subprocess
+import tempfile
 from pathlib import Path
 
 from bloginator.cli.error_reporting import ErrorTracker, SkipCategory
 
 
-# Default shadow copy location for offline corpus access
-SHADOW_COPY_ROOT = Path("/tmp/bloginator/corpus_shadow")
+# Default shadow copy location for offline corpus access (uses system temp dir)
+SHADOW_COPY_ROOT = Path(tempfile.gettempdir()) / "bloginator" / "corpus_shadow"
 
 
 def _get_shadow_path_for_smb(smb_url: str) -> Path | None:

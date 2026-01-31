@@ -9,10 +9,14 @@ from __future__ import annotations
 
 import contextlib
 import subprocess
+import tempfile
 import time
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+
+# Default temp directory for hydration copies (uses system temp dir)
+_DEFAULT_HYDRATION_DIR = Path(tempfile.gettempdir()) / "bloginator_hydration"
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -280,13 +284,16 @@ def hydrate_via_copy(
     import threading
 
     if temp_dir is None:
-        temp_dir = Path("/tmp/bloginator_hydration")
+        temp_dir = _DEFAULT_HYDRATION_DIR
 
     # Create temp directory
     temp_dir.mkdir(parents=True, exist_ok=True)
 
     # Create unique filename using hash of original path
-    path_hash = hashlib.md5(str(file_path.absolute()).encode()).hexdigest()[:12]
+    # nosec B324 - MD5 used for filename uniqueness, not security
+    path_hash = hashlib.md5(str(file_path.absolute()).encode(), usedforsecurity=False).hexdigest()[
+        :12
+    ]
     temp_file = temp_dir / f"{path_hash}_{file_path.name}"
 
     # Remove existing temp file if present
@@ -328,7 +335,7 @@ def cleanup_hydration_temp_dir(temp_dir: Path | None = None) -> int:
     """Clean up the temporary hydration directory.
 
     Args:
-        temp_dir: Directory to clean (default: /tmp/bloginator_hydration)
+        temp_dir: Directory to clean (default: system temp/bloginator_hydration)
 
     Returns:
         Number of files removed
@@ -336,7 +343,7 @@ def cleanup_hydration_temp_dir(temp_dir: Path | None = None) -> int:
     import shutil
 
     if temp_dir is None:
-        temp_dir = Path("/tmp/bloginator_hydration")
+        temp_dir = _DEFAULT_HYDRATION_DIR
 
     if not temp_dir.exists():
         return 0

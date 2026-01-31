@@ -188,7 +188,8 @@ class TestDraftGenerator:
         user_prompt = call_args.kwargs["prompt"]
         assert "Section Title" in user_prompt
         assert "Section description" in user_prompt
-        assert "500 words" in user_prompt
+        # Prompt now uses brevity requirements instead of max_words parameter
+        assert "60-80 words" in user_prompt or "BREVITY" in user_prompt
         assert "keyword1" in user_prompt  # Keyword should be in source context
 
         system_prompt = call_args.kwargs["system_prompt"]

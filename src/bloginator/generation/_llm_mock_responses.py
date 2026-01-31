@@ -39,6 +39,24 @@ def detect_draft_request(prompt: str) -> bool:
     return any(keyword in prompt.lower() for keyword in draft_keywords)
 
 
+def detect_topic_validation_request(prompt: str) -> bool:
+    """Check if prompt is requesting topic validation.
+
+    Args:
+        prompt: User prompt
+
+    Returns:
+        True if topic validation request detected
+    """
+    validation_keywords = [
+        "validation task",
+        "requested topic",
+        "validation rules",
+        "respond with exactly",
+    ]
+    return any(keyword in prompt.lower() for keyword in validation_keywords)
+
+
 def detect_quality_review_request(prompt: str) -> bool:
     """Check if prompt is requesting quality review.
 
@@ -197,6 +215,20 @@ Give engineers problems, not solutions. Frame challenges with context and constr
 
 Decisions need three elements: clear owner, written rationale, and rollback criteria. Document in ADRs, communicate in team meetings, and reference in code reviews. When teams deviate, point to the ADR rather than relitigating.
 """
+
+
+def generate_mock_topic_validation(prompt: str) -> str:
+    """Generate mock topic validation response.
+
+    Always returns "VALID" for testing to allow outline generation to proceed.
+
+    Args:
+        prompt: Topic validation prompt
+
+    Returns:
+        "VALID" to indicate corpus matches topic
+    """
+    return "VALID"
 
 
 def generate_generic_response() -> str:

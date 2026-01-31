@@ -4,6 +4,7 @@ This module handles generating markdown and JSON reports for corpus operations.
 """
 
 import json
+import tempfile
 from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -14,17 +15,17 @@ if TYPE_CHECKING:
 
 
 def generate_corpus_report(tracker: "ErrorTracker", output_path: Path | None = None) -> Path:
-    """Generate a comprehensive corpus extraction report to /tmp.
+    """Generate a comprehensive corpus extraction report to temp directory.
 
     Args:
         tracker: ErrorTracker with extraction statistics
-        output_path: Optional output path. Defaults to /tmp/bloginator_corpus_report.md
+        output_path: Optional output path. Defaults to system temp/bloginator_corpus_report.md
 
     Returns:
         Path to the generated report file
     """
     if output_path is None:
-        output_path = Path("/tmp/bloginator_corpus_report.md")
+        output_path = Path(tempfile.gettempdir()) / "bloginator_corpus_report.md"
 
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     lines = [
