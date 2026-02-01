@@ -3,18 +3,12 @@
 [![Tests](https://github.com/bordenet/bloginator/actions/workflows/tests.yml/badge.svg)](https://github.com/bordenet/bloginator/actions/workflows/tests.yml)
 [![Lint and type check](https://github.com/bordenet/bloginator/actions/workflows/lint.yml/badge.svg)](https://github.com/bordenet/bloginator/actions/workflows/lint.yml)
 [![Security](https://github.com/bordenet/bloginator/actions/workflows/security.yml/badge.svg)](https://github.com/bordenet/bloginator/actions/workflows/security.yml)
-[![Dependabot Status](https://img.shields.io/badge/dependabot-enabled-brightgreen?logo=dependabot)](https://github.com/bordenet/bloginator/security/dependabot)
 ![Coverage](https://img.shields.io/badge/coverage-67%25-yellow)
-![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 **Generate customized renditions of your existing content, free of AI slop.**
 
 Bloginator synthesizes new articles from your historical writing using RAG and local/cloud LLMs. Every generated sentence traces back to your corpus—your voice, your examples, your terminology. No generic filler, no hallucinated facts.
-
-**Version**: 1.0.0
-**Python**: 3.10+
-**License**: MIT
 
 ---
 
@@ -194,11 +188,7 @@ Current test coverage: **~67%** (761 passing tests). CI enforces 65% minimum.
 
 [![Coverage Grid](https://codecov.io/gh/bordenet/bloginator/graphs/tree.svg)](https://codecov.io/gh/bordenet/bloginator)
 
-Color coding:
-
-- **Green**: >80% coverage
-- **Yellow**: 60-80% coverage
-- **Red**: <60% coverage (needs improvement)
+Green = >80%, Yellow = 60-80%, Red = <60%. Click for details.
 
 ---
 
@@ -230,11 +220,3 @@ bloginator metrics --format prometheus --output metrics.prom
 - Prometheus integration
 
 See [MONITORING.md](docs/MONITORING.md) for details.
-
----
-
-## Links
-
-- **Repository**: <https://github.com/bordenet/bloginator>
-- **Issues**: <https://github.com/bordenet/bloginator/issues>
-- **Author**: Matt Bordenet
