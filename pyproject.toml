@@ -51,8 +51,8 @@ dependencies = [
     "cryptography>=43.0.1",
     "psutil>=5.9.0",
     # Core RAG dependencies (required by searcher.py, indexer.py)
-    "chromadb==1.3.7",
-    "sentence-transformers==5.2.0",
+    "chromadb==1.4.1",
+    "sentence-transformers==5.2.2",
     # Office format extractors
     "python-pptx>=0.6.21",
     "openpyxl>=3.1.0",
