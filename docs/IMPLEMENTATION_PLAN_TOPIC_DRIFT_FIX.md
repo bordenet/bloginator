@@ -3,7 +3,7 @@
 **Status**: Phase 1 Completed
 **Created**: 2024-12-04
 **Last Updated**: 2024-12-05
-**Related**: [ASSESSMENT_VECTORIZATION_AND_PROMPTS.md](ASSESSMENT_VECTORIZATION_AND_PROMPTS.md)
+**Related**: ASSESSMENT_VECTORIZATION_AND_PROMPTS.md (archived)
 
 ---
 
