@@ -1257,7 +1257,7 @@ require_var() {
 
 ### Complete Script Example
 
-See [`examples/template-script.sh`](examples/template-script.sh) for a complete, production-ready script template.
+A complete, production-ready script template should follow all the standards documented above.
 
 ### Library Usage Example
 

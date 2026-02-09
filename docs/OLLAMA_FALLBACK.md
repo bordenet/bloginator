@@ -154,4 +154,3 @@ When the workflow runs, you'll see in the console:
 ## See Also
 
 - [Bloginator LLM Configuration](../README.md#llm-configuration)
-- [Assistant Mode Documentation](./ASSISTANT_LLM_MODE.md)
