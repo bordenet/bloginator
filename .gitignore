@@ -269,3 +269,4 @@ tmp/
 
 # Setup cache (generated during setup)
 .setup-cache/
+*.backup
