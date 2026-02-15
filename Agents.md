@@ -3,41 +3,63 @@
 > **Last Updated:** 2026-02-02
 > **Languages:** python
 > **Type:** cli-tools
-
+<!-- GOLDEN:self-manage:start -->
+## ⚠️ Before ANY Task
+1. Load `.ai-guidance/invariants.md` — contains critical rules
+2. After editing ANY guidance file, check: `wc -l Agents.md .ai-guidance/*.md 2>/dev/null`
+   - `Agents.md` >150 lines → refactor into `.ai-guidance/`
+   - Any `.ai-guidance/*.md` >50 lines → split into sub-directory
+<!-- GOLDEN:self-manage:end -->
 <!-- GOLDEN:framework:start -->
-
-## Superpowers Bootstrap
-
-At the START of every conversation, run:
-
-```bash
-node ~/.codex/superpowers-augment/superpowers-augment.js bootstrap
-```
-
-**Key skills:**
-| Skill | When to Use |
-|-------|-------------|
-| `superpowers:brainstorming` | Before creative/feature work |
-| `superpowers:systematic-debugging` | Before fixing bugs |
-| `superpowers:test-driven-development` | Before writing implementation |
-| `superpowers:verification-before-completion` | Before claiming done |
 
 ---
 
-## Anti-Slop Rules
+## Quality Gates (MANDATORY)
 
-- **No flattery** - Skip "Great question!"
-- **No hype** - Avoid "revolutionary", "game-changing"
+Before ANY commit:
+1. **Lint**: `# lint`
+2. **Build**: `# build`
+3. **Test**: `# test`
+4. **Coverage**: Minimum 70%
+
+**Order matters.** Lint → Build → Test. Never skip steps.
+
+---
+
+## Communication Rules
+
+- **No flattery** - Skip "Great question!" or "Excellent point!"
+- **No hype** - Avoid "revolutionary", "game-changing", "seamless"
 - **Evidence-based** - Cite sources or qualify as opinion
 - **Direct** - State facts without embellishment
 
+**Banned phrases**: production-grade, world-class, leverage, utilize, incredibly, extremely, Happy to help!
+
 ---
 
-## Quality Gates (Python)
+## 🚨 Progressive Module Loading
+
+**STOP and load the relevant module BEFORE these actions:**
+
+### Language Modules (🔴 Required)
+- 🔴 **BEFORE writing > **Languages:** python code**: Read `$HOME/.golden-agents/templates/languages/> **Languages:** python.md`
+
+### Workflow Modules (🔴 Required)
+- 🔴 **BEFORE any commit, PR, push, or merge**: Read `$HOME/.golden-agents/templates/workflows/security.md`
+- 🔴 **WHEN tests fail OR after 2+ failed fix attempts**: Read `$HOME/.golden-agents/templates/workflows/testing.md`
+- 🔴 **WHEN build fails OR lint errors appear**: Read `$HOME/.golden-agents/templates/workflows/build-hygiene.md`
+- 🟡 **BEFORE deploying to any environment**: Read `$HOME/.golden-agents/templates/workflows/deployment.md`
+- 🟡 **WHEN conversation exceeds 50 exchanges**: Read `$HOME/.golden-agents/templates/workflows/context-management.md`
+
+### Project type guidance:
+- Read `$HOME/.golden-agents/templates/project-types/> **Type:** cli-tools.md`
+
+### Optional: Superpowers integration
+
+If [superpowers](https://github.com/obra/superpowers) is installed, run at session start:
 
 ```bash
-./scripts/run-fast-quality-gate.sh  # Quick check
-pytest tests/ --cov=src/bloginator --cov-fail-under=85  # Full
+node ~/.codex/superpowers-augment/superpowers-augment.js bootstrap
 ```
 
 <!-- GOLDEN:framework:end -->
