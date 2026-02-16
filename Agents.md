@@ -17,9 +17,9 @@
 ## Quality Gates (MANDATORY)
 
 Before ANY commit:
-1. **Lint**: `# lint`
-2. **Build**: `# build`
-3. **Test**: `# test`
+1. **Lint**: `ruff check .`
+2. **Build**: `pip install -e .`
+3. **Test**: `pytest`
 4. **Coverage**: Minimum 70%
 
 **Order matters.** Lint → Build → Test. Never skip steps.
@@ -42,7 +42,7 @@ Before ANY commit:
 **STOP and load the relevant module BEFORE these actions:**
 
 ### Language Modules (🔴 Required)
-- 🔴 **BEFORE writing > **Languages:** python code**: Read `$HOME/.golden-agents/templates/languages/> **Languages:** python.md`
+- 🔴 **BEFORE writing python code**: Read `$HOME/.golden-agents/templates/languages/python.md`
 
 ### Workflow Modules (🔴 Required)
 - 🔴 **BEFORE any commit, PR, push, or merge**: Read `$HOME/.golden-agents/templates/workflows/security.md`
@@ -52,7 +52,7 @@ Before ANY commit:
 - 🟡 **WHEN conversation exceeds 50 exchanges**: Read `$HOME/.golden-agents/templates/workflows/context-management.md`
 
 ### Project type guidance:
-- Read `$HOME/.golden-agents/templates/project-types/> **Type:** cli-tools.md`
+- Read `$HOME/.golden-agents/templates/project-types/cli-tools.md`
 
 ### Optional: Superpowers integration
 
