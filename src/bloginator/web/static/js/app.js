@@ -45,6 +45,7 @@ if (document.getElementById('search-form')) {
 }
 
 function displaySearchResults(results) {
+    // Use DOM methods (not innerHTML) to prevent XSS from untrusted API data
     const container = document.getElementById('results-list');
     container.innerHTML = '';
 
