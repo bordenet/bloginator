@@ -232,6 +232,8 @@ logs/
 .env.*.local
 secrets.json
 credentials.json
+*.pem
+*.key
 
 # Test outputs
 test_output/
