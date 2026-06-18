@@ -238,6 +238,14 @@ credentials.json
 *.pfx
 *.crt
 *.cer
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+id_ecdsa_sk
+id_ed25519_sk
+.env.*
+!.env.example
 
 # Test outputs
 test_output/
