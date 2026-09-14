@@ -109,12 +109,12 @@ topics:
     summary: |
       Defines "raising the bar" in concrete terms, explains how to apply it in
       hiring and performance, and calls out where the phrase becomes empty
-      jargon—including why it still matters at CallBox.
+      jargon—including why it still matters at Acme.
     sections:
       - A working definition of "raise the bar"
       - How to operationalize bar-raising in hiring decisions
       - Where the phrase is overused and unhelpful
-      - How CallBox will use bar-raising intentionally
+      - How Acme will use bar-raising intentionally
       - Avoiding elitism while maintaining a high standard
 
   # ============================================================================
@@ -603,7 +603,7 @@ topics:
       - Driving decisions with crisp options and tradeoffs
       - Being concise without losing nuance
       - Using tools and templates to get it right first time
-      - Making one-pagers a habit at CallBox
+      - Making one-pagers a habit at Acme
 
   - title: "How to Give Constructive Feedback (SBI Model)"
     keywords: ["feedback", "sbi-model", "coaching", "management"]
@@ -622,7 +622,7 @@ topics:
     keywords: ["leadership", "terminology", "definitions", "management"]
     audience: "all-disciplines"
     summary: |
-      Defines key leadership terms used at CallBox so everyone shares a common
+      Defines key leadership terms used at Acme so everyone shares a common
       vocabulary for roles, expectations, and practices.
     sections:
       - Core leadership roles and their distinctions

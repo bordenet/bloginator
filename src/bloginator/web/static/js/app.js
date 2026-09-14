@@ -45,22 +45,41 @@ if (document.getElementById('search-form')) {
 }
 
 function displaySearchResults(results) {
+    // Use DOM methods (not innerHTML) to prevent XSS from untrusted API data
     const container = document.getElementById('results-list');
     container.innerHTML = '';
 
     if (results.length === 0) {
-        container.innerHTML = '<p class="text-gray-500">No results found.</p>';
+        const msg = document.createElement('p');
+        msg.className = 'text-gray-500';
+        msg.textContent = 'No results found.';
+        container.appendChild(msg);
     } else {
-        results.forEach((result, index) => {
+        results.forEach((result) => {
             const card = document.createElement('div');
             card.className = 'result-card bg-white border border-gray-200 rounded-lg p-4 hover:shadow-lg';
-            card.innerHTML = `
-                <div class="flex justify-between items-start mb-2">
-                    <h3 class="text-lg font-medium text-gray-900">${result.filename}</h3>
-                    <span class="text-sm text-gray-500">${(result.similarity_score * 100).toFixed(1)}% match</span>
-                </div>
-                <p class="text-sm text-gray-700">${result.content.substring(0, 300)}${result.content.length > 300 ? '...' : ''}</p>
-            `;
+
+            const header = document.createElement('div');
+            header.className = 'flex justify-between items-start mb-2';
+
+            const h3 = document.createElement('h3');
+            h3.className = 'text-lg font-medium text-gray-900';
+            h3.textContent = result.filename;
+
+            const score = document.createElement('span');
+            score.className = 'text-sm text-gray-500';
+            score.textContent = `${(result.similarity_score * 100).toFixed(1)}% match`;
+
+            header.appendChild(h3);
+            header.appendChild(score);
+
+            const preview = document.createElement('p');
+            preview.className = 'text-sm text-gray-700';
+            const snippet = result.content.substring(0, 300);
+            preview.textContent = result.content.length > 300 ? snippet + '...' : snippet;
+
+            card.appendChild(header);
+            card.appendChild(preview);
             container.appendChild(card);
         });
     }
@@ -101,23 +120,38 @@ if (document.getElementById('outline-form')) {
 
 function displayOutline(outline) {
     const display = document.getElementById('outline-display');
-    let html = `<h2 class="font-bold text-lg">${outline.title}</h2>`;
+    display.innerHTML = '';
+
+    const h2 = document.createElement('h2');
+    h2.className = 'font-bold text-lg';
+    h2.textContent = outline.title;
+    display.appendChild(h2);
 
     if (outline.thesis) {
-        html += `<p class="mt-2 text-sm italic">${outline.thesis}</p>`;
+        const thesis = document.createElement('p');
+        thesis.className = 'mt-2 text-sm italic';
+        thesis.textContent = outline.thesis;
+        display.appendChild(thesis);
     }
 
-    html += '<ul class="mt-4 space-y-2">';
+    const ul = document.createElement('ul');
+    ul.className = 'mt-4 space-y-2';
     outline.sections.forEach(section => {
-        html += `<li class="text-sm"><strong>${section.title}</strong>`;
-        if (section.description) {
-            html += `: ${section.description}`;
-        }
-        html += '</li>';
-    });
-    html += '</ul>';
+        const li = document.createElement('li');
+        li.className = 'text-sm';
 
-    display.innerHTML = html;
+        const strong = document.createElement('strong');
+        strong.textContent = section.title;
+        li.appendChild(strong);
+
+        if (section.description) {
+            li.appendChild(document.createTextNode(': ' + section.description));
+        }
+
+        ul.appendChild(li);
+    });
+    display.appendChild(ul);
+
     document.getElementById('outline-result').classList.remove('hidden');
 }
 
@@ -160,18 +194,29 @@ if (document.getElementById('draft-form')) {
 
 function displayDraft(draft) {
     const display = document.getElementById('draft-display');
-    let html = `<h1>${draft.title}</h1>`;
+    display.innerHTML = '';
+
+    const h1 = document.createElement('h1');
+    h1.textContent = draft.title;
+    display.appendChild(h1);
 
     if (draft.thesis) {
-        html += `<p class="italic">${draft.thesis}</p>`;
+        const thesis = document.createElement('p');
+        thesis.className = 'italic';
+        thesis.textContent = draft.thesis;
+        display.appendChild(thesis);
     }
 
     draft.sections.forEach(section => {
-        html += `<h2>${section.title}</h2>`;
-        html += `<p>${section.content}</p>`;
+        const h2 = document.createElement('h2');
+        h2.textContent = section.title;
+        display.appendChild(h2);
+
+        const p = document.createElement('p');
+        p.textContent = section.content;
+        display.appendChild(p);
     });
 
-    display.innerHTML = html;
     document.getElementById('draft-result').classList.remove('hidden');
 }
 

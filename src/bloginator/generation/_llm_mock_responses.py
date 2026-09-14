@@ -4,6 +4,10 @@
 def detect_outline_request(prompt: str) -> bool:
     """Check if prompt is requesting an outline.
 
+    Only checks the prompt's opening instruction line, not the full text --
+    source material and formatting guidance quoted later in the prompt can
+    otherwise contain any of these words incidentally and misroute the mock.
+
     Args:
         prompt: User prompt
 
@@ -12,16 +16,19 @@ def detect_outline_request(prompt: str) -> bool:
     """
     outline_keywords = [
         "outline",
-        "section",
         "structure",
         "organize",
         "table of contents",
     ]
-    return any(keyword in prompt.lower() for keyword in outline_keywords)
+    first_line = prompt.strip().split("\n", 1)[0].lower()
+    return any(keyword in first_line for keyword in outline_keywords)
 
 
 def detect_draft_request(prompt: str) -> bool:
     """Check if prompt is requesting draft content.
+
+    Only checks the prompt's opening instruction line -- see
+    detect_outline_request for why.
 
     Args:
         prompt: User prompt
@@ -36,7 +43,8 @@ def detect_draft_request(prompt: str) -> bool:
         "expand",
         "content for",
     ]
-    return any(keyword in prompt.lower() for keyword in draft_keywords)
+    first_line = prompt.strip().split("\n", 1)[0].lower()
+    return any(keyword in first_line for keyword in draft_keywords)
 
 
 def detect_topic_validation_request(prompt: str) -> bool:
@@ -133,6 +141,24 @@ Summary of key takeaways and recommendations for moving forward.
 """
 
 
+_STOPWORDS = {
+    "the",
+    "a",
+    "an",
+    "to",
+    "of",
+    "for",
+    "and",
+    "or",
+    "in",
+    "on",
+    "how",
+    "this",
+    "that",
+    "properly",
+}
+
+
 def generate_mock_draft(prompt: str) -> str:
     """Generate mock draft content.
 
@@ -140,39 +166,54 @@ def generate_mock_draft(prompt: str) -> str:
         prompt: Draft generation prompt
 
     Returns:
-        Realistic paragraph content
+        Realistic paragraph content, or an ERROR message if the requested
+        section topic shares no meaningful words with the supplied source
+        material (mirrors a real model refusing to draft from unrelated
+        sources).
     """
-    # Extract section title if present
+    lines = prompt.split("\n")
+
+    # "Title:" is the authoritative section name; fall back to the generic
+    # "section:" phrase only if no title line is present.
     section = "this topic"
-    if "section:" in prompt.lower() or "title:" in prompt.lower():
-        lines = prompt.split("\n")
+    for line in lines:
+        if line.lower().strip().startswith("title:"):
+            section = line.split(":", 1)[1].strip().lower()
+            break
+    else:
         for line in lines:
-            if "section:" in line.lower() or "title:" in line.lower():
-                section = line.split(":", 1)[1].strip().lower()
-                break
+            if "section:" in line.lower():
+                remainder = line.split(":", 1)[1].strip()
+                if remainder:
+                    section = remainder.lower()
+                    break
 
-    # Generate realistic content
-    return f"""When considering {section}, it's important to understand both the theoretical
-foundations and practical applications. Based on established best practices and real-world
-experience, successful teams tend to focus on a few key areas.
+    # Extract the source material block to check topic grounding.
+    source_material = ""
+    if "source material:" in prompt.lower():
+        source_material = prompt.lower().split("source material:", 1)[1]
 
-First, establishing clear communication channels and expectations helps ensure everyone is
-aligned on goals and approach. This includes both synchronous and asynchronous methods,
-with documentation serving as a critical reference point.
+    title_words = {w for w in section.split() if len(w) > 3 and w not in _STOPWORDS}
+    if title_words and source_material and not any(w in source_material for w in title_words):
+        return (
+            "ERROR: The provided source material does not appear to match the "
+            f"requested topic ({section}). Cannot draft grounded content."
+        )
 
-Second, building iterative processes allows teams to learn and adapt as they progress.
-Rather than trying to achieve perfection upfront, successful practitioners embrace
-incremental improvement and continuous refinement. This approach reduces risk while
-maintaining forward momentum.
+    # Generate realistic content (kept under the brevity limit tested elsewhere)
+    return f"""When considering {section}, successful teams tend to focus on a few key areas.
+
+First, clear communication channels and expectations help ensure everyone stays aligned
+on goals and approach, with documentation as a critical reference point.
+
+Second, iterative processes let teams learn and adapt as they progress, favoring
+incremental improvement over upfront perfection.
 
 Third, measuring outcomes and gathering feedback creates accountability and enables
-data-driven decision making. Teams that regularly assess their progress and adjust based
-on results tend to achieve better outcomes than those that operate on assumptions alone.
+data-driven decisions.
 
-These principles, when applied consistently and thoughtfully, form the foundation for
-sustainable success in this domain. The specific implementation details will vary based
-on team context, organizational culture, and technical constraints, but the underlying
-concepts remain broadly applicable across different environments and scenarios.
+These principles, applied consistently, form the foundation for sustainable success,
+though specifics will vary with team context and constraints.
 """
 
 
