@@ -7,7 +7,7 @@ from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
 
-import fitz  # PyMuPDF
+import pymupdf
 
 from bloginator.extraction._doc_extractors import (
     extract_confluence_export,
@@ -62,7 +62,7 @@ def suppress_stderr() -> Generator[None, None, None]:
 def extract_text_from_pdf(pdf_path: Path) -> str:
     """Extract text content from PDF file.
 
-    Uses PyMuPDF (fitz) to extract text from all pages.
+    Uses PyMuPDF to extract text from all pages.
 
     Args:
         pdf_path: Path to PDF file
@@ -81,7 +81,7 @@ def extract_text_from_pdf(pdf_path: Path) -> str:
         # Suppress MuPDF stderr warnings (syntax errors in PDF content streams)
         # These are informational C-level warnings, not extraction errors
         with suppress_stderr():
-            doc = fitz.open(str(pdf_path))
+            doc = pymupdf.open(str(pdf_path))
             text_parts = []
 
             for page in doc:
