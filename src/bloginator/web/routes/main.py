@@ -19,9 +19,9 @@ async def index(request: Request) -> Any:
     """Home page."""
     templates: Jinja2Templates = request.app.state.templates
     return templates.TemplateResponse(
+        request,
         "index.html",
         {
-            "request": request,
             "title": "Bloginator",
         },
     )
@@ -32,9 +32,9 @@ async def corpus_page(request: Request) -> Any:
     """Corpus management page."""
     templates: Jinja2Templates = request.app.state.templates
     return templates.TemplateResponse(
+        request,
         "corpus.html",
         {
-            "request": request,
             "title": "Corpus Management",
         },
     )
@@ -45,9 +45,9 @@ async def create_page(request: Request) -> Any:
     """Document creation page."""
     templates: Jinja2Templates = request.app.state.templates
     return templates.TemplateResponse(
+        request,
         "create.html",
         {
-            "request": request,
             "title": "Create Document",
         },
     )
@@ -58,9 +58,9 @@ async def search_page(request: Request) -> Any:
     """Search page."""
     templates: Jinja2Templates = request.app.state.templates
     return templates.TemplateResponse(
+        request,
         "search.html",
         {
-            "request": request,
             "title": "Search Corpus",
         },
     )
