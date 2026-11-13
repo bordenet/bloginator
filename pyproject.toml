@@ -300,6 +300,7 @@ filterwarnings = [
     "error",
     "ignore::UserWarning",
     "ignore::DeprecationWarning",
+    "ignore::FutureWarning",
 ]
 
 # Coverage configuration
