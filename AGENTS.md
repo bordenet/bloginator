@@ -11,6 +11,7 @@
    - Any `.ai-guidance/*.md` >250 lines → split into sub-directory
 3. Over the limit, draft a diff. Do not apply it. A human merges it.
 <!-- GOLDEN:self-manage:end -->
+<!-- golden-agents:stamp version=1.4.0 updated=2026-11-13 -->
 <!-- golden-agents:modules python=0e3e36e76bbebc463c7dca7e512f93d13eca07baa8a9c234dfab02ade1e1247e security=1ac770a3537cafe41a39200b507aaa0b4c6a52f2d978d3c9d6be1b44a91687a3 testing=4f99d896d81c026019fbe4e2682baf1ae0bda9cec0ce1c690be6a95d54781509 build-hygiene=17a6efa17673d4e31ff352f4f1a83cb6aab5a9f8804c7e530e1d23677142be86 deployment=738982f51f7ceb856fb3aea9d97236de6725440e04d112cbd1b7ec276c116be8 cli-tools=d999ec7ef38441c0b11517692162d6a94d0434f06e89664aa62feb5f6da63154 -->
 <!-- GOLDEN:framework:start -->
 
